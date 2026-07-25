@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reality Splitter Drawer Harness</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 48px;
+        color: #21342c;
+        background: #f3efe5;
+        font: 16px/1.7 Georgia, serif;
+      }
+
+      main {
+        max-width: 720px;
+        margin: 0 auto;
+      }
+    </style>
+    <script>
+      const runtimeListeners = [];
+
+      window.chrome = {
+        runtime: {
+          onMessage: {
+            addListener(listener) {
+              runtimeListeners.push(listener);
+            }
+          },
+          async sendMessage(message) {
+            document.documentElement.dataset.lastRuntimeInput = message.payload?.input?.text || "";
+
+            if (message.type !== "RUN_INLINE_ANALYSIS") {
+              return { ok: false, error: "Unsupported test message" };
+            }
+
+            return {
+              ok: true,
+              data: {
+                mode: "split",
+                result: {
+                  attentionTriage: {
+                    recommendedAction: "verify",
+                    attentionCost: "medium",
+                    reason: "内容提出了可核查主张，但当前没有给出来源。",
+                    nextStep: "先寻找原始来源，再决定是否投入更多注意力。"
+                  },
+                  propagationLabels: ["缺少来源"],
+                  observableFacts: ["原文包含一个可核查的预测。"],
+                  opinions: [],
+                  inferences: ["预测被表达为较确定的结论。"],
+                  predictions: ["该行业将在两年内发生重大变化。"],
+                  anxietyThemes: [],
+                  viralityHooks: [],
+                  manipulationSignals: [],
+                  sourceReliabilityIssues: ["没有提供原始来源。"],
+                  callsToAction: [],
+                  neutralRewrite: "这是一项尚待来源验证的行业预测。"
+                }
+              }
+            };
+          }
+        }
+      };
+
+      window.openRealitySplitterDrawer = () => {
+        const listener = runtimeListeners.at(-1);
+        listener(
+          {
+            type: "REALITY_SPLITTER_SHOW_INLINE_V2",
+            payload: {
+              input: {
+                text: "有人预测，这个行业将在两年内发生重大变化。",
+                url: window.location.href
+              },
+              workspaceMode: "quick"
+            }
+          },
+          {},
+          (response) => {
+            document.documentElement.dataset.drawerAck = JSON.stringify(response);
+          }
+        );
+      };
+    </script>
+  </head>
+  <body>
+    <main>
+      <h1>抽屉测试页</h1>
+      <p>这个页面用于验证构建后的页面内抽屉，不连接真实模型。</p>
+      <p>打开抽屉后，正文应向右移动，而不是出现居中的弹窗。</p>
+    </main>
+    <script src="/dist/contentScript.js"></script>
+    <script>
+      window.openRealitySplitterDrawer();
+    </script>
+  </body>
+</html>

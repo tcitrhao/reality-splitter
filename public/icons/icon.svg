@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Reality Splitter icon">
+  <defs>
+    <linearGradient id="bg" x1="16" x2="112" y1="10" y2="118" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#326d58"/>
+      <stop offset="1" stop-color="#1f4335"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="30" fill="url(#bg)"/>
+  <path
+    fill="#f7f0e2"
+    d="M27 19h43c23 0 37 13 37 33 0 15-8 26-22 31l24 32H82L62 87H52v28H27V19Zm25 21v27h17c9 0 14-5 14-14s-5-13-14-13H52Z"
+  />
+</svg>

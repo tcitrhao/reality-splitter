@@ -1,0 +1,295 @@
+:root {
+  color-scheme: light;
+  --background: #f7f6f2;
+  --surface: #ffffff;
+  --text: #24231f;
+  --muted: #767269;
+  --line: #ddd9d1;
+  --accent: #2d5bd1;
+  --danger: #9b4238;
+  --serif: "Songti SC", "STSong", serif;
+  --sans: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
+  font-family: var(--sans);
+  color: var(--text);
+  background: var(--background);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--background);
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button,
+a {
+  color: inherit;
+}
+
+a {
+  text-decoration: none;
+}
+
+.studio-shell {
+  width: min(100% - 40px, 1180px);
+  margin: 0 auto;
+  padding-bottom: 80px;
+}
+
+.studio-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 88px;
+  border-bottom: 1px solid var(--line);
+}
+
+.studio-header p,
+.studio-header h1 {
+  margin: 0;
+}
+
+.studio-header p {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.studio-header h1,
+.editor-section h2 {
+  font-family: var(--serif);
+}
+
+.studio-header h1 {
+  font-size: 24px;
+}
+
+.studio-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.studio-actions a,
+.studio-actions button,
+.editor-section__head > button {
+  min-height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.studio-actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.studio-actions .publish-button {
+  border-color: var(--text);
+  background: var(--text);
+  color: #fff;
+}
+
+.studio-status {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 42px;
+  border-bottom: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.studio-status span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #b78b43;
+}
+
+.studio-status[data-ready="true"] span {
+  background: #438a67;
+}
+
+.studio-layout {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 44px;
+  padding-top: 48px;
+}
+
+.studio-nav {
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  border-top: 1px solid var(--line);
+}
+
+.studio-nav button {
+  padding: 14px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--muted);
+  text-align: left;
+  cursor: pointer;
+}
+
+.studio-nav button.is-active {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.editor-section__head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 34px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--line);
+}
+
+.editor-section__head h2,
+.editor-section__head p {
+  margin: 0;
+}
+
+.editor-section__head h2 {
+  margin-bottom: 8px;
+  font-size: 28px;
+}
+
+.editor-section__head p {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.editor-fields,
+.entry-list {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.studio-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.studio-field > span {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.studio-field input,
+.studio-field textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  outline: none;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.studio-field input {
+  min-height: 44px;
+  padding: 0 12px;
+}
+
+.studio-field textarea {
+  min-height: 110px;
+  padding: 11px 12px;
+  resize: vertical;
+  line-height: 1.65;
+}
+
+.studio-field input:focus,
+.studio-field textarea:focus {
+  border-color: var(--accent);
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.entry-list {
+  margin-top: 18px;
+}
+
+.entry-editor {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.entry-editor .studio-field,
+.entry-editor .field-grid {
+  margin-top: 16px;
+}
+
+.entry-editor__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.entry-editor__head button {
+  border: 0;
+  background: transparent;
+  color: var(--danger);
+  cursor: pointer;
+}
+
+@media (max-width: 760px) {
+  .studio-shell {
+    width: min(100% - 28px, 1180px);
+  }
+
+  .studio-header {
+    align-items: flex-start;
+    flex-direction: column;
+    padding: 20px 0;
+  }
+
+  .studio-actions {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .studio-layout {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .studio-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .studio-nav button {
+    text-align: center;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+}

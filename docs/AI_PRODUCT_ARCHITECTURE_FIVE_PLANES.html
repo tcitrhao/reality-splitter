@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>从模型能力到 AI 产品架构｜用户体验五要素</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --paper: #f4f1e9;
+        --surface: rgba(255, 255, 255, 0.82);
+        --surface-strong: #fffefa;
+        --ink: #1c2822;
+        --muted: #627068;
+        --line: #d8ddd5;
+        --green: #275846;
+        --green-soft: #e0eee7;
+        --gold: #96713b;
+        --gold-soft: #f2e7d1;
+        --blue: #45677b;
+        --blue-soft: #e2edf2;
+        --shadow: 0 18px 50px rgba(35, 55, 45, 0.08);
+        --radius: 22px;
+      }
+
+      * { box-sizing: border-box; }
+      html { scroll-behavior: smooth; }
+      body {
+        margin: 0;
+        color: var(--ink);
+        background:
+          radial-gradient(circle at 12% 4%, rgba(224, 238, 231, 0.95), transparent 28rem),
+          radial-gradient(circle at 90% 10%, rgba(242, 231, 209, 0.65), transparent 28rem),
+          var(--paper);
+        font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+        line-height: 1.75;
+      }
+
+      a { color: var(--green); text-underline-offset: 3px; }
+      .page { width: min(1420px, 100%); margin: 0 auto; padding: 24px; }
+      .layout { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: 34px; align-items: start; }
+      .nav {
+        position: sticky;
+        top: 24px;
+        max-height: calc(100vh - 48px);
+        overflow: auto;
+        padding: 20px;
+        border: 1px solid rgba(216, 221, 213, 0.9);
+        border-radius: 18px;
+        background: rgba(255, 254, 250, 0.72);
+        backdrop-filter: blur(14px);
+      }
+      .nav strong { display: block; margin-bottom: 12px; font-size: 14px; letter-spacing: .08em; color: var(--green); }
+      .nav a { display: block; padding: 7px 8px; border-radius: 8px; color: var(--muted); text-decoration: none; font-size: 14px; line-height: 1.4; }
+      .nav a:hover { color: var(--green); background: var(--green-soft); }
+      main { min-width: 0; }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(34px, 7vw, 84px);
+        border: 1px solid rgba(216, 221, 213, 0.9);
+        border-radius: 30px;
+        background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(240,246,241,.8));
+        box-shadow: var(--shadow);
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        width: 330px;
+        height: 330px;
+        right: -120px;
+        top: -150px;
+        border: 64px solid rgba(39, 88, 70, .06);
+        border-radius: 50%;
+      }
+      .kicker { margin: 0 0 12px; color: var(--gold); font-weight: 800; letter-spacing: .16em; text-transform: uppercase; font-size: 12px; }
+      h1 { max-width: 870px; margin: 0; font-family: ui-serif, Georgia, "Songti SC", serif; font-size: clamp(42px, 7vw, 82px); line-height: 1.05; letter-spacing: -.035em; }
+      .lead { max-width: 780px; margin: 24px 0 0; color: var(--muted); font-size: clamp(18px, 2vw, 23px); }
+      .formula { margin-top: 32px; padding: 18px 22px; border-left: 4px solid var(--green); border-radius: 0 14px 14px 0; background: var(--green-soft); font-weight: 760; }
+      .meta { margin-top: 16px; color: var(--muted); font-size: 13px; }
+
+      section { scroll-margin-top: 24px; margin-top: 30px; padding: clamp(26px, 4vw, 48px); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); box-shadow: 0 8px 30px rgba(35,55,45,.035); }
+      h2 { margin: 0 0 18px; font-family: ui-serif, Georgia, "Songti SC", serif; font-size: clamp(28px, 3vw, 42px); line-height: 1.2; }
+      h3 { margin: 34px 0 12px; font-size: 21px; line-height: 1.4; }
+      h4 { margin: 24px 0 8px; font-size: 16px; }
+      p { margin: 10px 0; }
+      .muted { color: var(--muted); }
+      .note { padding: 18px 20px; border-radius: 15px; background: var(--gold-soft); color: #5c492a; }
+      .principle { padding: 24px; border: 1px solid #bfd3c8; border-radius: 18px; background: linear-gradient(135deg, #eaf4ef, #f9fbf9); font-size: 19px; font-weight: 720; }
+      code, .mono { font-family: "SFMono-Regular", Consolas, monospace; }
+      pre { overflow: auto; padding: 20px; border-radius: 16px; color: #e7f2ec; background: #203029; line-height: 1.65; }
+
+      .grid { display: grid; gap: 16px; }
+      .grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .card { padding: 20px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface-strong); }
+      .card h3, .card h4 { margin-top: 0; }
+      .tag { display: inline-flex; align-items: center; padding: 4px 9px; border-radius: 999px; background: var(--green-soft); color: var(--green); font-size: 12px; font-weight: 750; }
+      .tag.gold { background: var(--gold-soft); color: #755322; }
+      .tag.blue { background: var(--blue-soft); color: var(--blue); }
+
+      table { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; }
+      th, td { padding: 13px 14px; border: 1px solid var(--line); text-align: left; vertical-align: top; }
+      th { background: #edf3ee; color: #2d5142; font-weight: 760; }
+      tr:nth-child(even) td { background: rgba(247, 249, 246, .65); }
+      .table-wrap { overflow-x: auto; border-radius: 14px; }
+
+      .planes { display: grid; gap: 10px; margin: 24px 0; }
+      .plane { display: grid; grid-template-columns: 120px 1fr 1fr; gap: 16px; align-items: center; padding: 16px 18px; border-radius: 14px; }
+      .plane:nth-child(1) { background: #e5efe9; }
+      .plane:nth-child(2) { background: #e9f1e6; }
+      .plane:nth-child(3) { background: #eef1e1; }
+      .plane:nth-child(4) { background: #f3eddd; }
+      .plane:nth-child(5) { background: #f3e6d7; }
+      .plane b { color: #274b3c; }
+      .plane span { color: var(--muted); font-size: 14px; }
+
+      .flow { display: flex; flex-wrap: wrap; align-items: stretch; gap: 9px; margin: 20px 0; }
+      .node { flex: 1 1 130px; min-width: 120px; padding: 15px 13px; border: 1px solid #cbd8d0; border-radius: 13px; background: #f8fbf9; text-align: center; font-size: 13px; font-weight: 690; }
+      .arrow { display: flex; align-items: center; color: var(--gold); font-weight: 900; }
+      .loop { padding: 20px; border: 1px dashed #8fa99b; border-radius: 18px; background: #f7faf8; }
+      .loop-label { margin-bottom: 10px; color: var(--green); font-weight: 800; }
+
+      .architecture { margin-top: 22px; padding: 24px; border-radius: 18px; background: #fbfcfa; border: 1px solid var(--line); }
+      .architecture h3 { margin-top: 0; }
+      .architecture .summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 14px; }
+      .summary > div { padding: 12px; border-radius: 12px; background: #eef3ef; font-size: 13px; }
+      .summary b { display: block; color: var(--green); }
+
+      .seven { counter-reset: item; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+      .question { position: relative; padding: 20px 20px 20px 58px; border: 1px solid var(--line); border-radius: 15px; background: #fff; }
+      .question::before { counter-increment: item; content: counter(item); position: absolute; left: 18px; top: 18px; width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--green); color: #fff; font-weight: 800; }
+      .question b { display: block; margin-bottom: 5px; }
+
+      .closing { background: #203029; color: #edf5f0; }
+      .closing h2 { color: #fff; }
+      .closing blockquote { margin: 25px 0 0; padding: 0 0 0 24px; border-left: 4px solid #8eb6a2; font-family: ui-serif, Georgia, "Songti SC", serif; font-size: clamp(20px, 2.4vw, 30px); line-height: 1.55; }
+      .sources li { margin: 8px 0; }
+
+      @media (max-width: 980px) {
+        .layout { grid-template-columns: 1fr; }
+        .nav { position: static; max-height: none; display: flex; gap: 4px; overflow-x: auto; }
+        .nav strong { display: none; }
+        .nav a { flex: 0 0 auto; }
+      }
+      @media (max-width: 720px) {
+        .page { padding: 12px; }
+        .grid-2, .grid-3, .seven, .architecture .summary { grid-template-columns: 1fr; }
+        .plane { grid-template-columns: 1fr; gap: 4px; }
+        .arrow { display: none; }
+        section { padding: 24px 18px; }
+      }
+      @media print {
+        body { background: #fff; }
+        .page { width: 100%; padding: 0; }
+        .layout { display: block; }
+        .nav { display: none; }
+        section, .hero { break-inside: avoid; box-shadow: none; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page">
+      <div class="layout">
+        <nav class="nav" aria-label="章节导航">
+          <strong>阅读地图</strong>
+          <a href="#essence">01 模型本质</a>
+          <a href="#five-planes">02 五要素框架</a>
+          <a href="#capability">03 能力与边界</a>
+          <a href="#patterns">04 四种架构</a>
+          <a href="#comparison">05 横向比较</a>
+          <a href="#reality">06 Reality Splitter</a>
+          <a href="#questions">07 产品经理七问</a>
+          <a href="#matrix">08 架构选择</a>
+          <a href="#myths">09 常见误区</a>
+          <a href="#roadmap">10 学习路线</a>
+        </nav>
+
+        <main>
+          <header class="hero">
+            <p class="kicker">AI Product Architecture · Five Planes</p>
+            <h1>从模型能力到<br />AI 产品架构</h1>
+            <p class="lead">用用户体验五要素理解 Codex、Manus、WorkBuddy 与 Reality Splitter，并学会把 AI 放在真正擅长、失败又可控的位置。</p>
+            <div class="formula">AI 产品价值 = 模型能力 × 上下文质量 × 工具与数据 × 工作流设计 × 交互控制 × 评测与信任</div>
+            <p class="meta">产品经理学习版 · 2026-07-14 · 完整细节另见同目录 Markdown 文档</p>
+          </header>
+
+          <section id="essence">
+            <span class="tag">01 · MODEL</span>
+            <h2>模型不是产品，也不是万能员工</h2>
+            <p class="principle">大语言模型是在上下文条件下生成后续内容的概率模型。它能表现出理解、推理、生成和规划，但“表现得会”不等于“稳定正确地完成”。</p>
+            <div class="grid grid-2" style="margin-top:18px">
+              <div class="card">
+                <h3>模型相对擅长</h3>
+                <ul>
+                  <li>语义理解、分类和信息抽取</li>
+                  <li>摘要、翻译、改写和格式转换</li>
+                  <li>开放式草稿、代码和方案生成</li>
+                  <li>从材料中归纳模式和线索</li>
+                  <li>有限推理、拆步骤和工具选择</li>
+                </ul>
+              </div>
+              <div class="card">
+                <h3>模型天然不拥有</h3>
+                <ul>
+                  <li>可靠的实时事实和权威证据</li>
+                  <li>用户文件、邮箱和数据库权限</li>
+                  <li>跨会话可靠且可治理的记忆</li>
+                  <li>精确计算和确定性执行保证</li>
+                  <li>长任务状态、责任与后果承担</li>
+                </ul>
+              </div>
+            </div>
+            <pre>模型：生成“可能正确的下一步”
+产品：让正确上下文进入，让动作可执行，让错误可发现，让用户可控制</pre>
+          </section>
+
+          <section id="five-planes">
+            <span class="tag">02 · FRAMEWORK</span>
+            <h2>用户体验五要素，升级成 AI 产品框架</h2>
+            <p class="muted">从底层战略到表层表现，每一层都需要同时回答用户问题与模型问题。</p>
+            <div class="planes">
+              <div class="plane"><b>战略层 Strategy</b><span>为谁解决什么问题？成功是什么？</span><span>为什么需要 AI？失败代价多高？</span></div>
+              <div class="plane"><b>范围层 Scope</b><span>做什么、不做什么？</span><span>模型、检索、工具、记忆如何分工？</span></div>
+              <div class="plane"><b>结构层 Structure</b><span>用户任务怎样流转？</span><span>一次生成、固定工作流，还是 Agent Loop？</span></div>
+              <div class="plane"><b>框架层 Skeleton</b><span>信息与控件如何组织？</span><span>如何显示来源、过程、Diff、确认和失败？</span></div>
+              <div class="plane"><b>表现层 Surface</b><span>用户看到和感受到什么？</span><span>如何避免把概率结果包装成确定事实？</span></div>
+            </div>
+            <div class="note"><strong>正确顺序：</strong>用户任务与失败代价 → AI 能力合同 → 人机工作流 → 控制与反馈界面 → 视觉与语言。不要从“加个聊天框”开始。</div>
+          </section>
+
+          <section id="capability">
+            <span class="tag">03 · BOUNDARY</span>
+            <h2>需求不是都交给模型：系统要补齐边界</h2>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>用户需要</th><th>模型单独为何不够</th><th>产品系统应该增加</th></tr></thead>
+                <tbody>
+                  <tr><td>最新事实</td><td>参数知识可能过时</td><td>搜索、数据库、RAG、引用与时间戳</td></tr>
+                  <tr><td>精确计算</td><td>语言生成不是计算器</td><td>代码执行、计算器、数据库聚合</td></tr>
+                  <tr><td>长期记忆</td><td>上下文窗口不是记忆库</td><td>结构化存储、检索、编辑与删除</td></tr>
+                  <tr><td>修改文件或发消息</td><td>模型没有天然权限</td><td>工具、权限、沙箱、确认、日志、撤销</td></tr>
+                  <tr><td>长时间多步任务</td><td>容易偏航、遗忘或循环</td><td>状态机、检查点、重试、预算和终止条件</td></tr>
+                  <tr><td>高风险判断</td><td>可能幻觉且不承担后果</td><td>权威来源、人工复核、审计与责任边界</td></tr>
+                  <tr><td>稳定结构输出</td><td>生成具有概率性</td><td>Schema、校验、重试、兜底与 Eval</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <h3>最快的架构判断</h3>
+            <div class="flow">
+              <div class="node">理解 / 分类 / 改写<br /><span class="muted">模型 + Prompt + Schema</span></div><div class="arrow">→</div>
+              <div class="node">需要外部事实<br /><span class="muted">Search / RAG + 引用</span></div><div class="arrow">→</div>
+              <div class="node">需要外部行动<br /><span class="muted">工具 + 权限 + 日志</span></div><div class="arrow">→</div>
+              <div class="node">需要持续推进<br /><span class="muted">状态 + Agent Loop</span></div><div class="arrow">→</div>
+              <div class="node">错误代价高<br /><span class="muted">人工复核 + 回滚</span></div>
+            </div>
+          </section>
+
+          <section id="patterns">
+            <span class="tag">04 · PATTERNS</span>
+            <h2>四种 AI 产品，不是同一种“Agent”</h2>
+
+            <article class="architecture">
+              <span class="tag">垂直嵌入式工作流</span>
+              <h3>Reality Splitter：帮用户看清，但不替用户行动</h3>
+              <div class="flow">
+                <div class="node">用户选择内容</div><div class="arrow">→</div><div class="node">平台文本提取</div><div class="arrow">→</div><div class="node">固定模式路由</div><div class="arrow">→</div><div class="node">Prompt + Schema</div><div class="arrow">→</div><div class="node">模型</div><div class="arrow">→</div><div class="node">校验与兜底</div><div class="arrow">→</div><div class="node">结果卡片</div>
+              </div>
+              <div class="summary"><div><b>任务合同</b>基于这段文本提供结构化观察</div><div><b>优势</b>场景清楚、权限小、容易 Eval</div><div><b>边界</b>无外部证据时不等于事实核查</div></div>
+            </article>
+
+            <article class="architecture">
+              <span class="tag blue">有边界的执行 Agent</span>
+              <h3>Codex：在可验证的工程环境中循环行动</h3>
+              <div class="flow">
+                <div class="node">用户工程目标</div><div class="arrow">→</div><div class="node">项目 / 仓库上下文</div><div class="arrow">→</div><div class="node">理解 → 计划 → 行动 → 观察</div><div class="arrow">→</div><div class="node">文件 / Shell / Git / Skills / MCP</div><div class="arrow">→</div><div class="node">Sandbox / Worktree</div><div class="arrow">→</div><div class="node">测试 / Diff / 审阅</div>
+              </div>
+              <div class="summary"><div><b>任务合同</b>在工程边界内修改并验证</div><div><b>核心闭环</b>工具执行 + 测试 + Diff + 人审</div><div><b>适合原因</b>代码可观察、可验证、可回滚</div></div>
+            </article>
+
+            <article class="architecture">
+              <span class="tag gold">通用虚拟电脑 Agent</span>
+              <h3>Manus：把开放目标交给一台 AI 可操作的电脑</h3>
+              <div class="loop">
+                <div class="loop-label">Agent Loop</div>
+                <div class="flow">
+                  <div class="node">开放目标</div><div class="arrow">→</div><div class="node">规划与拆解</div><div class="arrow">→</div><div class="node">云浏览器 / 云沙箱 / 本地浏览器 / CLI</div><div class="arrow">→</div><div class="node">读取环境反馈</div><div class="arrow">↺</div><div class="node">成品 / 已完成动作 / Take Over</div>
+                </div>
+              </div>
+              <div class="summary"><div><b>任务合同</b>使用电脑完成开放目标</div><div><b>优势</b>跨网页、文件和工具交付成品</div><div><b>难点</b>偏航、权限、网页变化、成本累积</div></div>
+            </article>
+
+            <article class="architecture">
+              <span class="tag">组织型多角色工作台</span>
+              <h3>WorkBuddy：用专家团队心智组织办公交付</h3>
+              <div class="flow">
+                <div class="node">办公目标</div><div class="arrow">→</div><div class="node">任务编排</div><div class="arrow">→</div><div class="node">产品 / 开发 / 内容 / 财务等角色</div><div class="arrow">→</div><div class="node">知识源 + Skills + MCP</div><div class="arrow">→</div><div class="node">重试与换方案</div><div class="arrow">→</div><div class="node">用户验收成品</div>
+              </div>
+              <div class="summary"><div><b>任务合同</b>把办公目标交给适当角色和工具</div><div><b>优势</b>岗位语言、企业知识、交付物导向</div><div><b>边界</b>价值取决于真实接入和可审计质量</div></div>
+            </article>
+
+            <p class="note">以上架构图是依据官方公开能力做出的产品级抽象，不代表各公司未公开的内部技术实现。</p>
+          </section>
+
+          <section id="comparison">
+            <span class="tag">05 · COMPARISON</span>
+            <h2>用五要素横向比较</h2>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>五要素</th><th>Codex</th><th>Manus</th><th>WorkBuddy</th><th>Reality Splitter</th></tr></thead>
+                <tbody>
+                  <tr><td><b>战略</b></td><td>软件与知识工作交付</td><td>开放目标委托</td><td>专家团式办公交付</td><td>高刺激信息前减速</td></tr>
+                  <tr><td><b>范围</b></td><td>仓库、文件、Shell、Git、Skills</td><td>云/本地电脑、浏览器、网页任务</td><td>知识源、办公工具、MCP、企业插件</td><td>当前文本、四个固定模式</td></tr>
+                  <tr><td><b>结构</b></td><td>Agent Loop → 测试/Diff → 审阅</td><td>规划 → 电脑操作 → 交付/接管</td><td>多角色编排 → 重试 → 验收</td><td>文本 → 模型 → 卡片 → 用户判断</td></tr>
+                  <tr><td><b>框架</b></td><td>线程、项目、Diff、终端、审批</td><td>进度、浏览器画面、Take Over、产物</td><td>专家角色、工作空间、任务与成品</td><td>页面按钮、浮层/侧栏、结果卡片</td></tr>
+                  <tr><td><b>表现</b></td><td>工程化、可审阅、执行导向</td><td>委托感、虚拟员工感</td><td>办公协作、专家团队感</td><td>冷静、低刺激、不做裁判</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <pre>通用与垂直的本质，不是模型大小，而是“任务合同”的开放程度。
+
+Reality Splitter：给我结构化观察，我自己决定。
+Codex：在工程边界内修改和验证，给我可审阅的 Diff。
+Manus：用一台电脑完成开放目标，给我成品。
+WorkBuddy：把办公目标分配给角色与工具，给我可验收交付物。</pre>
+          </section>
+
+          <section id="reality">
+            <span class="tag">06 · PRODUCT CANVAS</span>
+            <h2>Reality Splitter 五要素画布</h2>
+            <div class="grid grid-2">
+              <div class="card">
+                <h3>战略层</h3>
+                <p><b>用户任务：</b>在想立刻相信、转发、反击或 all-in 时，恢复判断空间。</p>
+                <p><b>产品目标：</b>区分原文与推断，恢复多假设，把大动作变成小验证。</p>
+                <p><b>反指标：</b>不要追求分析越多、停留越久、输出越长。</p>
+              </div>
+              <div class="card">
+                <h3>范围层</h3>
+                <p><b>做：</b>主动选择、文本分层、中性改写、替代解释、小实验。</p>
+                <p><b>不做：</b>全流扫描、心理诊断、人格判断、无来源事实核查、自动行动。</p>
+                <p><b>能力合同：</b>分析表达结构，不凭原文确认外部真假。</p>
+              </div>
+              <div class="card">
+                <h3>结构层</h3>
+                <p>选择内容 → 快速拆解 → 降刺激 / 替代解释 / 小实验 → 用户决定跳过、保存、验证或小步行动。</p>
+                <p><b>架构选择：</b>固定工作流优先，不做开放 Agent。</p>
+              </div>
+              <div class="card">
+                <h3>框架层</h3>
+                <p>第一屏显示原文和总体提醒；第二层显示事实/观点/推断；第三层显示证据限制与替代解释；最后才给行动选项。</p>
+                <p>显式区分“仅基于原文”和“已联网核查”。</p>
+              </div>
+              <div class="card" style="grid-column:1/-1">
+                <h3>表现层</h3>
+                <p>低饱和、短内容、默认折叠细节；使用“可能、暗示、仅凭原文无法判断”；避免“危险、有毒、你被操控了”等强刺激和伪诊断表达。</p>
+                <p><b>克制感不是装饰，而是产品功能。</b></p>
+              </div>
+            </div>
+          </section>
+
+          <section id="questions">
+            <span class="tag">07 · PM CHECKLIST</span>
+            <h2>每个 AI 需求进入开发前，回答七问</h2>
+            <div class="seven">
+              <div class="question"><b>用户任务是什么？</b><span class="muted">写清情境、目标和想改变的状态，不写“用 AI 分析”。</span></div>
+              <div class="question"><b>为什么需要模型？</b><span class="muted">规则、搜索或数据库能稳定解决时，不要强行用大模型。</span></div>
+              <div class="question"><b>模型需要什么上下文？</b><span class="muted">最少、相关、可授权、可追溯。</span></div>
+              <div class="question"><b>需要哪些外部能力？</b><span class="muted">区分知识、搜索、计算、工具、记忆和权限。</span></div>
+              <div class="question"><b>输出合同是什么？</b><span class="muted">Schema、长度、不确定性、禁止项和空结果。</span></div>
+              <div class="question"><b>谁验证、如何恢复？</b><span class="muted">人审、测试、引用、Diff、撤销、重试或降级。</span></div>
+              <div class="question" style="grid-column:1/-1"><b>怎样证明它变好了？</b><span class="muted">先定义 Eval，再换 Prompt 或模型；记录正确性、完整性、克制程度、延迟、失败率、Token 和费用。</span></div>
+            </div>
+          </section>
+
+          <section id="matrix">
+            <span class="tag">08 · DECISION</span>
+            <h2>选择满足需求的最低自主性</h2>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>任务特征</th><th>推荐架构</th><th>代表场景</th></tr></thead>
+                <tbody>
+                  <tr><td>低风险、固定输入和输出</td><td>单次调用 + Schema</td><td>分类、改写、Reality Splitter 快速模式</td></tr>
+                  <tr><td>需要私有材料但不行动</td><td>RAG / 文件检索 + 生成</td><td>企业问答、合同检索</td></tr>
+                  <tr><td>需要最新信息</td><td>搜索/数据库 + 引用</td><td>新闻研究、事实核查</td></tr>
+                  <tr><td>多步骤但路径固定</td><td>Workflow / 状态机</td><td>报销审核、内容流水线</td></tr>
+                  <tr><td>路径不固定且工具可验证</td><td>Agent Loop + Sandbox</td><td>Codex 工程任务</td></tr>
+                  <tr><td>开放目标、跨网页/应用</td><td>Computer Agent + Take Over</td><td>Manus 式委托</td></tr>
+                  <tr><td>企业多岗位、知识和权限</td><td>Orchestrator + Skills/MCP + Governance</td><td>WorkBuddy 式办公工作台</td></tr>
+                  <tr><td>高风险外部动作</td><td>强制人审 + 审计 + 回滚</td><td>支付、发布、医疗/法律关键决定</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="principle">自主性越高，演示通常越惊艳；同时成本、失败面、权限风险和评测难度也越高。</p>
+          </section>
+
+          <section id="myths">
+            <span class="tag">09 · REALITY CHECK</span>
+            <h2>六个“AI 什么都能做”的常见误区</h2>
+            <div class="grid grid-3">
+              <div class="card"><h4>一次成功 ≠ 稳定能力</h4><p class="muted">一次是 Demo；跨输入、版本和网络仍可靠才是产品。</p></div>
+              <div class="card"><h4>知道很多 ≠ 当前事实</h4><p class="muted">模型记忆、搜索结果与权威证据是三回事。</p></div>
+              <div class="card"><h4>能规划 ≠ 能完成</h4><p class="muted">还需要工具、权限、状态、恢复和验证。</p></div>
+              <div class="card"><h4>记得多 ≠ 更懂用户</h4><p class="muted">错误记忆与过度收集会降低质量和信任。</p></div>
+              <div class="card"><h4>多 Agent ≠ 更高级</h4><p class="muted">角色边界和汇总验证不清时，只会增加成本与错误传播。</p></div>
+              <div class="card"><h4>大模型 ≠ 自动修复产品</h4><p class="muted">错误上下文、模糊目标和糟糕交互仍然存在。</p></div>
+            </div>
+          </section>
+
+          <section id="roadmap">
+            <span class="tag">10 · ROADMAP</span>
+            <h2>用 Reality Splitter 完成四阶段学习</h2>
+            <div class="grid grid-2">
+              <div class="card"><span class="tag">阶段 1</span><h3>垂直 AI Workflow</h3><p>完善 Context → Prompt → Schema → UI；建立 30–50 条 Eval；比较模型、Prompt、延迟与成本；标记模型和兜底来源。</p></div>
+              <div class="card"><span class="tag">阶段 2</span><h3>有来源的能力</h3><p>增加按需检索；建立 Claim、Evidence、Source、Timestamp；明确文本分析与外部核查两个模式。</p></div>
+              <div class="card"><span class="tag">阶段 3</span><h3>轻量个性化</h3><p>只保存用户可见、可编辑、可删除的产品偏好；不用隐蔽心理画像；用 Eval 证明个性化价值。</p></div>
+              <div class="card"><span class="tag">阶段 4</span><h3>最后才考虑 Agent</h3><p>只有出现“自动找来源 → 比较 → 生成验证卡 → 保存/提醒”的真实需求，才引入工具选择、状态、重试和确认点。</p></div>
+            </div>
+          </section>
+
+          <section class="closing">
+            <h2>最终心智模型</h2>
+            <blockquote>模型决定能力上限，上下文决定它看见什么，工具决定它能做什么，工作流决定它怎样持续做，界面决定用户怎样理解和控制，评测与治理决定产品能否被长期信任。</blockquote>
+            <p>产品经理真正要学会的不是“给所有需求加 AI”，而是判断：这是语言问题、知识问题、数据问题、执行问题、记忆问题，还是责任问题？</p>
+          </section>
+
+          <section>
+            <span class="tag">SOURCES</span>
+            <h2>资料来源与边界</h2>
+            <p>产品内部架构通常不会完整公开。本文的产品能力来自官方资料，架构图是依据公开能力做出的产品级抽象。</p>
+            <ul class="sources">
+              <li>OpenAI：<a href="https://openai.com/index/introducing-the-codex-app/">Introducing the Codex app</a></li>
+              <li>Manus：<a href="https://manus.im/docs/introduction/welcome">Welcome</a>、<a href="https://manus.im/docs/features/cloud-browser">Cloud Browser</a>、<a href="https://manus.im/docs/features/browser-operator">Browser Operator</a>、<a href="https://manus.im/docs/features/desktop">Desktop</a></li>
+              <li>腾讯云：<a href="https://cloud.tencent.com/act/pro/workbuddy">WorkBuddy</a></li>
+              <li>完整文字版：<a href="./AI_PRODUCT_ARCHITECTURE_FIVE_PLANES.md">AI_PRODUCT_ARCHITECTURE_FIVE_PLANES.md</a></li>
+            </ul>
+          </section>
+        </main>
+      </div>
+    </div>
+  </body>
+</html>
