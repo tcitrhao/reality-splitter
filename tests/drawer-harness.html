@@ -68,7 +68,7 @@
         const listener = runtimeListeners.at(-1);
         listener(
           {
-            type: "REALITY_SPLITTER_SHOW_INLINE_V2",
+            type: "REALITY_SPLITTER_SHOW_INLINE_V3",
             payload: {
               input: {
                 text: "有人预测，这个行业将在两年内发生重大变化。",
@@ -86,10 +86,20 @@
     </script>
   </head>
   <body>
+    <div
+      id="reality-splitter-inline-panel"
+      class="reality-splitter-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Reality Splitter"
+      style="position: fixed; inset: 18%; border-radius: 24px"
+    >
+      旧版本弹窗
+    </div>
     <main>
       <h1>抽屉测试页</h1>
-      <p>这个页面用于验证构建后的页面内抽屉，不连接真实模型。</p>
-      <p>打开抽屉后，正文应向右移动，而不是出现居中的弹窗。</p>
+      <p>这个页面会先放入一个旧版本弹窗，再加载当前构建，不连接真实模型。</p>
+      <p>打开后，旧节点必须被替换为固定在左侧的 aside 抽屉。</p>
     </main>
     <script src="/dist/contentScript.js"></script>
     <script>

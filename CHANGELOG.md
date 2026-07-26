@@ -2,6 +2,24 @@
 
 All notable product changes should be recorded here before a build is shared.
 
+## 0.1.7 - 2026-07-26
+
+### Fixed
+
+- Made the X / Twitter content button open the drawer directly in the current Content Script instead of asking the Service Worker to reopen the interface.
+- Replaced legacy modal nodes with a fresh `aside` drawer and removed stale inline positioning, `role="dialog"` and `aria-modal` attributes.
+- Strengthened the drawer's critical positioning rules so host-page CSS cannot turn it into a centered overlay.
+- Persisted X button input in the background without opening a second interface.
+
+### Changed
+
+- Advanced the drawer handshake to `REALITY_SPLITTER_SHOW_INLINE_V3` so tabs containing older scripts cannot answer the new request.
+
+### Verified
+
+- Added build contracts for the X local-drawer path and legacy-modal migration.
+- Added a browser regression fixture that starts with a stale modal and verifies its replacement by a fixed `aside` drawer.
+
 ## 0.1.6 - 2026-07-25
 
 ### Fixed

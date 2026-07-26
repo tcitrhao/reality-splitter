@@ -22,7 +22,7 @@ const checks = [
     message: "contentScript.js contains ES module syntax that Chrome content scripts cannot execute"
   },
   {
-    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V2"),
+    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V3"),
     message: "contentScript.js is missing the versioned drawer message handler"
   },
   {
@@ -60,6 +60,18 @@ const checks = [
       contentScriptSource.includes('from "../shared/productCopy"') &&
       sidePanelSource.includes('from "../shared/productCopy"'),
     message: "drawer and Side Panel are not using the shared product-copy contract"
+  },
+  {
+    pass: /showInlinePanel\(\{\s*input,\s*workspaceMode: "quick"\s*\}\);\s*void sendCaptureMessage\(input, false, "tweet_button"\)/.test(
+      contentScriptSource
+    ),
+    message: "the X button must open the local drawer before syncing input to the background"
+  },
+  {
+    pass:
+      contentScriptSource.includes('data-reality-splitter-surface", "drawer"') &&
+      contentScriptSource.includes('panel.removeAttribute("aria-modal")'),
+    message: "the drawer does not replace legacy modal attributes"
   },
   {
     pass: !serviceWorker.includes("chrome.windows.create"),

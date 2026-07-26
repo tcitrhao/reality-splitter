@@ -21,8 +21,8 @@ import type { AIResponse, TweetInput } from "../shared/types";
 const CONTEXT_MENU_ROOT_ID = "reality-splitter-root";
 const CONTEXT_MENU_QUICK_ID = "reality-splitter-quick";
 const CONTEXT_MENU_LONGFORM_ID = "reality-splitter-longform";
-const CONTENT_SHOW_INLINE_MESSAGE = "REALITY_SPLITTER_SHOW_INLINE_V2";
-const CONTENT_SCRIPT_VERSION = "0.1.6";
+const CONTENT_SHOW_INLINE_MESSAGE = "REALITY_SPLITTER_SHOW_INLINE_V3";
+const CONTENT_SCRIPT_VERSION = "0.1.7";
 
 void initializeSidePanelBehavior();
 void initializeContextMenus();
@@ -90,6 +90,11 @@ async function handleCapturedInput(
   message: CaptureInputMessage,
   sender: chrome.runtime.MessageSender
 ): Promise<void> {
+  await Promise.all([
+    setCurrentInput(message.payload.input),
+    setWorkspaceMode("quick")
+  ]);
+
   if (message.payload.openPanel && sender.tab?.windowId !== undefined) {
     try {
       await openInlineAnalysisSurface({

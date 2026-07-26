@@ -32,9 +32,18 @@ const INLINE_DRAWER_CLASS = "reality-splitter-drawer-open";
 const WEIBO_NO_BUTTONS_CLASS = "reality-splitter-weibo-no-buttons";
 const LEGACY_WEIBO_OVERLAY_ID = "reality-splitter-weibo-overlay";
 const LEGACY_WEIBO_FLOATING_HOST_ID = "reality-splitter-weibo-floating-host";
+const LEGACY_INLINE_SURFACE_SELECTOR = [
+  "#reality-splitter-modal",
+  "#reality-splitter-popup",
+  "#reality-splitter-inline-overlay",
+  ".reality-splitter-modal",
+  ".reality-splitter-popup",
+  "[data-reality-splitter-surface='modal']",
+  "[aria-label='Reality Splitter'][role='dialog']"
+].join(", ");
 const SCAN_INTERVAL_MS = 1600;
-const CONTENT_SCRIPT_VERSION = "0.1.6";
-const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V2";
+const CONTENT_SCRIPT_VERSION = "0.1.7";
+const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V3";
 
 let lastSelection = "";
 let intervalId: number | null = null;
@@ -189,9 +198,14 @@ function injectButton(postRoot: HTMLElement, signature: string) {
       return;
     }
 
-    void sendCaptureMessage(input, true, "tweet_button").then((response) => {
+    showInlinePanel({
+      input,
+      workspaceMode: "quick"
+    });
+
+    void sendCaptureMessage(input, false, "tweet_button").then((response) => {
       if (!response.ok) {
-        showToast(response.error || "按钮点击后没有成功打开分析抽屉，可以再试一次。");
+        showToast(response.error || "抽屉已打开，但扩展后台暂时没有响应。");
       }
     });
   });
@@ -328,18 +342,27 @@ function injectStyles() {
     }
 
     .reality-splitter-inline-panel {
-      position: fixed;
-      inset: 0 auto 0 0;
-      z-index: 2147483646;
-      width: var(--reality-splitter-drawer-width, min(420px, calc(100vw - 28px)));
+      position: fixed !important;
+      inset: 0 auto 0 0 !important;
+      z-index: 2147483646 !important;
+      display: block !important;
+      width: var(--reality-splitter-drawer-width, min(420px, calc(100vw - 28px))) !important;
+      height: 100vh !important;
+      height: 100dvh !important;
+      max-width: calc(100vw - 28px) !important;
+      max-height: none !important;
+      margin: 0 !important;
+      border-radius: 0 !important;
       background:
         radial-gradient(circle at 18% 0%, rgba(142, 181, 157, 0.26), transparent 34%),
         linear-gradient(180deg, #f8f5ec 0%, #eef5f0 100%);
       color: #17342b;
       border-right: 1px solid rgba(31, 67, 53, 0.16);
       box-shadow: 22px 0 54px rgba(18, 34, 28, 0.22);
-      transform: translateX(-104%);
-      transition: transform 180ms ease;
+      transform: translate3d(-104%, 0, 0) !important;
+      transition: transform 180ms ease !important;
+      contain: layout style paint;
+      isolation: isolate;
       font: 500 14px/1.55 "Avenir Next", "Segoe UI", sans-serif;
       box-sizing: border-box;
     }
@@ -356,7 +379,7 @@ function injectStyles() {
     }
 
     .reality-splitter-inline-panel.is-open {
-      transform: translateX(0);
+      transform: translate3d(0, 0, 0) !important;
     }
 
     .reality-splitter-inline-panel * {
@@ -633,21 +656,57 @@ function showInlinePanel(params: {
 }
 
 function ensureInlinePanel(): HTMLElement {
+  cleanupLegacyInlineSurfaces();
   let panel = document.getElementById(INLINE_PANEL_ID);
 
-  if (panel) {
-    panel.className = "reality-splitter-inline-panel";
-    panel.setAttribute("data-version", CONTENT_SCRIPT_VERSION);
+  if (
+    panel &&
+    (panel.tagName !== "ASIDE" || panel.getAttribute("data-reality-splitter-surface") !== "drawer")
+  ) {
+    const replacement = createInlinePanel();
+    panel.replaceWith(replacement);
+    return replacement;
+  }
+
+  if (!panel) {
+    panel = createInlinePanel();
+    document.body.appendChild(panel);
     return panel;
   }
 
-  panel = document.createElement("aside");
+  prepareInlinePanel(panel);
+  return panel;
+}
+
+function createInlinePanel(): HTMLElement {
+  const panel = document.createElement("aside");
   panel.id = INLINE_PANEL_ID;
+  prepareInlinePanel(panel);
+  return panel;
+}
+
+function prepareInlinePanel(panel: HTMLElement) {
+  panel.removeAttribute("style");
+  panel.removeAttribute("role");
+  panel.removeAttribute("aria-modal");
+  panel.removeAttribute("open");
   panel.className = "reality-splitter-inline-panel";
   panel.setAttribute("data-version", CONTENT_SCRIPT_VERSION);
+  panel.setAttribute("data-reality-splitter-surface", "drawer");
   panel.setAttribute("aria-label", "Reality Splitter");
-  document.body.appendChild(panel);
-  return panel;
+}
+
+function cleanupLegacyInlineSurfaces() {
+  document.querySelectorAll<HTMLElement>(LEGACY_INLINE_SURFACE_SELECTOR).forEach((element) => {
+    if (element.id !== INLINE_PANEL_ID) {
+      element.remove();
+    }
+  });
+
+  document.documentElement.classList.remove(
+    "reality-splitter-modal-open",
+    "reality-splitter-popup-open"
+  );
 }
 
 function renderInlinePanel() {
