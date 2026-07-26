@@ -2,6 +2,23 @@
 
 All notable product changes should be recorded here before a build is shared.
 
+## 0.1.8 - 2026-07-26
+
+### Fixed
+
+- Changed both right-click actions to only open the selected short-text or longform workspace with the selected text filled in.
+- Removed automatic short-text analysis and automatic longform checking from the current-page drawer protocol.
+- Removed the `autoRunMode` and `autoRunLongform` paths entirely so future callers cannot accidentally restore automatic model calls.
+
+### Changed
+
+- Advanced the drawer handshake to `REALITY_SPLITTER_SHOW_INLINE_V4` to isolate the manual-only interaction contract from older page scripts.
+
+### Verified
+
+- Added a build contract that rejects any automatic-run field in the Content Script or Service Worker.
+- Browser-tested that opening short-text and longform workspaces makes zero analysis requests until the user presses an analysis button.
+
 ## 0.1.7 - 2026-07-26
 
 ### Fixed

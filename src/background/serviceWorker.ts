@@ -21,8 +21,8 @@ import type { AIResponse, TweetInput } from "../shared/types";
 const CONTEXT_MENU_ROOT_ID = "reality-splitter-root";
 const CONTEXT_MENU_QUICK_ID = "reality-splitter-quick";
 const CONTEXT_MENU_LONGFORM_ID = "reality-splitter-longform";
-const CONTENT_SHOW_INLINE_MESSAGE = "REALITY_SPLITTER_SHOW_INLINE_V3";
-const CONTENT_SCRIPT_VERSION = "0.1.7";
+const CONTENT_SHOW_INLINE_MESSAGE = "REALITY_SPLITTER_SHOW_INLINE_V4";
+const CONTENT_SCRIPT_VERSION = "0.1.8";
 
 void initializeSidePanelBehavior();
 void initializeContextMenus();
@@ -244,8 +244,7 @@ async function handleContextMenuClick(
       tabId: tab.id,
       windowId: tab.windowId,
       input: selectionInput,
-      workspaceMode: "quick",
-      autoRunMode: "split"
+      workspaceMode: "quick"
     });
     await setUiError(null);
     return;
@@ -256,8 +255,7 @@ async function handleContextMenuClick(
       tabId: tab.id,
       windowId: tab.windowId,
       input: selectionInput,
-      workspaceMode: "longform",
-      autoRunLongform: true
+      workspaceMode: "longform"
     });
     await setUiError(null);
   }
@@ -359,8 +357,6 @@ async function openInlineAnalysisSurface(params: {
   windowId: number;
   input: TweetInput;
   workspaceMode: "quick" | "longform";
-  autoRunMode?: "split" | "deescalate" | "alternatives" | "experiment";
-  autoRunLongform?: boolean;
 }): Promise<void> {
   if (params.tabId === undefined) {
     await openFallbackAnalysisSurface(params);
@@ -389,17 +385,13 @@ async function sendInlineMessage(
   params: {
     input: TweetInput;
     workspaceMode: "quick" | "longform";
-    autoRunMode?: "split" | "deescalate" | "alternatives" | "experiment";
-    autoRunLongform?: boolean;
   }
 ): Promise<void> {
   const response = (await chrome.tabs.sendMessage(tabId, {
     type: CONTENT_SHOW_INLINE_MESSAGE,
     payload: {
       input: params.input,
-      workspaceMode: params.workspaceMode,
-      autoRunMode: params.autoRunMode,
-      autoRunLongform: params.autoRunLongform
+      workspaceMode: params.workspaceMode
     }
   })) as { ok?: boolean; version?: string; error?: string } | undefined;
 

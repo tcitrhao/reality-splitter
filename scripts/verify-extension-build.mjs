@@ -22,7 +22,7 @@ const checks = [
     message: "contentScript.js contains ES module syntax that Chrome content scripts cannot execute"
   },
   {
-    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V3"),
+    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V4"),
     message: "contentScript.js is missing the versioned drawer message handler"
   },
   {
@@ -72,6 +72,14 @@ const checks = [
       contentScriptSource.includes('data-reality-splitter-surface", "drawer"') &&
       contentScriptSource.includes('panel.removeAttribute("aria-modal")'),
     message: "the drawer does not replace legacy modal attributes"
+  },
+  {
+    pass:
+      !contentScriptSource.includes("autoRunMode") &&
+      !contentScriptSource.includes("autoRunLongform") &&
+      !serviceWorker.includes("autoRunMode") &&
+      !serviceWorker.includes("autoRunLongform"),
+    message: "sending selected text to a workspace must never trigger analysis automatically"
   },
   {
     pass: !serviceWorker.includes("chrome.windows.create"),

@@ -42,8 +42,8 @@ const LEGACY_INLINE_SURFACE_SELECTOR = [
   "[aria-label='Reality Splitter'][role='dialog']"
 ].join(", ");
 const SCAN_INTERVAL_MS = 1600;
-const CONTENT_SCRIPT_VERSION = "0.1.7";
-const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V3";
+const CONTENT_SCRIPT_VERSION = "0.1.8";
+const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V4";
 
 let lastSelection = "";
 let intervalId: number | null = null;
@@ -89,8 +89,6 @@ function bindRuntimeMessages() {
     const payload = message.payload as {
       input?: TweetInput;
       workspaceMode?: WorkspaceMode;
-      autoRunMode?: QuickAnalysisMode;
-      autoRunLongform?: boolean;
     };
 
     if (!payload.input) {
@@ -100,9 +98,7 @@ function bindRuntimeMessages() {
 
     showInlinePanel({
       input: payload.input,
-      workspaceMode: payload.workspaceMode === "longform" ? "longform" : "quick",
-      autoRunMode: payload.autoRunMode,
-      autoRunLongform: Boolean(payload.autoRunLongform)
+      workspaceMode: payload.workspaceMode === "longform" ? "longform" : "quick"
     });
     sendResponse({ ok: true, version: CONTENT_SCRIPT_VERSION });
     return false;
@@ -637,22 +633,14 @@ function showToast(message: string) {
 function showInlinePanel(params: {
   input: TweetInput;
   workspaceMode: WorkspaceMode;
-  autoRunMode?: QuickAnalysisMode;
-  autoRunLongform?: boolean;
 }) {
   inlineInput = params.input;
   inlineWorkspaceMode = params.workspaceMode;
   inlineResponse = null;
   inlineError = "";
   inlineLoading = false;
-  inlineActiveMode = params.autoRunMode ?? (params.autoRunLongform ? "longform" : null);
+  inlineActiveMode = null;
   renderInlinePanel();
-
-  if (params.autoRunMode) {
-    void runInlineQuickAnalysis(params.autoRunMode);
-  } else if (params.autoRunLongform) {
-    void runInlineLongformCheck();
-  }
 }
 
 function ensureInlinePanel(): HTMLElement {

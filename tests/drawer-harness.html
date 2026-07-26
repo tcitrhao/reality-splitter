@@ -30,6 +30,9 @@
           },
           async sendMessage(message) {
             document.documentElement.dataset.lastRuntimeInput = message.payload?.input?.text || "";
+            document.documentElement.dataset.analysisRequestCount = String(
+              Number(document.documentElement.dataset.analysisRequestCount || "0") + 1
+            );
 
             if (message.type !== "RUN_INLINE_ANALYSIS") {
               return { ok: false, error: "Unsupported test message" };
@@ -64,17 +67,17 @@
         }
       };
 
-      window.openRealitySplitterDrawer = () => {
+      window.openRealitySplitterDrawer = (workspaceMode = "quick") => {
         const listener = runtimeListeners.at(-1);
         listener(
           {
-            type: "REALITY_SPLITTER_SHOW_INLINE_V3",
+            type: "REALITY_SPLITTER_SHOW_INLINE_V4",
             payload: {
               input: {
                 text: "有人预测，这个行业将在两年内发生重大变化。",
                 url: window.location.href
               },
-              workspaceMode: "quick"
+              workspaceMode
             }
           },
           {},
@@ -100,9 +103,16 @@
       <h1>抽屉测试页</h1>
       <p>这个页面会先放入一个旧版本弹窗，再加载当前构建，不连接真实模型。</p>
       <p>打开后，旧节点必须被替换为固定在左侧的 aside 抽屉。</p>
+      <button type="button" onclick="window.openRealitySplitterDrawer('quick')">
+        模拟右键发送到短文模式
+      </button>
+      <button type="button" onclick="window.openRealitySplitterDrawer('longform')">
+        模拟右键发送到长文模式
+      </button>
     </main>
     <script src="/dist/contentScript.js"></script>
     <script>
+      document.documentElement.dataset.analysisRequestCount = "0";
       window.openRealitySplitterDrawer();
     </script>
   </body>
