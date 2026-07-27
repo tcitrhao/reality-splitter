@@ -12,6 +12,8 @@ const contentScriptSource = await readFile(
 );
 const sidePanelSource = await readFile(resolve(root, "src/sidepanel/App.tsx"), "utf8");
 const aiClientSource = await readFile(resolve(root, "src/shared/aiClient.ts"), "utf8");
+const adminSource = await readFile(resolve(root, "src/site/App.tsx"), "utf8");
+const messagesSource = await readFile(resolve(root, "src/shared/messages.ts"), "utf8");
 
 const checks = [
   {
@@ -23,7 +25,7 @@ const checks = [
     message: "contentScript.js contains ES module syntax that Chrome content scripts cannot execute"
   },
   {
-    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V5"),
+    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V6"),
     message: "contentScript.js is missing the versioned drawer message handler"
   },
   {
@@ -100,6 +102,28 @@ const checks = [
       aiClientSource.includes("DEEPSEEK_QUICK_MAX_OUTPUT_TOKENS") &&
       aiClientSource.includes("attempt: 2"),
     message: "model reliability retry and DeepSeek output budget are missing"
+  },
+  {
+    pass:
+      contentScriptSource.includes("OPEN_MODEL_ADMIN") &&
+      serviceWorker.includes("OPEN_MODEL_ADMIN") &&
+      messagesSource.includes("TEST_MODEL_CONNECTION"),
+    message: "model admin entry or runtime message contract is missing"
+  },
+  {
+    pass:
+      adminSource.includes("模型管理后台") &&
+      adminSource.includes("测试连接") &&
+      adminSource.includes('onSave={() => void persistSettings("quick")}') &&
+      adminSource.includes('onSave={() => void persistSettings("longform")}') &&
+      adminSource.includes('onTest={() => void testConnection("quick")}') &&
+      adminSource.includes('onTest={() => void testConnection("longform")}') &&
+      aiClientSource.includes("testModelConnection"),
+    message: "independent model admin controls or connection test are missing"
+  },
+  {
+    pass: manifest.options_page === "options.html",
+    message: "extension model admin page is not registered as the options page"
   },
   {
     pass: !serviceWorker.includes("chrome.windows.create"),

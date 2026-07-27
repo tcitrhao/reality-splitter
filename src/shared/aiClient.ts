@@ -14,10 +14,12 @@ import type {
   ExperimentResult,
   LongformCheckInput,
   LongformCheckResult,
+  ModelConnectionTestResult,
   ModelRuntimeSettings,
   QuickAnalysisMode,
   SplitAnalysisResult,
-  TweetInput
+  TweetInput,
+  WorkspaceMode
 } from "./types";
 
 const MAX_INPUT_CHARS = 6000;
@@ -205,6 +207,94 @@ export async function runLongformCheck(
   return {
     mode: "longform",
     result
+  };
+}
+
+export async function testModelConnection(
+  mode: WorkspaceMode,
+  settings: ModelRuntimeSettings
+): Promise<ModelConnectionTestResult> {
+  if (!settings.apiKey.trim()) {
+    throw new UserVisibleError("需要先填写 API Key，才能测试连接。");
+  }
+
+  const providerValidationError = validateProviderSettings(settings);
+  if (providerValidationError) {
+    throw new UserVisibleError(providerValidationError);
+  }
+
+  if (settings.provider === "openai-compatible" && !settings.baseUrl.trim()) {
+    throw new UserVisibleError("需要先填写自定义 API 接口地址。");
+  }
+
+  await ensureApiPermission(settings);
+
+  const providerProfile = detectProviderProfile(settings);
+  const startedAt = Date.now();
+  let response: Response;
+
+  try {
+    response = await fetch(buildChatCompletionsUrl(settings.provider, settings.baseUrl), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${settings.apiKey.trim()}`
+      },
+      body: JSON.stringify({
+        model: settings.model.trim(),
+        temperature: resolveTemperature(settings.provider, providerProfile),
+        max_tokens: 64,
+        messages: [
+          {
+            role: "user",
+            content: "Reply with OK only."
+          }
+        ],
+        ...(providerProfile === "kimi"
+          ? {
+              thinking: {
+                type: "disabled"
+              }
+            }
+          : {})
+      }),
+      signal: timeoutSignal(30000)
+    });
+  } catch (error) {
+    if (isTimeoutError(error)) {
+      throw new UserVisibleError("连接测试超过 30 秒，接口可能较慢或暂时不可用。");
+    }
+
+    throw new UserVisibleError("无法连接到这个模型接口，请检查地址、网络和域名权限。");
+  }
+
+  if (!response.ok) {
+    const message = await readErrorMessage(response);
+    throw new UserVisibleError(
+      message || `连接测试失败（HTTP ${response.status}），请检查模型名和 API Key。`
+    );
+  }
+
+  const payload = (await safeReadJson(response)) as
+    | {
+        choices?: Array<{
+          message?: {
+            content?: string | Array<{ type?: string; text?: string }>;
+          };
+        }>;
+      }
+    | null;
+  const content = normalizeModelContent(payload?.choices?.[0]?.message?.content);
+
+  if (!content) {
+    throw new UserVisibleError("接口已经响应，但没有返回可用内容，请检查模型名是否正确。");
+  }
+
+  return {
+    mode,
+    model: settings.model.trim(),
+    providerProfile,
+    latencyMs: Date.now() - startedAt
   };
 }
 

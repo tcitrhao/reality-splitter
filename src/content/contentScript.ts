@@ -42,8 +42,8 @@ const LEGACY_INLINE_SURFACE_SELECTOR = [
   "[aria-label='Reality Splitter'][role='dialog']"
 ].join(", ");
 const SCAN_INTERVAL_MS = 1600;
-const CONTENT_SCRIPT_VERSION = "0.1.9";
-const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V5";
+const CONTENT_SCRIPT_VERSION = "0.2.0";
+const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V6";
 
 let lastSelection = "";
 let intervalId: number | null = null;
@@ -454,6 +454,29 @@ function injectStyles() {
       line-height: 1;
     }
 
+    .rs-inline-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 0 0 auto;
+    }
+
+    .rs-inline-admin {
+      min-height: 34px;
+      padding: 0 12px;
+      border: 1px solid rgba(31, 67, 53, 0.18);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      color: #24483b;
+      cursor: pointer;
+      font: 750 12px/1 "Avenir Next", "Segoe UI", sans-serif;
+    }
+
+    .rs-inline-admin:hover,
+    .rs-inline-close:hover {
+      background: rgba(255, 255, 255, 0.96);
+    }
+
     .rs-inline-tabs,
     .rs-inline-actions {
       display: grid;
@@ -751,7 +774,24 @@ function renderInlinePanel() {
       : PRODUCT_COPY.modes.quick.description
   );
 
-  const closeButton = appendElement(header, "button", "rs-inline-close", "×") as HTMLButtonElement;
+  const headerActions = appendElement(header, "div", "rs-inline-header-actions");
+  const adminButton = appendElement(
+    headerActions,
+    "button",
+    "rs-inline-admin",
+    "模型后台"
+  ) as HTMLButtonElement;
+  adminButton.type = "button";
+  adminButton.addEventListener("click", () => {
+    void openModelAdmin();
+  });
+
+  const closeButton = appendElement(
+    headerActions,
+    "button",
+    "rs-inline-close",
+    "×"
+  ) as HTMLButtonElement;
   closeButton.type = "button";
   closeButton.setAttribute("aria-label", "关闭");
   closeButton.addEventListener("click", () => {
@@ -821,6 +861,20 @@ function renderInlinePanel() {
         ? PRODUCT_COPY.status.emptyLongformResult
         : PRODUCT_COPY.status.emptyQuickResult
     );
+  }
+}
+
+async function openModelAdmin() {
+  try {
+    const response = (await chrome.runtime.sendMessage({
+      type: MESSAGE_TYPES.OPEN_MODEL_ADMIN
+    })) as RuntimeResponse;
+
+    if (!response.ok) {
+      showToast(response.error || "模型后台暂时无法打开，可以从扩展详情页进入设置。");
+    }
+  } catch {
+    showToast("模型后台暂时无法打开，可以从扩展详情页进入设置。");
   }
 }
 

@@ -105,6 +105,13 @@ export interface StoredSettings {
   longform: ModelRuntimeSettings;
 }
 
+export interface ModelConnectionTestResult {
+  mode: WorkspaceMode;
+  model: string;
+  providerProfile: "deepseek" | "kimi" | "generic";
+  latencyMs: number;
+}
+
 export interface StoredAppState {
   currentInput: TweetInput | null;
   uiError: string | null;

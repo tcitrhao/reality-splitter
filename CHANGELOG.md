@@ -2,6 +2,26 @@
 
 All notable product changes should be recorded here before a build is shared.
 
+## 0.2.0 - 2026-07-27
+
+### Added
+
+- Upgraded `options.html` into a dedicated model management console for the extension.
+- Added independent save and connection-test controls for the short-text and longform models.
+- Added DeepSeek V4 Flash / Pro and Kimi K2.6 presets without overwriting an existing API Key.
+- Added a direct `模型后台` entry in the current-page drawer.
+- Added live effective-model summaries, unsaved-change indicators, API Key visibility control, and provider-profile detection.
+
+### Changed
+
+- Model configuration tests now run through the background service worker and validate the real API address, key, model name, response, and latency.
+- Saved settings continue to use the existing `chrome.storage.local` keys, so the upgrade preserves current DeepSeek and Kimi configuration.
+- Advanced the drawer handshake to `REALITY_SPLITTER_SHOW_INLINE_V6`.
+
+### Verification
+
+- Added build contracts for the model-admin entry, runtime messages, connection test, independent controls, and registered options page.
+
 ## 0.1.9 - 2026-07-27
 
 ### Fixed

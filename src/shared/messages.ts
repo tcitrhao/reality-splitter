@@ -1,11 +1,21 @@
-import type { AIResponse, LongformCheckInput, QuickAnalysisMode, TweetInput } from "./types";
+import type {
+  AIResponse,
+  LongformCheckInput,
+  ModelConnectionTestResult,
+  ModelRuntimeSettings,
+  QuickAnalysisMode,
+  TweetInput,
+  WorkspaceMode
+} from "./types";
 
 export const MESSAGE_TYPES = {
   CAPTURE_INPUT: "CAPTURE_INPUT",
   RUN_ANALYSIS: "RUN_ANALYSIS",
   RUN_LONGFORM_CHECK: "RUN_LONGFORM_CHECK",
   RUN_INLINE_ANALYSIS: "RUN_INLINE_ANALYSIS",
-  RUN_INLINE_LONGFORM_CHECK: "RUN_INLINE_LONGFORM_CHECK"
+  RUN_INLINE_LONGFORM_CHECK: "RUN_INLINE_LONGFORM_CHECK",
+  OPEN_MODEL_ADMIN: "OPEN_MODEL_ADMIN",
+  TEST_MODEL_CONNECTION: "TEST_MODEL_CONNECTION"
 } as const;
 
 export interface CaptureInputMessage {
@@ -42,12 +52,26 @@ export interface RunInlineLongformCheckMessage {
   payload: LongformCheckInput;
 }
 
+export interface OpenModelAdminMessage {
+  type: typeof MESSAGE_TYPES.OPEN_MODEL_ADMIN;
+}
+
+export interface TestModelConnectionMessage {
+  type: typeof MESSAGE_TYPES.TEST_MODEL_CONNECTION;
+  payload: {
+    mode: WorkspaceMode;
+    settings: ModelRuntimeSettings;
+  };
+}
+
 export type RuntimeMessage =
   | CaptureInputMessage
   | RunAnalysisMessage
   | RunLongformCheckMessage
   | RunInlineAnalysisMessage
-  | RunInlineLongformCheckMessage;
+  | RunInlineLongformCheckMessage
+  | OpenModelAdminMessage
+  | TestModelConnectionMessage;
 
 export interface RuntimeResponse<T = unknown> {
   ok: boolean;
@@ -56,3 +80,4 @@ export interface RuntimeResponse<T = unknown> {
 }
 
 export type AnalysisResponse = RuntimeResponse<AIResponse>;
+export type ModelConnectionTestResponse = RuntimeResponse<ModelConnectionTestResult>;

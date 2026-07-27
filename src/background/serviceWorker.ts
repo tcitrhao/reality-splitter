@@ -1,14 +1,21 @@
 import {
   MESSAGE_TYPES,
   type CaptureInputMessage,
+  type OpenModelAdminMessage,
   type RunInlineAnalysisMessage,
   type RunInlineLongformCheckMessage,
   type RunLongformCheckMessage,
   type RunAnalysisMessage,
   type RuntimeMessage,
-  type RuntimeResponse
+  type RuntimeResponse,
+  type TestModelConnectionMessage
 } from "../shared/messages";
-import { runAnalysis, runLongformCheck, toUserMessage } from "../shared/aiClient";
+import {
+  runAnalysis,
+  runLongformCheck,
+  testModelConnection,
+  toUserMessage
+} from "../shared/aiClient";
 import {
   getCurrentInput,
   setCurrentInput,
@@ -16,13 +23,13 @@ import {
   setWorkspaceMode,
   setUiError
 } from "../shared/storage";
-import type { AIResponse, TweetInput } from "../shared/types";
+import type { AIResponse, ModelConnectionTestResult, TweetInput } from "../shared/types";
 
 const CONTEXT_MENU_ROOT_ID = "reality-splitter-root";
 const CONTEXT_MENU_QUICK_ID = "reality-splitter-quick";
 const CONTEXT_MENU_LONGFORM_ID = "reality-splitter-longform";
-const CONTENT_SHOW_INLINE_MESSAGE = "REALITY_SPLITTER_SHOW_INLINE_V5";
-const CONTENT_SCRIPT_VERSION = "0.1.9";
+const CONTENT_SHOW_INLINE_MESSAGE = "REALITY_SPLITTER_SHOW_INLINE_V6";
+const CONTENT_SCRIPT_VERSION = "0.2.0";
 
 void initializeSidePanelBehavior();
 void initializeContextMenus();
@@ -65,7 +72,7 @@ chrome.runtime.onMessage.addListener((message: RuntimeMessage, sender, sendRespo
 async function handleMessage(
   message: RuntimeMessage,
   sender: chrome.runtime.MessageSender
-): Promise<RuntimeResponse<AIResponse>> {
+): Promise<RuntimeResponse> {
   switch (message.type) {
     case MESSAGE_TYPES.CAPTURE_INPUT:
       await handleCapturedInput(message as CaptureInputMessage, sender);
@@ -78,11 +85,39 @@ async function handleMessage(
       return handleRunInlineAnalysis(message as RunInlineAnalysisMessage);
     case MESSAGE_TYPES.RUN_INLINE_LONGFORM_CHECK:
       return handleRunInlineLongformCheck(message as RunInlineLongformCheckMessage);
+    case MESSAGE_TYPES.OPEN_MODEL_ADMIN:
+      return handleOpenModelAdmin(message as OpenModelAdminMessage);
+    case MESSAGE_TYPES.TEST_MODEL_CONNECTION:
+      return handleTestModelConnection(message as TestModelConnectionMessage);
     default:
       return {
         ok: false,
         error: "暂不支持这个操作。"
       };
+  }
+}
+
+async function handleOpenModelAdmin(
+  _message: OpenModelAdminMessage
+): Promise<RuntimeResponse> {
+  await chrome.runtime.openOptionsPage();
+  return { ok: true };
+}
+
+async function handleTestModelConnection(
+  message: TestModelConnectionMessage
+): Promise<RuntimeResponse<ModelConnectionTestResult>> {
+  try {
+    const result = await testModelConnection(message.payload.mode, message.payload.settings);
+    return {
+      ok: true,
+      data: result
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      error: toUserMessage(error)
+    };
   }
 }
 

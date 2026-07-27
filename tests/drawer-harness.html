@@ -29,6 +29,13 @@
             }
           },
           async sendMessage(message) {
+            if (message.type === "OPEN_MODEL_ADMIN") {
+              document.documentElement.dataset.modelAdminRequestCount = String(
+                Number(document.documentElement.dataset.modelAdminRequestCount || "0") + 1
+              );
+              return { ok: true };
+            }
+
             document.documentElement.dataset.lastRuntimeInput = message.payload?.input?.text || "";
             document.documentElement.dataset.analysisRequestCount = String(
               Number(document.documentElement.dataset.analysisRequestCount || "0") + 1
@@ -99,7 +106,7 @@
         const listener = runtimeListeners.at(-1);
         listener(
           {
-            type: "REALITY_SPLITTER_SHOW_INLINE_V5",
+            type: "REALITY_SPLITTER_SHOW_INLINE_V6",
             payload: {
               input: {
                 text: "有人预测，这个行业将在两年内发生重大变化。",
@@ -143,6 +150,7 @@
       document.documentElement.dataset.analysisRequestCount = "0";
       document.documentElement.dataset.quickRequestCount = "0";
       document.documentElement.dataset.longformRequestCount = "0";
+      document.documentElement.dataset.modelAdminRequestCount = "0";
       window.openRealitySplitterDrawer();
     </script>
   </body>
