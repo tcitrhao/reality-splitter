@@ -1,0 +1,39 @@
+name: Publish Chrome extension
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Package extension
+        run: npm run package:extension
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+
+      - name: Create GitHub Release
+        run: >-
+          gh release create "${{ github.ref_name }}"
+          release/reality-splitter-chrome.zip
+          --generate-notes
+          --title "Reality Splitter ${{ github.ref_name }}"
+        env:
+          GH_TOKEN: ${{ github.token }}

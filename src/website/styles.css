@@ -76,12 +76,14 @@ ul {
 
 .site-header nav a,
 .hero-links a,
+.source-link,
 .site-footer a {
   transition: color 160ms ease;
 }
 
 .site-header nav a:hover,
 .hero-links a:hover,
+.source-link:hover,
 .site-footer a:hover {
   color: var(--accent);
 }
@@ -152,6 +154,11 @@ ul {
 .hero-links a {
   padding-bottom: 4px;
   border-bottom: 1px solid var(--text);
+}
+
+.hero-links .hero-download {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
 }
 
 .product-status {
@@ -340,6 +347,77 @@ ul {
   line-height: 1.7;
 }
 
+.download-content {
+  margin-left: var(--content-offset);
+  border-top: 1px solid var(--text);
+}
+
+.download-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.download-button {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  padding: 0 18px;
+  color: var(--background);
+  background: var(--text);
+  font-size: 13px;
+}
+
+.download-button:hover {
+  background: var(--accent);
+}
+
+.download-button.is-disabled {
+  color: var(--muted);
+  background: var(--surface);
+}
+
+.source-link {
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.install-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.install-steps li {
+  display: grid;
+  grid-template-columns: 52px 1fr;
+  gap: 20px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.install-steps li > span {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.install-steps strong {
+  font-family: var(--serif);
+  font-size: 1rem;
+}
+
+.install-steps p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
 .iteration-list,
 .meditation-list {
   margin-left: var(--content-offset);
@@ -513,14 +591,15 @@ ul {
   }
 
   .site-header {
-    align-items: flex-start;
+    align-items: stretch;
+    flex-direction: column;
     gap: 20px;
     padding: 20px 0;
   }
 
   .site-header nav {
-    max-width: 220px;
-    justify-content: flex-end;
+    max-width: none;
+    justify-content: flex-start;
     flex-wrap: wrap;
     gap: 8px 16px;
   }
@@ -530,10 +609,12 @@ ul {
   }
 
   .product-hero h1 {
-    font-size: clamp(3rem, 15vw, 4.8rem);
+    font-size: clamp(2.65rem, 12.5vw, 3.2rem);
   }
 
   .hero-links {
+    flex-wrap: wrap;
+    gap: 14px 24px;
     margin-bottom: 44px;
   }
 
@@ -587,6 +668,7 @@ ul {
 
   .product-example,
   .step-list,
+  .download-content,
   .iteration-list,
   .meditation-list,
   .about-copy,
@@ -594,6 +676,11 @@ ul {
   .archive-note,
   .project-principles {
     margin-left: 0;
+  }
+
+  .download-actions {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .product-example {

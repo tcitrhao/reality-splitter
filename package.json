@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "vite build --watch --mode development",
     "sync:version": "node scripts/sync-version.mjs",
+    "version": "npm run sync:version",
     "verify:build": "node scripts/verify-extension-build.mjs",
     "build": "npm run sync:version && tsc --noEmit && vite build && vite build --config vite.content.config.ts && npm run verify:build",
+    "build:site": "vite build --config vite.website.config.ts",
+    "package:extension": "npm run build && node scripts/package-extension.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4173",
     "studio": "node scripts/content-studio.mjs",
     "typecheck": "tsc --noEmit"

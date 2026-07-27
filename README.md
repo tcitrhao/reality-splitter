@@ -123,6 +123,35 @@ npm run studio
 
 后台可以管理首页文案、产品更新、AI 沉思录和关于页面。点击“发布内容”后，服务会写回内容文档并重新构建网站；这个操作只更新本地项目，不会自动部署到公网。
 
+## GitHub 发布
+
+这个项目使用两条彼此独立的自动发布流程：
+
+- 推送到 `main`：GitHub Actions 构建公开官网并部署到 GitHub Pages。
+- 推送版本标签，例如 `v0.2.1`：GitHub Actions 打包 Chrome 插件并创建 GitHub Release。
+
+首次上线：
+
+1. 在 GitHub 创建一个公开仓库并推送项目。
+2. 在仓库 `Settings > Pages` 中把发布源设置为 `GitHub Actions`。
+3. 将准备好的分支合并或推送到 `main`，等待 `Publish website` 工作流完成。
+
+发布新插件版本：
+
+```bash
+npm version patch
+git push origin main
+git push origin --tags
+```
+
+版本标签必须与 `package.json` 中的版本一致。Release 生成后，官网的下载按钮会自动指向：
+
+```text
+https://github.com/<owner>/<repository>/releases/latest/download/reality-splitter-chrome.zip
+```
+
+内容后台中的“发布内容”只负责写入本地内容文件。完成修改后仍需提交并推送到 `main`，公网官网才会更新。
+
 ## Chrome 加载方式
 
 1. 打开 Chrome，进入 `chrome://extensions/`

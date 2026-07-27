@@ -6,7 +6,8 @@
       "product": "产品",
       "iterations": "迭代",
       "meditations": "AI 沉思录",
-      "about": "关于"
+      "about": "关于",
+      "download": "下载"
     }
   },
   "product": {
@@ -17,7 +18,7 @@
     "howItWorksLabel": "它如何工作",
     "iterationsLinkLabel": "查看迭代记录",
     "versionLabel": "当前版本",
-    "version": "v0.1.2",
+    "version": "v0.2.0",
     "statusLabel": "项目状态",
     "status": "持续迭代中",
     "natureLabel": "项目性质",
@@ -62,7 +63,32 @@
         "title": "再判断",
         "body": "保留决定权，也给自己多一点思考的时间。"
       }
-    ]
+    ],
+    "download": {
+      "label": "免费使用",
+      "title": "下载插件，把判断留在自己手里。",
+      "description": "Reality Splitter 是一个个人维护、非盈利的 Chrome 插件。当前版本通过 GitHub 免费提供，下载后可以在 Chrome 开发者模式中手动安装。",
+      "buttonLabel": "免费下载 Chrome 插件",
+      "sourceLabel": "在 GitHub 查看源码",
+      "unavailableLabel": "连接 GitHub 仓库后开放下载",
+      "steps": [
+        {
+          "number": "01",
+          "title": "下载",
+          "body": "下载最新版本的 ZIP 文件并解压。"
+        },
+        {
+          "number": "02",
+          "title": "打开扩展管理",
+          "body": "在 Chrome 访问 chrome://extensions，并开启开发者模式。"
+        },
+        {
+          "number": "03",
+          "title": "加载插件",
+          "body": "点击“加载已解压的扩展程序”，选择解压后的文件夹。"
+        }
+      ]
+    }
   },
   "iterationsPage": {
     "label": "迭代",

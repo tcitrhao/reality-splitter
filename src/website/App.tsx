@@ -9,6 +9,14 @@ const pageLinks: Record<PageKey, string> = {
   about: "./about.html"
 };
 
+const githubRepository = import.meta.env.VITE_GITHUB_REPOSITORY?.trim();
+const repositoryUrl = githubRepository
+  ? `https://github.com/${githubRepository}`
+  : undefined;
+const downloadUrl = repositoryUrl
+  ? `${repositoryUrl}/releases/latest/download/reality-splitter-chrome.zip`
+  : undefined;
+
 export default function App() {
   const requestedPage = document.body.dataset.page as PageKey | undefined;
   const currentPage = requestedPage && requestedPage in pageLinks ? requestedPage : "product";
@@ -52,6 +60,7 @@ function SiteHeader({ currentPage }: { currentPage: PageKey }) {
             {item.label}
           </a>
         ))}
+        <a href={`${pageLinks.product}#download`}>{navigation.download}</a>
       </nav>
     </header>
   );
@@ -69,6 +78,9 @@ function ProductPage() {
         <p className="hero-intro">{product.intro}</p>
 
         <div className="hero-links">
+          <a className="hero-download" href={downloadUrl || "#download"}>
+            {product.download.buttonLabel}
+          </a>
           <a href="#how-it-works">{product.howItWorksLabel}</a>
           <a href={pageLinks.iterations}>{product.iterationsLinkLabel}</a>
         </div>
@@ -123,7 +135,54 @@ function ProductPage() {
           ))}
         </div>
       </section>
+
+      <DownloadSection />
     </>
+  );
+}
+
+function DownloadSection() {
+  const download = content.product.download;
+
+  return (
+    <section className="reading-section download-section" id="download">
+      <SectionTitle
+        label={download.label}
+        title={download.title}
+        description={download.description}
+      />
+
+      <div className="download-content">
+        <div className="download-actions">
+          {downloadUrl ? (
+            <a className="download-button" href={downloadUrl}>
+              {download.buttonLabel}
+            </a>
+          ) : (
+            <span className="download-button is-disabled">
+              {download.unavailableLabel}
+            </span>
+          )}
+          {repositoryUrl ? (
+            <a className="source-link" href={repositoryUrl} target="_blank" rel="noreferrer">
+              {download.sourceLabel}
+            </a>
+          ) : null}
+        </div>
+
+        <ol className="install-steps">
+          {download.steps.map((step) => (
+            <li key={step.number}>
+              <span>{step.number}</span>
+              <div>
+                <strong>{step.title}</strong>
+                <p>{step.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
   );
 }
 

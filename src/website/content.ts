@@ -9,6 +9,7 @@ export interface WebsiteContent {
       iterations: string;
       meditations: string;
       about: string;
+      download: string;
     };
   };
   product: {
@@ -32,6 +33,15 @@ export interface WebsiteContent {
     resultLabel: string;
     results: Array<{ label: string; text: string }>;
     steps: Array<{ number: string; title: string; body: string }>;
+    download: {
+      label: string;
+      title: string;
+      description: string;
+      buttonLabel: string;
+      sourceLabel: string;
+      unavailableLabel: string;
+      steps: Array<{ number: string; title: string; body: string }>;
+    };
   };
   iterationsPage: {
     label: string;

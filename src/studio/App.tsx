@@ -56,7 +56,7 @@ export default function App() {
         throw new Error(result.error || "发布失败");
       }
 
-      setMessage("发布完成。网站已经使用最新内容重新生成。");
+      setMessage("内容已写入本地。推送到 GitHub 后，公网网站会自动更新。");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "发布失败，请稍后再试。");
     } finally {
@@ -140,6 +140,18 @@ function CopyEditor({
   const updateProduct = (field: keyof WebsiteContent["product"], value: string) => {
     onChange({ ...content, product: { ...content.product, [field]: value } });
   };
+  const updateDownload = (
+    field: "label" | "title" | "description" | "buttonLabel" | "sourceLabel" | "unavailableLabel",
+    value: string
+  ) => {
+    onChange({
+      ...content,
+      product: {
+        ...content.product,
+        download: { ...content.product.download, [field]: value }
+      }
+    });
+  };
 
   return (
     <EditorSection title="首页文案" description="管理品牌名称、首屏和产品介绍的主要文字。">
@@ -156,6 +168,9 @@ function CopyEditor({
       </div>
       <Field label="产品区标题" value={content.product.sectionTitle} onChange={(value) => updateProduct("sectionTitle", value)} />
       <Field label="产品区说明" multiline value={content.product.sectionDescription} onChange={(value) => updateProduct("sectionDescription", value)} />
+      <Field label="下载区标题" value={content.product.download.title} onChange={(value) => updateDownload("title", value)} />
+      <Field label="下载区说明" multiline value={content.product.download.description} onChange={(value) => updateDownload("description", value)} />
+      <Field label="下载按钮" value={content.product.download.buttonLabel} onChange={(value) => updateDownload("buttonLabel", value)} />
     </EditorSection>
   );
 }
