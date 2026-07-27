@@ -29,6 +29,7 @@ const LONGFORM_REQUEST_TIMEOUT_MS = 90000;
 const KIMI_LONGFORM_REQUEST_TIMEOUT_MS = 180000;
 const MAX_KIMI_TOOL_ROUNDS = 4;
 const QUICK_MAX_OUTPUT_TOKENS = 2048;
+const DEEPSEEK_QUICK_MAX_OUTPUT_TOKENS = 4096;
 const LONGFORM_MAX_OUTPUT_TOKENS = 4096;
 
 type ToolCall = {
@@ -255,7 +256,7 @@ function buildRequestBody(
   const requestBody: Record<string, unknown> = {
     model,
     temperature: options.temperatureOverride ?? resolveTemperature(provider, providerProfile),
-    max_tokens: resolveMaxOutputTokens(mode),
+    max_tokens: resolveMaxOutputTokens(mode, providerProfile),
     messages
   };
 
@@ -321,20 +322,30 @@ async function runModelAttempt<M extends QuickAnalysisMode>(params: {
     inputWasCompressed: params.inputWasCompressed
   });
 
-  const response = await fetch(buildChatCompletionsUrl(params.provider, params.baseUrl), {
-    ...buildRequestInit(
-      params.mode,
-      prompt,
-      params.provider,
-      params.model,
-      params.apiKey,
-      params.providerProfile,
-      {
-        temperatureOverride: params.temperatureOverride
-      }
-    ),
-    signal: timeoutSignal(resolveRequestTimeout("quick", params.providerProfile))
-  }).catch((error: unknown) => {
+  let response: Response;
+  try {
+    response = await fetch(buildChatCompletionsUrl(params.provider, params.baseUrl), {
+      ...buildRequestInit(
+        params.mode,
+        prompt,
+        params.provider,
+        params.model,
+        params.apiKey,
+        params.providerProfile,
+        {
+          temperatureOverride: params.temperatureOverride
+        }
+      ),
+      signal: timeoutSignal(resolveRequestTimeout("quick", params.providerProfile))
+    });
+  } catch (error) {
+    if (params.attempt === 1) {
+      return runModelAttempt({
+        ...params,
+        attempt: 2
+      });
+    }
+
     if (isTimeoutError(error)) {
       throw new UserVisibleError("这次分析超时了，可以稍后再试，或缩短文本。");
     }
@@ -344,7 +355,7 @@ async function runModelAttempt<M extends QuickAnalysisMode>(params: {
     }
 
     throw new UserVisibleError("网络似乎不太稳定，这次分析失败了，可以稍后再试。");
-  });
+  }
 
   if (!response.ok) {
     const message = await readErrorMessage(response);
@@ -358,6 +369,13 @@ async function runModelAttempt<M extends QuickAnalysisMode>(params: {
         ...params,
         temperatureOverride: requiredTemperature,
         providerProfile: requiredTemperature === 0.6 ? "kimi" : params.providerProfile
+      });
+    }
+
+    if (params.attempt === 1 && isRetryableStatus(response.status)) {
+      return runModelAttempt({
+        ...params,
+        attempt: 2
       });
     }
 
@@ -375,23 +393,47 @@ async function runModelAttempt<M extends QuickAnalysisMode>(params: {
     throw new UserVisibleError(message || "这次分析失败了，可以稍后再试，或缩短文本。");
   }
 
-  const payload = (await response.json()) as {
-    choices?: Array<{
-      message?: {
-        content?: string | Array<{ type?: string; text?: string }>;
-      };
-    }>;
-  };
+  const payload = (await safeReadJson(response)) as
+    | {
+        choices?: Array<{
+          finish_reason?: string;
+          message?: {
+            content?: string | Array<{ type?: string; text?: string }>;
+          };
+        }>;
+      }
+    | null;
 
-  const rawContent = normalizeModelContent(payload.choices?.[0]?.message?.content);
+  if (!payload && params.attempt === 1) {
+    return runModelAttempt({
+      ...params,
+      attempt: 2
+    });
+  }
+
+  const rawContent = normalizeModelContent(payload?.choices?.[0]?.message?.content);
 
   if (!rawContent) {
+    if (params.attempt === 1) {
+      return runModelAttempt({
+        ...params,
+        attempt: 2
+      });
+    }
+
     throw new UserVisibleError("模型这次没有返回可用结果，可以稍后再试。");
   }
 
   const parsed = safeParseJson(rawContent) as AnalysisResultMap[M] | null;
 
   if (!parsed) {
+    if (params.attempt === 1) {
+      return runModelAttempt({
+        ...params,
+        attempt: 2
+      });
+    }
+
     throw new UserVisibleError("模型返回的内容不是可解析的 JSON，可以稍后再试。");
   }
 
@@ -875,21 +917,31 @@ async function runLongformAttempt(params: {
     return runKimiLongformAttemptWithWebSearch(params, prompt);
   }
 
-  const response = await fetch(buildChatCompletionsUrl(params.provider, params.baseUrl), {
-    ...buildRequestInit(
-      "longform",
-      prompt,
-      params.provider,
-      params.model,
-      params.apiKey,
-      params.providerProfile,
-      {
-        enableKimiWebSearch: false,
-        temperatureOverride: params.temperatureOverride
-      }
-    ),
-    signal: timeoutSignal(resolveRequestTimeout("longform", params.providerProfile))
-  }).catch((error: unknown) => {
+  let response: Response;
+  try {
+    response = await fetch(buildChatCompletionsUrl(params.provider, params.baseUrl), {
+      ...buildRequestInit(
+        "longform",
+        prompt,
+        params.provider,
+        params.model,
+        params.apiKey,
+        params.providerProfile,
+        {
+          enableKimiWebSearch: false,
+          temperatureOverride: params.temperatureOverride
+        }
+      ),
+      signal: timeoutSignal(resolveRequestTimeout("longform", params.providerProfile))
+    });
+  } catch (error) {
+    if (params.attempt === 1) {
+      return runLongformAttempt({
+        ...params,
+        attempt: 2
+      });
+    }
+
     if (isTimeoutError(error)) {
       throw new UserVisibleError("长文核查等待太久了。若使用联网模型，可以稍后再试；也可以先补参考摘录提高稳定性。");
     }
@@ -899,7 +951,7 @@ async function runLongformAttempt(params: {
     }
 
     throw new UserVisibleError("长文核查这次没有成功，可以稍后再试。");
-  });
+  }
 
   if (!response.ok) {
     const message = await readErrorMessage(response);
@@ -916,24 +968,54 @@ async function runLongformAttempt(params: {
       });
     }
 
+    if (params.attempt === 1 && isRetryableStatus(response.status)) {
+      return runLongformAttempt({
+        ...params,
+        attempt: 2
+      });
+    }
+
     throw new UserVisibleError(message || "长文核查这次失败了，可以稍后再试。");
   }
 
-  const payload = (await response.json()) as {
-    choices?: Array<{
-      message?: {
-        content?: string | Array<{ type?: string; text?: string }>;
-      };
-    }>;
-  };
+  const payload = (await safeReadJson(response)) as
+    | {
+        choices?: Array<{
+          message?: {
+            content?: string | Array<{ type?: string; text?: string }>;
+          };
+        }>;
+      }
+    | null;
 
-  const rawContent = normalizeModelContent(payload.choices?.[0]?.message?.content);
+  if (!payload && params.attempt === 1) {
+    return runLongformAttempt({
+      ...params,
+      attempt: 2
+    });
+  }
+
+  const rawContent = normalizeModelContent(payload?.choices?.[0]?.message?.content);
   if (!rawContent) {
+    if (params.attempt === 1) {
+      return runLongformAttempt({
+        ...params,
+        attempt: 2
+      });
+    }
+
     throw new UserVisibleError("模型这次没有返回可用的长文核查结果。");
   }
 
   const parsed = safeParseJson(rawContent) as LongformCheckResult | null;
   if (!parsed) {
+    if (params.attempt === 1) {
+      return runLongformAttempt({
+        ...params,
+        attempt: 2
+      });
+    }
+
     throw new UserVisibleError("模型返回的长文核查内容不是可解析的 JSON。");
   }
 
@@ -953,7 +1035,19 @@ async function runKimiLongformAttemptWithWebSearch(
   },
   prompt: ReturnType<typeof buildPrompt>
 ): Promise<LongformCheckResult> {
-  const kimiTools = await fetchKimiWebSearchTools(params.provider, params.baseUrl, params.apiKey);
+  let kimiTools: Array<Record<string, unknown>>;
+  try {
+    kimiTools = await fetchKimiWebSearchTools(params.provider, params.baseUrl, params.apiKey);
+  } catch (error) {
+    if (params.attempt === 1) {
+      return runLongformAttempt({
+        ...params,
+        attempt: 2
+      });
+    }
+
+    throw error;
+  }
   const messages: ChatRequestMessage[] = [
     {
       role: "system",
@@ -966,23 +1060,33 @@ async function runKimiLongformAttemptWithWebSearch(
   ];
 
   for (let round = 0; round < MAX_KIMI_TOOL_ROUNDS; round += 1) {
-    const response = await fetch(buildChatCompletionsUrl(params.provider, params.baseUrl), {
-      ...buildRequestInit(
-        "longform",
-        prompt,
-        params.provider,
-        params.model,
-        params.apiKey,
-        params.providerProfile,
-        {
-          messages,
-          kimiTools,
-          disableKimiThinking: true,
-          temperatureOverride: params.temperatureOverride
-        }
-      ),
-      signal: timeoutSignal(resolveRequestTimeout("longform", params.providerProfile))
-    }).catch((error: unknown) => {
+    let response: Response;
+    try {
+      response = await fetch(buildChatCompletionsUrl(params.provider, params.baseUrl), {
+        ...buildRequestInit(
+          "longform",
+          prompt,
+          params.provider,
+          params.model,
+          params.apiKey,
+          params.providerProfile,
+          {
+            messages,
+            kimiTools,
+            disableKimiThinking: true,
+            temperatureOverride: params.temperatureOverride
+          }
+        ),
+        signal: timeoutSignal(resolveRequestTimeout("longform", params.providerProfile))
+      });
+    } catch (error) {
+      if (params.attempt === 1) {
+        return runLongformAttempt({
+          ...params,
+          attempt: 2
+        });
+      }
+
       if (isTimeoutError(error)) {
         throw new UserVisibleError("长文核查等待太久了。Kimi 联网搜索通常更慢，可以稍后再试；也可以先补参考摘录提高稳定性。");
       }
@@ -992,7 +1096,7 @@ async function runKimiLongformAttemptWithWebSearch(
       }
 
       throw new UserVisibleError("Kimi 联网长文核查这次没有成功，可以稍后再试。");
-    });
+    }
 
     if (!response.ok) {
       const message = await readErrorMessage(response);
@@ -1012,21 +1116,37 @@ async function runKimiLongformAttemptWithWebSearch(
         );
       }
 
+      if (params.attempt === 1 && isRetryableStatus(response.status)) {
+        return runLongformAttempt({
+          ...params,
+          attempt: 2
+        });
+      }
+
       throw new UserVisibleError(message || "Kimi 联网长文核查这次失败了，可以稍后再试。");
     }
 
-    const payload = (await response.json()) as {
-      choices?: Array<{
-        finish_reason?: string;
-        message?: {
-          content?: string | Array<{ type?: string; text?: string }>;
-          tool_calls?: ToolCall[];
-          reasoning_content?: string;
-        };
-      }>;
-    };
+    const payload = (await safeReadJson(response)) as
+      | {
+          choices?: Array<{
+            finish_reason?: string;
+            message?: {
+              content?: string | Array<{ type?: string; text?: string }>;
+              tool_calls?: ToolCall[];
+              reasoning_content?: string;
+            };
+          }>;
+        }
+      | null;
 
-    const choice = payload.choices?.[0];
+    if (!payload && params.attempt === 1) {
+      return runLongformAttempt({
+        ...params,
+        attempt: 2
+      });
+    }
+
+    const choice = payload?.choices?.[0];
     const toolCalls = Array.isArray(choice?.message?.tool_calls) ? choice.message.tool_calls : [];
 
     if (choice?.finish_reason === "tool_calls" && toolCalls.length > 0) {
@@ -1049,13 +1169,25 @@ async function runKimiLongformAttemptWithWebSearch(
           continue;
         }
 
-        const toolOutput = await callKimiFormulaTool({
-          provider: params.provider,
-          baseUrl: params.baseUrl,
-          apiKey: params.apiKey,
-          name: toolName,
-          argumentsJson: toolArguments
-        });
+        let toolOutput: string;
+        try {
+          toolOutput = await callKimiFormulaTool({
+            provider: params.provider,
+            baseUrl: params.baseUrl,
+            apiKey: params.apiKey,
+            name: toolName,
+            argumentsJson: toolArguments
+          });
+        } catch (error) {
+          if (params.attempt === 1) {
+            return runLongformAttempt({
+              ...params,
+              attempt: 2
+            });
+          }
+
+          throw error;
+        }
 
         messages.push({
           role: "tool",
@@ -1071,15 +1203,36 @@ async function runKimiLongformAttemptWithWebSearch(
     const rawContent = normalizeModelContent(choice?.message?.content);
 
     if (!rawContent) {
+      if (params.attempt === 1) {
+        return runLongformAttempt({
+          ...params,
+          attempt: 2
+        });
+      }
+
       throw new UserVisibleError("Kimi 联网后没有返回可用的长文核查结果。");
     }
 
     const parsed = safeParseJson(rawContent) as LongformCheckResult | null;
     if (!parsed) {
+      if (params.attempt === 1) {
+        return runLongformAttempt({
+          ...params,
+          attempt: 2
+        });
+      }
+
       throw new UserVisibleError("Kimi 返回的长文核查内容不是可解析的 JSON。");
     }
 
     return normalizeAnalysisResult("longform", parsed);
+  }
+
+  if (params.attempt === 1) {
+    return runLongformAttempt({
+      ...params,
+      attempt: 2
+    });
   }
 
   throw new UserVisibleError("Kimi 联网搜索轮次超出了预期。建议先补参考摘录，或稍后再试。");
@@ -1240,8 +1393,21 @@ function resolveRequestTimeout(
   return mode === "longform" ? LONGFORM_REQUEST_TIMEOUT_MS : DEFAULT_REQUEST_TIMEOUT_MS;
 }
 
-function resolveMaxOutputTokens(mode: AnalysisMode): number {
-  return mode === "longform" ? LONGFORM_MAX_OUTPUT_TOKENS : QUICK_MAX_OUTPUT_TOKENS;
+function resolveMaxOutputTokens(
+  mode: AnalysisMode,
+  providerProfile: ProviderProfile
+): number {
+  if (mode === "longform") {
+    return LONGFORM_MAX_OUTPUT_TOKENS;
+  }
+
+  return providerProfile === "deepseek"
+    ? DEEPSEEK_QUICK_MAX_OUTPUT_TOKENS
+    : QUICK_MAX_OUTPUT_TOKENS;
+}
+
+function isRetryableStatus(status: number): boolean {
+  return [408, 425, 429, 500, 502, 503, 504].includes(status);
 }
 
 function isTimeoutError(error: unknown): boolean {

@@ -34,10 +34,38 @@
               Number(document.documentElement.dataset.analysisRequestCount || "0") + 1
             );
 
+            if (message.type === "RUN_INLINE_LONGFORM_CHECK") {
+              document.documentElement.dataset.longformRequestCount = String(
+                Number(document.documentElement.dataset.longformRequestCount || "0") + 1
+              );
+              await new Promise((resolve) => window.setTimeout(resolve, 280));
+              return {
+                ok: true,
+                data: {
+                  mode: "longform",
+                  result: {
+                    facts: [
+                      {
+                        claim: "测试事实",
+                        verdict: "supported",
+                        evidenceNote: "用于验证长文结果状态。",
+                        sourceHint: "测试夹具"
+                      }
+                    ],
+                    opinions: []
+                  }
+                }
+              };
+            }
+
             if (message.type !== "RUN_INLINE_ANALYSIS") {
               return { ok: false, error: "Unsupported test message" };
             }
 
+            document.documentElement.dataset.quickRequestCount = String(
+              Number(document.documentElement.dataset.quickRequestCount || "0") + 1
+            );
+            await new Promise((resolve) => window.setTimeout(resolve, 360));
             return {
               ok: true,
               data: {
@@ -71,7 +99,7 @@
         const listener = runtimeListeners.at(-1);
         listener(
           {
-            type: "REALITY_SPLITTER_SHOW_INLINE_V4",
+            type: "REALITY_SPLITTER_SHOW_INLINE_V5",
             payload: {
               input: {
                 text: "有人预测，这个行业将在两年内发生重大变化。",
@@ -113,6 +141,8 @@
     <script src="/dist/contentScript.js"></script>
     <script>
       document.documentElement.dataset.analysisRequestCount = "0";
+      document.documentElement.dataset.quickRequestCount = "0";
+      document.documentElement.dataset.longformRequestCount = "0";
       window.openRealitySplitterDrawer();
     </script>
   </body>

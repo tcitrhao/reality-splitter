@@ -21,8 +21,8 @@ import type { AIResponse, TweetInput } from "../shared/types";
 const CONTEXT_MENU_ROOT_ID = "reality-splitter-root";
 const CONTEXT_MENU_QUICK_ID = "reality-splitter-quick";
 const CONTEXT_MENU_LONGFORM_ID = "reality-splitter-longform";
-const CONTENT_SHOW_INLINE_MESSAGE = "REALITY_SPLITTER_SHOW_INLINE_V4";
-const CONTENT_SCRIPT_VERSION = "0.1.8";
+const CONTENT_SHOW_INLINE_MESSAGE = "REALITY_SPLITTER_SHOW_INLINE_V5";
+const CONTENT_SCRIPT_VERSION = "0.1.9";
 
 void initializeSidePanelBehavior();
 void initializeContextMenus();

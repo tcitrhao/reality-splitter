@@ -42,17 +42,23 @@ const LEGACY_INLINE_SURFACE_SELECTOR = [
   "[aria-label='Reality Splitter'][role='dialog']"
 ].join(", ");
 const SCAN_INTERVAL_MS = 1600;
-const CONTENT_SCRIPT_VERSION = "0.1.8";
-const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V4";
+const CONTENT_SCRIPT_VERSION = "0.1.9";
+const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V5";
 
 let lastSelection = "";
 let intervalId: number | null = null;
-let inlineInput: TweetInput | null = null;
+let inlineQuickInput: TweetInput | null = null;
+let inlineLongformInput: TweetInput | null = null;
 let inlineWorkspaceMode: WorkspaceMode = "quick";
-let inlineResponse: AIResponse | null = null;
-let inlineError = "";
-let inlineLoading = false;
-let inlineActiveMode: QuickAnalysisMode | "longform" | null = null;
+let inlineQuickResponse: AIResponse | null = null;
+let inlineLongformResponse: AIResponse | null = null;
+let inlineQuickError = "";
+let inlineLongformError = "";
+let inlineQuickLoading = false;
+let inlineLongformLoading = false;
+let inlineQuickActiveMode: QuickAnalysisMode | null = null;
+let inlineQuickRequestId = 0;
+let inlineLongformRequestId = 0;
 
 declare global {
   interface Window {
@@ -131,10 +137,13 @@ async function captureSelection() {
   };
 
   if (document.getElementById(INLINE_PANEL_ID)?.classList.contains("is-open")) {
-    inlineInput = input;
-    inlineResponse = null;
-    inlineError = "";
-    inlineActiveMode = null;
+    if (inlineWorkspaceMode === "longform") {
+      inlineLongformInput = input;
+      resetInlineLongformState();
+    } else {
+      inlineQuickInput = input;
+      resetInlineQuickState();
+    }
     renderInlinePanel();
   }
 }
@@ -634,13 +643,37 @@ function showInlinePanel(params: {
   input: TweetInput;
   workspaceMode: WorkspaceMode;
 }) {
-  inlineInput = params.input;
+  if (params.workspaceMode === "longform") {
+    if (!isSameInlineInput(inlineLongformInput, params.input)) {
+      inlineLongformInput = params.input;
+      resetInlineLongformState();
+    }
+  } else if (!isSameInlineInput(inlineQuickInput, params.input)) {
+    inlineQuickInput = params.input;
+    resetInlineQuickState();
+  }
+
   inlineWorkspaceMode = params.workspaceMode;
-  inlineResponse = null;
-  inlineError = "";
-  inlineLoading = false;
-  inlineActiveMode = null;
   renderInlinePanel();
+}
+
+function isSameInlineInput(current: TweetInput | null, next: TweetInput): boolean {
+  return current?.text === next.text && current?.url === next.url;
+}
+
+function resetInlineQuickState() {
+  inlineQuickRequestId += 1;
+  inlineQuickResponse = null;
+  inlineQuickError = "";
+  inlineQuickLoading = false;
+  inlineQuickActiveMode = null;
+}
+
+function resetInlineLongformState() {
+  inlineLongformRequestId += 1;
+  inlineLongformResponse = null;
+  inlineLongformError = "";
+  inlineLongformLoading = false;
 }
 
 function ensureInlinePanel(): HTMLElement {
@@ -741,17 +774,17 @@ function renderInlinePanel() {
   quickTab.type = "button";
   longformTab.type = "button";
   quickTab.addEventListener("click", () => {
+    if (!inlineQuickInput && inlineLongformInput) {
+      inlineQuickInput = { ...inlineLongformInput };
+    }
     inlineWorkspaceMode = "quick";
-    inlineResponse = null;
-    inlineError = "";
-    inlineActiveMode = null;
     renderInlinePanel();
   });
   longformTab.addEventListener("click", () => {
+    if (!inlineLongformInput && inlineQuickInput) {
+      inlineLongformInput = { ...inlineQuickInput };
+    }
     inlineWorkspaceMode = "longform";
-    inlineResponse = null;
-    inlineError = "";
-    inlineActiveMode = null;
     renderInlinePanel();
   });
 
@@ -761,19 +794,26 @@ function renderInlinePanel() {
     renderInlineQuick(shell);
   }
 
-  if (inlineLoading) {
+  const currentLoading =
+    inlineWorkspaceMode === "longform" ? inlineLongformLoading : inlineQuickLoading;
+  const currentError =
+    inlineWorkspaceMode === "longform" ? inlineLongformError : inlineQuickError;
+  const currentResponse =
+    inlineWorkspaceMode === "longform" ? inlineLongformResponse : inlineQuickResponse;
+
+  if (currentLoading) {
     appendCard(shell, PRODUCT_COPY.status.loadingTitle, PRODUCT_COPY.status.loadingBody);
   }
 
-  if (inlineError) {
+  if (currentError) {
     const errorCard = appendElement(shell, "section", "rs-inline-card rs-inline-error");
     appendElement(errorCard, "h3", "", PRODUCT_COPY.status.errorTitle);
-    appendElement(errorCard, "p", "", inlineError);
+    appendElement(errorCard, "p", "", currentError);
   }
 
-  if (inlineResponse) {
-    renderInlineResult(shell, inlineResponse);
-  } else if (!inlineLoading && !inlineError) {
+  if (currentResponse) {
+    renderInlineResult(shell, currentResponse);
+  } else if (!currentLoading && !currentError) {
     appendCard(
       shell,
       PRODUCT_COPY.results.result,
@@ -797,14 +837,18 @@ function renderInlineQuick(shell: HTMLElement) {
     "textarea",
     "rs-inline-textarea rs-inline-textarea--quick"
   ) as HTMLTextAreaElement;
-  textarea.value = inlineInput?.text || "";
+  textarea.value = inlineQuickInput?.text || "";
   textarea.placeholder = PRODUCT_COPY.input.quickPlaceholder;
+  textarea.disabled = inlineQuickLoading;
   textarea.addEventListener("input", () => {
-    inlineInput = {
-      ...(inlineInput ?? { url: window.location.href }),
+    inlineQuickInput = {
+      ...(inlineQuickInput ?? { url: window.location.href }),
       text: textarea.value,
-      url: inlineInput?.url || window.location.href
+      url: inlineQuickInput?.url || window.location.href
     };
+    inlineQuickResponse = null;
+    inlineQuickError = "";
+    inlineQuickActiveMode = null;
   });
 
   if (!textarea.value) {
@@ -816,11 +860,11 @@ function renderInlineQuick(shell: HTMLElement) {
     const button = appendElement(
       actions,
       "button",
-      `rs-inline-action ${inlineActiveMode === item.mode ? "is-active" : ""}`,
+      `rs-inline-action ${inlineQuickActiveMode === item.mode ? "is-active" : ""}`,
       item.label
     ) as HTMLButtonElement;
     button.type = "button";
-    button.disabled = inlineLoading;
+    button.disabled = inlineQuickLoading;
     button.addEventListener("click", () => {
       void runInlineQuickAnalysis(item.mode);
     });
@@ -831,36 +875,45 @@ function renderInlineLongform(shell: HTMLElement) {
   const card = appendElement(shell, "section", "rs-inline-card");
   appendElement(card, "h3", "", PRODUCT_COPY.input.longformTitle);
   const textarea = appendElement(card, "textarea", "rs-inline-textarea") as HTMLTextAreaElement;
-  textarea.value = inlineInput?.text || "";
+  textarea.value = inlineLongformInput?.text || "";
   textarea.placeholder = PRODUCT_COPY.input.longformPlaceholder;
+  textarea.disabled = inlineLongformLoading;
   textarea.addEventListener("input", () => {
-    inlineInput = {
-      ...(inlineInput ?? { url: window.location.href }),
+    inlineLongformInput = {
+      ...(inlineLongformInput ?? { url: window.location.href }),
       text: textarea.value,
-      url: inlineInput?.url || window.location.href
+      url: inlineLongformInput?.url || window.location.href
     };
+    inlineLongformResponse = null;
+    inlineLongformError = "";
   });
 
-  const runButton = appendElement(shell, "button", "rs-inline-run", inlineLoading ? "核查中..." : "开始长文核查") as HTMLButtonElement;
+  const runButton = appendElement(
+    shell,
+    "button",
+    "rs-inline-run",
+    inlineLongformLoading ? "核查中..." : "开始长文核查"
+  ) as HTMLButtonElement;
   runButton.type = "button";
-  runButton.disabled = inlineLoading;
+  runButton.disabled = inlineLongformLoading;
   runButton.addEventListener("click", () => {
     void runInlineLongformCheck();
   });
 }
 
 async function runInlineQuickAnalysis(mode: QuickAnalysisMode) {
-  if (!inlineInput?.text.trim()) {
-    inlineError = "还没有可分析的文本，请先选中一段内容。";
+  if (!inlineQuickInput?.text.trim()) {
+    inlineQuickError = "还没有可分析的文本，请先选中一段内容。";
     renderInlinePanel();
     return;
   }
 
+  const requestId = ++inlineQuickRequestId;
+  const requestInput = { ...inlineQuickInput };
   inlineWorkspaceMode = "quick";
-  inlineLoading = true;
-  inlineError = "";
-  inlineResponse = null;
-  inlineActiveMode = mode;
+  inlineQuickLoading = true;
+  inlineQuickError = "";
+  inlineQuickActiveMode = mode;
   renderInlinePanel();
 
   try {
@@ -868,53 +921,75 @@ async function runInlineQuickAnalysis(mode: QuickAnalysisMode) {
       type: MESSAGE_TYPES.RUN_INLINE_ANALYSIS,
       payload: {
         mode,
-        input: inlineInput
+        input: requestInput
       }
     })) as AnalysisResponse;
 
-    inlineResponse = result.ok && result.data ? result.data : null;
-    inlineError = result.ok ? "" : result.error || "这次分析失败了，可以稍后再试。";
+    if (requestId !== inlineQuickRequestId) {
+      return;
+    }
+
+    if (result.ok && result.data) {
+      inlineQuickResponse = result.data;
+      inlineQuickError = "";
+    } else {
+      inlineQuickError = result.error || "这次分析失败了，可以稍后再试。";
+    }
   } catch {
-    inlineResponse = null;
-    inlineError = "扩展暂时没有响应，可以刷新页面后再试。";
+    if (requestId === inlineQuickRequestId) {
+      inlineQuickError = "扩展暂时没有响应，可以刷新页面后再试。";
+    }
   } finally {
-    inlineLoading = false;
-    renderInlinePanel();
+    if (requestId === inlineQuickRequestId) {
+      inlineQuickLoading = false;
+      renderInlinePanel();
+    }
   }
 }
 
 async function runInlineLongformCheck() {
-  if (!inlineInput?.text.trim()) {
-    inlineError = "先贴一段想拆解的长文内容，再开始核查。";
+  if (!inlineLongformInput?.text.trim()) {
+    inlineLongformError = "先贴一段想拆解的长文内容，再开始核查。";
     renderInlinePanel();
     return;
   }
 
+  const requestId = ++inlineLongformRequestId;
+  const requestInput = { ...inlineLongformInput };
   inlineWorkspaceMode = "longform";
-  inlineLoading = true;
-  inlineError = "";
-  inlineResponse = null;
-  inlineActiveMode = "longform";
+  inlineLongformLoading = true;
+  inlineLongformError = "";
   renderInlinePanel();
 
   try {
     const result = (await chrome.runtime.sendMessage({
       type: MESSAGE_TYPES.RUN_INLINE_LONGFORM_CHECK,
       payload: {
-        articleText: inlineInput.text,
+        articleText: requestInput.text,
         referenceLinks: [],
         referenceNotes: ""
       }
     })) as AnalysisResponse;
 
-    inlineResponse = result.ok && result.data ? result.data : null;
-    inlineError = result.ok ? "" : result.error || "长文核查这次失败了，可以稍后再试。";
+    if (requestId !== inlineLongformRequestId) {
+      return;
+    }
+
+    if (result.ok && result.data) {
+      inlineLongformResponse = result.data;
+      inlineLongformError = "";
+    } else {
+      inlineLongformError = result.error || "长文核查这次失败了，可以稍后再试。";
+    }
   } catch {
-    inlineResponse = null;
-    inlineError = "扩展暂时没有响应，可以刷新页面后再试。";
+    if (requestId === inlineLongformRequestId) {
+      inlineLongformError = "扩展暂时没有响应，可以刷新页面后再试。";
+    }
   } finally {
-    inlineLoading = false;
-    renderInlinePanel();
+    if (requestId === inlineLongformRequestId) {
+      inlineLongformLoading = false;
+      renderInlinePanel();
+    }
   }
 }
 

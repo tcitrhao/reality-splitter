@@ -20,7 +20,6 @@ import {
 } from "../shared/storage";
 import type {
   AIResponse,
-  AnalysisMode,
   LongformCheckInput,
   QuickAnalysisMode,
   StoredSettings,
@@ -46,18 +45,24 @@ export default function App() {
   });
   const [currentInput, setCurrentInputState] = useState<TweetInput | null>(null);
   const [uiError, setUiErrorState] = useState<string | null>(null);
-  const [response, setResponse] = useState<AIResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [activeMode, setActiveMode] = useState<AnalysisMode | null>(null);
+  const [quickResponse, setQuickResponse] = useState<AIResponse | null>(null);
+  const [longformResponse, setLongformResponse] = useState<AIResponse | null>(null);
+  const [quickLoading, setQuickLoading] = useState(false);
+  const [longformLoading, setLongformLoading] = useState(false);
+  const [quickActiveMode, setQuickActiveMode] = useState<QuickAnalysisMode | null>(null);
   const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>(DEFAULT_WORKSPACE_MODE);
-  const [inlineError, setInlineError] = useState("");
+  const [quickError, setQuickError] = useState("");
+  const [longformError, setLongformError] = useState("");
   const [longformInput, setLongformInput] = useState<LongformCheckInput>({
     articleText: "",
     referenceLinks: [],
     referenceNotes: ""
   });
   const resultAnchorRef = useRef<HTMLElement | null>(null);
-  const visibleError = inlineError || uiError;
+  const response = workspaceMode === "longform" ? longformResponse : quickResponse;
+  const loading = workspaceMode === "longform" ? longformLoading : quickLoading;
+  const visibleError =
+    (workspaceMode === "longform" ? longformError : quickError) || uiError;
 
   useEffect(() => {
     void loadInitialState();
@@ -74,7 +79,9 @@ export default function App() {
 
       if (changes[STORAGE_KEYS.currentInput]) {
         setCurrentInputState((changes[STORAGE_KEYS.currentInput].newValue as TweetInput | null) ?? null);
-        setResponse(null);
+        setQuickResponse(null);
+        setQuickError("");
+        setQuickActiveMode(null);
       }
 
       if (changes[STORAGE_KEYS.workspaceMode]) {
@@ -82,7 +89,11 @@ export default function App() {
       }
 
       if (changes[STORAGE_KEYS.longformInput]) {
-        void getLongformInput().then(setLongformInput);
+        void getLongformInput().then((nextInput) => {
+          setLongformInput(nextInput);
+          setLongformResponse(null);
+          setLongformError("");
+        });
       }
 
       if (changes[STORAGE_KEYS.uiError]) {
@@ -130,19 +141,20 @@ export default function App() {
       referenceNotes: ""
     };
     setLongformInput(liteInput);
+    setLongformResponse(null);
+    setLongformError("");
     void persistLongformInput(liteInput);
   };
 
   const handleRun = async (mode: QuickAnalysisMode) => {
     if (!currentInput?.text) {
-      setInlineError("还没有可分析的文本，请先选中一段内容。");
+      setQuickError("还没有可分析的文本，请先选中一段内容。");
       return;
     }
 
-    setLoading(true);
-    setActiveMode(mode);
-    setInlineError("");
-    setResponse(null);
+    setQuickLoading(true);
+    setQuickActiveMode(mode);
+    setQuickError("");
 
     try {
       const result = (await chrome.runtime.sendMessage({
@@ -151,30 +163,27 @@ export default function App() {
       })) as AnalysisResponse;
 
       if (!result.ok || !result.data) {
-        setResponse(null);
-        setInlineError(result.error || "这次分析失败了，可以稍后再试。");
+        setQuickError(result.error || "这次分析失败了，可以稍后再试。");
         return;
       }
 
-      setResponse(result.data);
+      setQuickResponse(result.data);
       setUiErrorState(null);
     } catch {
-      setInlineError("这次分析失败了，可以稍后再试。");
+      setQuickError("这次分析失败了，可以稍后再试。");
     } finally {
-      setLoading(false);
+      setQuickLoading(false);
     }
   };
 
   const handleRunLongform = async () => {
     if (!longformInput.articleText.trim()) {
-      setInlineError("先贴一段想拆解的长文内容，再开始核查。");
+      setLongformError("先贴一段想拆解的长文内容，再开始核查。");
       return;
     }
 
-    setLoading(true);
-    setActiveMode("longform");
-    setInlineError("");
-    setResponse(null);
+    setLongformLoading(true);
+    setLongformError("");
 
     try {
       const liteInput = {
@@ -188,17 +197,16 @@ export default function App() {
       })) as AnalysisResponse;
 
       if (!result.ok || !result.data) {
-        setResponse(null);
-        setInlineError(result.error || "长文核查这次失败了，可以稍后再试。");
+        setLongformError(result.error || "长文核查这次失败了，可以稍后再试。");
         return;
       }
 
-      setResponse(result.data);
+      setLongformResponse(result.data);
       setUiErrorState(null);
     } catch {
-      setInlineError("长文核查这次失败了，可以稍后再试。");
+      setLongformError("长文核查这次失败了，可以稍后再试。");
     } finally {
-      setLoading(false);
+      setLongformLoading(false);
     }
   };
 
@@ -261,9 +269,9 @@ export default function App() {
           </section>
 
           <ActionButtons
-            activeMode={activeMode === "longform" ? null : activeMode}
+            activeMode={quickActiveMode}
             disabled={!currentInput?.text}
-            loading={loading}
+            loading={quickLoading}
             onRun={handleRun}
           />
         </section>
@@ -271,7 +279,7 @@ export default function App() {
         <LongformWorkspace
           active={workspaceMode === "longform"}
           value={longformInput}
-          loading={loading}
+          loading={longformLoading}
           onChange={handleLongformChange}
           onRun={handleRunLongform}
         />
@@ -282,7 +290,7 @@ export default function App() {
       <section ref={resultAnchorRef}>
         <AnalysisPanel
           response={response}
-          activeMode={activeMode ?? (workspaceMode === "longform" ? "longform" : null)}
+          activeMode={workspaceMode === "longform" ? "longform" : quickActiveMode}
         />
       </section>
 

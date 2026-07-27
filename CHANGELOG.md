@@ -2,6 +2,26 @@
 
 All notable product changes should be recorded here before a build is shared.
 
+## 0.1.9 - 2026-07-27
+
+### Fixed
+
+- Added one automatic retry for empty model responses, invalid JSON, request timeouts, transient network failures, rate limits and retryable 5xx responses.
+- Increased the DeepSeek short-text output budget to reduce responses that end before producing usable JSON.
+- Preserved the last successful result when a later request fails instead of replacing the result area with an empty state.
+- Gave short-text and longform workspaces independent inputs, results, errors, active modes and loading states.
+- Preserved each workspace result when switching between short-text and longform tabs.
+- Allowed DeepSeek short-text analysis and Kimi longform checking to run concurrently.
+
+### Changed
+
+- Advanced the drawer handshake to `REALITY_SPLITTER_SHOW_INLINE_V5` so tabs with older shared-state scripts are upgraded before opening.
+
+### Verified
+
+- Added build contracts for independent workspace state and automatic retry support.
+- Browser-tested result preservation across tab switches and concurrent short-text/longform requests.
+
 ## 0.1.8 - 2026-07-26
 
 ### Fixed

@@ -11,6 +11,7 @@ const contentScriptSource = await readFile(
   "utf8"
 );
 const sidePanelSource = await readFile(resolve(root, "src/sidepanel/App.tsx"), "utf8");
+const aiClientSource = await readFile(resolve(root, "src/shared/aiClient.ts"), "utf8");
 
 const checks = [
   {
@@ -22,7 +23,7 @@ const checks = [
     message: "contentScript.js contains ES module syntax that Chrome content scripts cannot execute"
   },
   {
-    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V4"),
+    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V5"),
     message: "contentScript.js is missing the versioned drawer message handler"
   },
   {
@@ -80,6 +81,25 @@ const checks = [
       !serviceWorker.includes("autoRunMode") &&
       !serviceWorker.includes("autoRunLongform"),
     message: "sending selected text to a workspace must never trigger analysis automatically"
+  },
+  {
+    pass:
+      contentScriptSource.includes("inlineQuickResponse") &&
+      contentScriptSource.includes("inlineLongformResponse") &&
+      contentScriptSource.includes("inlineQuickLoading") &&
+      contentScriptSource.includes("inlineLongformLoading") &&
+      sidePanelSource.includes("quickResponse") &&
+      sidePanelSource.includes("longformResponse") &&
+      sidePanelSource.includes("quickLoading") &&
+      sidePanelSource.includes("longformLoading"),
+    message: "short-text and longform workspaces must own independent result and loading state"
+  },
+  {
+    pass:
+      aiClientSource.includes("isRetryableStatus") &&
+      aiClientSource.includes("DEEPSEEK_QUICK_MAX_OUTPUT_TOKENS") &&
+      aiClientSource.includes("attempt: 2"),
+    message: "model reliability retry and DeepSeek output budget are missing"
   },
   {
     pass: !serviceWorker.includes("chrome.windows.create"),
