@@ -3,29 +3,20 @@ import rawContent from "../../content/website-content.json";
 export interface WebsiteContent {
   site: {
     brand: string;
-    footerDescription: string;
     navigation: {
       product: string;
       iterations: string;
       meditations: string;
       about: string;
-      download: string;
     };
   };
   product: {
-    overline: string;
     title: string;
     statement: string;
     intro: string;
+    downloadButtonLabel: string;
     howItWorksLabel: string;
     iterationsLinkLabel: string;
-    versionLabel: string;
-    version: string;
-    statusLabel: string;
-    status: string;
-    natureLabel: string;
-    nature: string;
-    sectionLabel: string;
     sectionTitle: string;
     sectionDescription: string;
     sourceLabel: string;
@@ -33,18 +24,8 @@ export interface WebsiteContent {
     resultLabel: string;
     results: Array<{ label: string; text: string }>;
     steps: Array<{ number: string; title: string; body: string }>;
-    download: {
-      label: string;
-      title: string;
-      description: string;
-      buttonLabel: string;
-      sourceLabel: string;
-      unavailableLabel: string;
-      steps: Array<{ number: string; title: string; body: string }>;
-    };
   };
   iterationsPage: {
-    label: string;
     title: string;
     description: string;
     learningLabel: string;
@@ -59,7 +40,6 @@ export interface WebsiteContent {
     learning: string;
   }>;
   meditationsPage: {
-    label: string;
     title: string;
     description: string;
     archiveNote: string;
@@ -72,7 +52,6 @@ export interface WebsiteContent {
     status: string;
   }>;
   aboutPage: {
-    label: string;
     title: string;
     description: string;
     paragraphs: string[];

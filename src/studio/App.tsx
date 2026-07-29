@@ -134,43 +134,18 @@ function CopyEditor({
   content: WebsiteContent;
   onChange: (next: WebsiteContent) => void;
 }) {
-  const updateSite = (field: "brand" | "footerDescription", value: string) => {
-    onChange({ ...content, site: { ...content.site, [field]: value } });
-  };
   const updateProduct = (field: keyof WebsiteContent["product"], value: string) => {
     onChange({ ...content, product: { ...content.product, [field]: value } });
   };
-  const updateDownload = (
-    field: "label" | "title" | "description" | "buttonLabel" | "sourceLabel" | "unavailableLabel",
-    value: string
-  ) => {
-    onChange({
-      ...content,
-      product: {
-        ...content.product,
-        download: { ...content.product.download, [field]: value }
-      }
-    });
-  };
 
   return (
-    <EditorSection title="首页文案" description="管理品牌名称、首屏和产品介绍的主要文字。">
-      <Field label="网站名称" value={content.site.brand} onChange={(value) => updateSite("brand", value)} />
-      <Field label="页脚说明" value={content.site.footerDescription} onChange={(value) => updateSite("footerDescription", value)} />
-      <Field label="首屏小标题" value={content.product.overline} onChange={(value) => updateProduct("overline", value)} />
+    <EditorSection title="首页文案" description="管理首屏和产品介绍。">
       <Field label="产品名称" value={content.product.title} onChange={(value) => updateProduct("title", value)} />
       <Field label="核心表达" value={content.product.statement} onChange={(value) => updateProduct("statement", value)} />
       <Field label="产品介绍" multiline value={content.product.intro} onChange={(value) => updateProduct("intro", value)} />
-      <div className="field-grid">
-        <Field label="当前版本" value={content.product.version} onChange={(value) => updateProduct("version", value)} />
-        <Field label="项目状态" value={content.product.status} onChange={(value) => updateProduct("status", value)} />
-        <Field label="项目性质" value={content.product.nature} onChange={(value) => updateProduct("nature", value)} />
-      </div>
+      <Field label="下载按钮" value={content.product.downloadButtonLabel} onChange={(value) => updateProduct("downloadButtonLabel", value)} />
       <Field label="产品区标题" value={content.product.sectionTitle} onChange={(value) => updateProduct("sectionTitle", value)} />
       <Field label="产品区说明" multiline value={content.product.sectionDescription} onChange={(value) => updateProduct("sectionDescription", value)} />
-      <Field label="下载区标题" value={content.product.download.title} onChange={(value) => updateDownload("title", value)} />
-      <Field label="下载区说明" multiline value={content.product.download.description} onChange={(value) => updateDownload("description", value)} />
-      <Field label="下载按钮" value={content.product.download.buttonLabel} onChange={(value) => updateDownload("buttonLabel", value)} />
     </EditorSection>
   );
 }
@@ -268,7 +243,7 @@ function MeditationsEditor({
   return (
     <EditorSection
       title="AI 沉思录"
-      description="管理思考题目、摘要、正文与写作状态。"
+      description="管理文章摘要与 Markdown 正文；有正文的文章可从列表进入阅读页。"
       action={<button type="button" onClick={addItem}>新增沉思</button>}
     >
       <Field label="页面标题" value={content.meditationsPage.title} onChange={(value) => updatePage("title", value)} />
@@ -286,7 +261,13 @@ function MeditationsEditor({
             </div>
             <Field label="标题" value={item.title} onChange={(value) => updateItem(index, "title", value)} />
             <Field label="摘要" multiline value={item.excerpt} onChange={(value) => updateItem(index, "excerpt", value)} />
-            <Field label="正文" multiline value={item.body} onChange={(value) => updateItem(index, "body", value)} />
+            <Field
+              label="Markdown 正文"
+              multiline
+              rows={16}
+              value={item.body}
+              onChange={(value) => updateItem(index, "body", value)}
+            />
           </article>
         ))}
       </div>
@@ -357,18 +338,20 @@ function Field({
   label,
   value,
   multiline = false,
+  rows = 4,
   onChange
 }: {
   label: string;
   value: string;
   multiline?: boolean;
+  rows?: number;
   onChange: (value: string) => void;
 }) {
   return (
     <label className="studio-field">
       <span>{label}</span>
       {multiline ? (
-        <textarea value={value} rows={4} onChange={(event) => onChange(event.target.value)} />
+        <textarea value={value} rows={rows} onChange={(event) => onChange(event.target.value)} />
       ) : (
         <input value={value} onChange={(event) => onChange(event.target.value)} />
       )}

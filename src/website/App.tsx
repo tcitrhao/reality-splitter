@@ -1,3 +1,5 @@
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { websiteContent as content } from "./content";
 
 type PageKey = "product" | "iterations" | "meditations" | "about";
@@ -9,13 +11,10 @@ const pageLinks: Record<PageKey, string> = {
   about: "./about.html"
 };
 
-const githubRepository = import.meta.env.VITE_GITHUB_REPOSITORY?.trim();
-const repositoryUrl = githubRepository
-  ? `https://github.com/${githubRepository}`
-  : undefined;
-const downloadUrl = repositoryUrl
-  ? `${repositoryUrl}/releases/latest/download/reality-splitter-chrome.zip`
-  : undefined;
+const githubRepository =
+  import.meta.env.VITE_GITHUB_REPOSITORY?.trim() || "tcitrhao/reality-splitter";
+const repositoryUrl = `https://github.com/${githubRepository}`;
+const downloadUrl = `${repositoryUrl}/releases/latest/download/reality-splitter-chrome.zip`;
 
 export default function App() {
   const requestedPage = document.body.dataset.page as PageKey | undefined;
@@ -30,7 +29,6 @@ export default function App() {
         {currentPage === "meditations" ? <MeditationsPage /> : null}
         {currentPage === "about" ? <AboutPage /> : null}
       </main>
-      <SiteFooter />
     </div>
   );
 }
@@ -60,7 +58,6 @@ function SiteHeader({ currentPage }: { currentPage: PageKey }) {
             {item.label}
           </a>
         ))}
-        <a href={`${pageLinks.product}#download`}>{navigation.download}</a>
       </nav>
     </header>
   );
@@ -72,38 +69,21 @@ function ProductPage() {
   return (
     <>
       <section className="product-hero">
-        <p className="overline">{product.overline}</p>
         <h1>{product.title}</h1>
         <p className="hero-statement">{product.statement}</p>
         <p className="hero-intro">{product.intro}</p>
 
         <div className="hero-links">
-          <a className="hero-download" href={downloadUrl || "#download"}>
-            {product.download.buttonLabel}
+          <a className="hero-download" href={downloadUrl}>
+            {product.downloadButtonLabel}
           </a>
           <a href="#how-it-works">{product.howItWorksLabel}</a>
           <a href={pageLinks.iterations}>{product.iterationsLinkLabel}</a>
-        </div>
-
-        <div className="product-status" aria-label="项目状态">
-          <div>
-            <span>{product.versionLabel}</span>
-            <strong>{product.version}</strong>
-          </div>
-          <div>
-            <span>{product.statusLabel}</span>
-            <strong>{product.status}</strong>
-          </div>
-          <div>
-            <span>{product.natureLabel}</span>
-            <strong>{product.nature}</strong>
-          </div>
         </div>
       </section>
 
       <section className="reading-section" id="how-it-works">
         <SectionTitle
-          label={product.sectionLabel}
           title={product.sectionTitle}
           description={product.sectionDescription}
         />
@@ -135,54 +115,7 @@ function ProductPage() {
           ))}
         </div>
       </section>
-
-      <DownloadSection />
     </>
-  );
-}
-
-function DownloadSection() {
-  const download = content.product.download;
-
-  return (
-    <section className="reading-section download-section" id="download">
-      <SectionTitle
-        label={download.label}
-        title={download.title}
-        description={download.description}
-      />
-
-      <div className="download-content">
-        <div className="download-actions">
-          {downloadUrl ? (
-            <a className="download-button" href={downloadUrl}>
-              {download.buttonLabel}
-            </a>
-          ) : (
-            <span className="download-button is-disabled">
-              {download.unavailableLabel}
-            </span>
-          )}
-          {repositoryUrl ? (
-            <a className="source-link" href={repositoryUrl} target="_blank" rel="noreferrer">
-              {download.sourceLabel}
-            </a>
-          ) : null}
-        </div>
-
-        <ol className="install-steps">
-          {download.steps.map((step) => (
-            <li key={step.number}>
-              <span>{step.number}</span>
-              <div>
-                <strong>{step.title}</strong>
-                <p>{step.body}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
   );
 }
 
@@ -191,7 +124,7 @@ function IterationsPage() {
 
   return (
     <div className="standalone-page">
-      <PageHero label={page.label} title={page.title} description={page.description} />
+      <PageHero title={page.title} description={page.description} />
 
       <section className="page-content" aria-label="产品迭代记录">
         <div className="iteration-list iteration-list--page">
@@ -224,24 +157,48 @@ function IterationsPage() {
 
 function MeditationsPage() {
   const page = content.meditationsPage;
+  const selectedIndex = new URLSearchParams(window.location.search).get("article");
+  const selectedMeditation = content.meditations.find(
+    (item) => item.index === selectedIndex && item.body.trim()
+  );
+
+  if (selectedMeditation) {
+    return <MeditationArticle meditation={selectedMeditation} />;
+  }
 
   return (
     <div className="standalone-page">
-      <PageHero label={page.label} title={page.title} description={page.description} />
+      <PageHero title={page.title} description={page.description} />
 
       <section className="page-content" aria-label="AI 沉思录文章">
         <div className="meditation-list meditation-list--page">
-          {content.meditations.map((item) => (
-            <article key={`${item.index}-${item.title}`}>
-              <span className="meditation-index">{item.index}</span>
-              <div>
-                <h2>{item.title}</h2>
-                <p>{item.excerpt}</p>
-                {item.body ? <p className="meditation-body">{item.body}</p> : null}
-              </div>
-              <span className="meditation-status">{item.status}</span>
-            </article>
-          ))}
+          {content.meditations.map((item) => {
+            const entry = (
+              <>
+                <span className="meditation-index">{item.index}</span>
+                <div>
+                  <h2>{item.title}</h2>
+                  <p>{item.excerpt}</p>
+                </div>
+                <span className="meditation-status">{item.status}</span>
+              </>
+            );
+
+            return (
+              <article key={`${item.index}-${item.title}`}>
+                {item.body.trim() ? (
+                  <a
+                    className="meditation-entry"
+                    href={`${pageLinks.meditations}?article=${encodeURIComponent(item.index)}`}
+                  >
+                    {entry}
+                  </a>
+                ) : (
+                  <div className="meditation-entry">{entry}</div>
+                )}
+              </article>
+            );
+          })}
         </div>
 
         <p className="archive-note">{page.archiveNote}</p>
@@ -250,12 +207,48 @@ function MeditationsPage() {
   );
 }
 
+function MeditationArticle({
+  meditation
+}: {
+  meditation: (typeof content.meditations)[number];
+}) {
+  return (
+    <article className="meditation-article">
+      <a className="article-back" href={pageLinks.meditations}>
+        ← 返回 AI 沉思录
+      </a>
+      <header>
+        <div className="article-meta">
+          <span>{meditation.index}</span>
+          <span>{meditation.status}</span>
+        </div>
+        <h1>{meditation.title}</h1>
+        <p>{meditation.excerpt}</p>
+      </header>
+      <div className="markdown-body">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            a: ({ children, ...props }) => (
+              <a {...props} target="_blank" rel="noreferrer">
+                {children}
+              </a>
+            )
+          }}
+        >
+          {meditation.body}
+        </ReactMarkdown>
+      </div>
+    </article>
+  );
+}
+
 function AboutPage() {
   const page = content.aboutPage;
 
   return (
     <div className="standalone-page">
-      <PageHero label={page.label} title={page.title} description={page.description} />
+      <PageHero title={page.title} description={page.description} />
 
       <section className="page-content about-page-content">
         <div className="about-copy">
@@ -278,17 +271,14 @@ function AboutPage() {
 }
 
 function PageHero({
-  label,
   title,
   description
 }: {
-  label: string;
   title: string;
   description: string;
 }) {
   return (
     <header className="page-hero">
-      <p>{label}</p>
       <h1>{title}</h1>
       <div className="page-hero__description">
         <p>{description}</p>
@@ -298,33 +288,18 @@ function PageHero({
 }
 
 function SectionTitle({
-  label,
   title,
   description
 }: {
-  label: string;
   title: string;
   description: string;
 }) {
   return (
     <header className="section-title">
-      <p>{label}</p>
       <h2>{title}</h2>
       <div className="section-description">
         <p>{description}</p>
       </div>
     </header>
-  );
-}
-
-function SiteFooter() {
-  return (
-    <footer className="site-footer">
-      <div>
-        <strong>{content.site.brand}</strong>
-        <span>{content.site.footerDescription}</span>
-      </div>
-      <a href={pageLinks.product}>回到产品 →</a>
-    </footer>
   );
 }
