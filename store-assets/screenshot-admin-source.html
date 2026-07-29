@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reality Splitter Model Admin Screenshot</title>
+    <script>
+      const demoSettings = {
+        quickProvider: "openai-compatible",
+        quickApiKey: "",
+        quickModel: "deepseek-v4-flash",
+        quickBaseUrl: "https://api.deepseek.com/v1",
+        longformProvider: "openai-compatible",
+        longformApiKey: "",
+        longformModel: "kimi-k2.6",
+        longformBaseUrl: "https://api.moonshot.cn/v1"
+      };
+
+      window.chrome = {
+        runtime: {
+          id: "reality-splitter-store-preview",
+          async sendMessage() {
+            return { ok: false, error: "商店预览不会发起真实模型请求。" };
+          }
+        },
+        storage: {
+          local: {
+            async get() {
+              return demoSettings;
+            },
+            async set() {}
+          }
+        },
+        permissions: {
+          async contains() {
+            return true;
+          },
+          async request() {
+            return true;
+          }
+        }
+      };
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/site/main.tsx"></script>
+  </body>
+</html>

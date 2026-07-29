@@ -144,6 +144,7 @@ function CopyEditor({
       <Field label="核心表达" value={content.product.statement} onChange={(value) => updateProduct("statement", value)} />
       <Field label="产品介绍" multiline value={content.product.intro} onChange={(value) => updateProduct("intro", value)} />
       <Field label="下载按钮" value={content.product.downloadButtonLabel} onChange={(value) => updateProduct("downloadButtonLabel", value)} />
+      <Field label="商店按钮" value={content.product.storeButtonLabel} onChange={(value) => updateProduct("storeButtonLabel", value)} />
       <Field label="产品区标题" value={content.product.sectionTitle} onChange={(value) => updateProduct("sectionTitle", value)} />
       <Field label="产品区说明" multiline value={content.product.sectionDescription} onChange={(value) => updateProduct("sectionDescription", value)} />
     </EditorSection>

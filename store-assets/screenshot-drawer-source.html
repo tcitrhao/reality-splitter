@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Reality Splitter Store Screenshot</title>
+    <style>
+      :root {
+        color: #24231f;
+        background: #f7f5ef;
+        font-family: "Avenir Next", "PingFang SC", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 92% 8%, rgba(45, 91, 209, 0.08), transparent 26rem),
+          #f7f5ef;
+      }
+
+      main {
+        width: min(100% - 96px, 760px);
+        margin: 0 auto;
+        padding: 64px 0 120px;
+      }
+
+      .publication {
+        color: #2d5bd1;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        max-width: 680px;
+        margin: 18px 0;
+        font-family: "Songti SC", "STSong", serif;
+        font-size: 42px;
+        font-weight: 600;
+        letter-spacing: -0.04em;
+        line-height: 1.16;
+      }
+
+      .deck {
+        max-width: 650px;
+        margin-bottom: 28px;
+        color: #6f6b63;
+        font-family: "Songti SC", "STSong", serif;
+        font-size: 20px;
+        line-height: 1.7;
+      }
+
+      .meta {
+        display: flex;
+        gap: 18px;
+        padding: 16px 0;
+        border-top: 1px solid #dcd8cf;
+        border-bottom: 1px solid #dcd8cf;
+        color: #89847b;
+        font-size: 12px;
+      }
+
+      article {
+        max-width: 650px;
+        padding-top: 28px;
+        font-family: "Songti SC", "STSong", serif;
+        font-size: 18px;
+        line-height: 1.9;
+      }
+
+      article p {
+        margin: 0 0 1.4em;
+      }
+
+      article .highlight {
+        padding-left: 18px;
+        border-left: 2px solid #2d5bd1;
+        font-size: 22px;
+      }
+    </style>
+    <script>
+      const runtimeListeners = [];
+
+      window.chrome = {
+        runtime: {
+          onMessage: {
+            addListener(listener) {
+              runtimeListeners.push(listener);
+            }
+          },
+          async sendMessage(message) {
+            if (message.type === "OPEN_MODEL_ADMIN") {
+              return { ok: true };
+            }
+
+            if (message.type !== "RUN_INLINE_ANALYSIS") {
+              return { ok: false, error: "Unsupported preview message" };
+            }
+
+            await new Promise((resolve) => window.setTimeout(resolve, 80));
+            return {
+              ok: true,
+              data: {
+                mode: "split",
+                result: {
+                  attentionTriage: {
+                    recommendedAction: "verify",
+                    attentionCost: "medium",
+                    reason: "内容使用确定语气和时间压力，但没有提供可核查来源。",
+                    nextStep: "先寻找原始公告或独立报道，再决定是否行动。"
+                  },
+                  propagationLabels: ["财富 FOMO", "时间压迫", "模糊权威"],
+                  observableFacts: ["原文声称某项机会将在本周结束。"],
+                  opinions: ["作者认为这是不能错过的机会。"],
+                  inferences: ["把有限时间外推为必须立即行动。"],
+                  predictions: ["错过本周就很难再获得类似机会。"],
+                  anxietyThemes: ["错失机会焦虑"],
+                  viralityHooks: ["稀缺时间窗口", "高收益暗示"],
+                  manipulationSignals: ["使用“最后机会”压缩判断时间。"],
+                  sourceReliabilityIssues: ["没有提供公告、数据或可核查主体。"],
+                  callsToAction: ["立即参与"],
+                  neutralRewrite: "这项机会的期限和收益尚需用原始来源核实。"
+                }
+              }
+            };
+          }
+        }
+      };
+
+      window.openRealitySplitterDrawer = () => {
+        runtimeListeners.at(-1)(
+          {
+            type: "REALITY_SPLITTER_SHOW_INLINE_V7",
+            payload: {
+              input: {
+                text: "这是本周最后的机会，错过就很难再有。消息已经得到内部人士确认，现在应该立即行动。",
+                url: window.location.href
+              },
+              workspaceMode: "quick"
+            }
+          },
+          {},
+          () => {}
+        );
+      };
+    </script>
+  </head>
+  <body>
+    <main>
+      <span class="publication">Independent Brief</span>
+      <h1>当一条消息催你立即行动时，先看它给了什么证据</h1>
+      <p class="deck">
+        确定语气、内部消息和有限时间窗口，常常比事实本身更快推动传播。
+      </p>
+      <div class="meta">
+        <span>信息与判断</span>
+        <span>阅读约 4 分钟</span>
+        <span>示例文章</span>
+      </div>
+      <article>
+        <p class="highlight">
+          “这是本周最后的机会，错过就很难再有。消息已经得到内部人士确认，现在应该立即行动。”
+        </p>
+        <p>
+          这段话包含一个期限、一个模糊来源和一个行动建议，但没有给出公告、数据或可核查主体。
+        </p>
+        <p>
+          面对这类信息，更稳妥的做法不是立刻相信或反驳，而是先把事实、观点和推断分开。
+        </p>
+      </article>
+    </main>
+    <script src="/dist/contentScript.js"></script>
+    <script>
+      window.openRealitySplitterDrawer();
+    </script>
+  </body>
+</html>

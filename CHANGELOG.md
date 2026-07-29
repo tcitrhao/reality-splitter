@@ -2,6 +2,21 @@
 
 All notable product changes should be recorded here before a build is shared.
 
+## 0.2.1 - 2026-07-29
+
+### Added
+
+- Added a public privacy policy page for Chrome Web Store submission.
+- Added Chrome Web Store listing copy, permission justifications, and a release checklist.
+- Added a website install-link switch that uses the Chrome Web Store URL when configured and keeps the GitHub release as a fallback.
+- Added the public product homepage to the extension manifest.
+- Advanced the drawer handshake to `REALITY_SPLITTER_SHOW_INLINE_V7` so existing tabs replace the previous extension script after the release update.
+
+### Verification
+
+- The extension package is built and inspected before submission.
+- The website build includes the public privacy policy route.
+
 ## 0.2.0 - 2026-07-27
 
 ### Added

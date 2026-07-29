@@ -42,8 +42,8 @@ const LEGACY_INLINE_SURFACE_SELECTOR = [
   "[aria-label='Reality Splitter'][role='dialog']"
 ].join(", ");
 const SCAN_INTERVAL_MS = 1600;
-const CONTENT_SCRIPT_VERSION = "0.2.0";
-const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V6";
+const CONTENT_SCRIPT_VERSION = "0.2.1";
+const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V7";
 
 let lastSelection = "";
 let intervalId: number | null = null;

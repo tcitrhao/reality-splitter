@@ -624,6 +624,66 @@ a.meditation-entry:hover h2 {
   line-height: 1.7;
 }
 
+.legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  width: min(100%, var(--content-width));
+  margin-top: 36px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.legal-links a {
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--line);
+}
+
+.legal-links a:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.privacy-content {
+  max-width: var(--reading-width);
+}
+
+.privacy-updated {
+  margin-bottom: 24px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.privacy-intro {
+  margin-bottom: 48px;
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  line-height: 1.85;
+}
+
+.privacy-section {
+  padding: 28px 0;
+  border-top: 1px solid var(--line);
+}
+
+.privacy-section h2 {
+  margin-bottom: 16px;
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-weight: 600;
+}
+
+.privacy-section p {
+  margin-bottom: 12px;
+  color: var(--muted);
+  line-height: 1.85;
+}
+
+.privacy-section p:last-child {
+  margin-bottom: 0;
+}
+
 @media (max-width: 760px) {
   .blog-shell {
     width: min(100% - 32px, 1040px);

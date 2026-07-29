@@ -17,7 +17,8 @@ export default defineConfig({
         index: resolveFromRoot("./index.html"),
         iterations: resolveFromRoot("./iterations.html"),
         meditations: resolveFromRoot("./meditations.html"),
-        about: resolveFromRoot("./about.html")
+        about: resolveFromRoot("./about.html"),
+        privacy: resolveFromRoot("./privacy.html")
       },
       output: {
         entryFileNames: "assets/[name]-[hash].js",

@@ -2,19 +2,22 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { websiteContent as content } from "./content";
 
-type PageKey = "product" | "iterations" | "meditations" | "about";
+type PageKey = "product" | "iterations" | "meditations" | "about" | "privacy";
 
 const pageLinks: Record<PageKey, string> = {
   product: "./index.html",
   iterations: "./iterations.html",
   meditations: "./meditations.html",
-  about: "./about.html"
+  about: "./about.html",
+  privacy: "./privacy.html"
 };
 
 const githubRepository =
   import.meta.env.VITE_GITHUB_REPOSITORY?.trim() || "tcitrhao/reality-splitter";
 const repositoryUrl = `https://github.com/${githubRepository}`;
 const downloadUrl = `${repositoryUrl}/releases/latest/download/reality-splitter-chrome.zip`;
+const chromeWebStoreUrl = import.meta.env.VITE_CHROME_WEB_STORE_URL?.trim();
+const installUrl = chromeWebStoreUrl || downloadUrl;
 
 export default function App() {
   const requestedPage = document.body.dataset.page as PageKey | undefined;
@@ -28,6 +31,7 @@ export default function App() {
         {currentPage === "iterations" ? <IterationsPage /> : null}
         {currentPage === "meditations" ? <MeditationsPage /> : null}
         {currentPage === "about" ? <AboutPage /> : null}
+        {currentPage === "privacy" ? <PrivacyPage /> : null}
       </main>
     </div>
   );
@@ -35,7 +39,7 @@ export default function App() {
 
 function SiteHeader({ currentPage }: { currentPage: PageKey }) {
   const navigation = content.site.navigation;
-  const items: Array<{ key: PageKey; label: string }> = [
+  const items: Array<{ key: Exclude<PageKey, "privacy">; label: string }> = [
     { key: "product", label: navigation.product },
     { key: "iterations", label: navigation.iterations },
     { key: "meditations", label: navigation.meditations },
@@ -74,8 +78,8 @@ function ProductPage() {
         <p className="hero-intro">{product.intro}</p>
 
         <div className="hero-links">
-          <a className="hero-download" href={downloadUrl}>
-            {product.downloadButtonLabel}
+          <a className="hero-download" href={installUrl} target="_blank" rel="noreferrer">
+            {chromeWebStoreUrl ? product.storeButtonLabel : product.downloadButtonLabel}
           </a>
           <a href="#how-it-works">{product.howItWorksLabel}</a>
           <a href={pageLinks.iterations}>{product.iterationsLinkLabel}</a>
@@ -265,8 +269,46 @@ function AboutPage() {
             </div>
           ))}
         </dl>
+
+        <div className="legal-links">
+          <a href={pageLinks.privacy}>隐私说明</a>
+          <a href={`${repositoryUrl}/issues`} target="_blank" rel="noreferrer">
+            问题反馈
+          </a>
+        </div>
       </section>
     </div>
+  );
+}
+
+function PrivacyPage() {
+  const page = content.privacyPage;
+
+  return (
+    <article className="standalone-page privacy-page">
+      <PageHero title={page.title} description={page.description} />
+
+      <section className="page-content privacy-content">
+        <p className="privacy-updated">{page.updatedAt}</p>
+        <p className="privacy-intro">{page.intro}</p>
+
+        {page.sections.map((section) => (
+          <section key={section.title} className="privacy-section">
+            <h2>{section.title}</h2>
+            {section.paragraphs.map((paragraph) => (
+              <p key={paragraph}>{paragraph}</p>
+            ))}
+          </section>
+        ))}
+
+        <div className="legal-links">
+          <a href={pageLinks.product}>返回产品页</a>
+          <a href={`${repositoryUrl}/issues`} target="_blank" rel="noreferrer">
+            GitHub Issues
+          </a>
+        </div>
+      </section>
+    </article>
   );
 }
 

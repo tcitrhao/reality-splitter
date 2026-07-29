@@ -25,7 +25,7 @@ const checks = [
     message: "contentScript.js contains ES module syntax that Chrome content scripts cannot execute"
   },
   {
-    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V6"),
+    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V7"),
     message: "contentScript.js is missing the versioned drawer message handler"
   },
   {

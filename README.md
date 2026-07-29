@@ -209,6 +209,18 @@ https://github.com/<owner>/<repository>/releases/latest/download/reality-splitte
 - API Key 仅保存在 `chrome.storage.local`
 - 代码中不会主动把 API Key 打印到控制台
 
+公开隐私政策：
+
+```text
+https://tcitrhao.github.io/reality-splitter/privacy.html
+```
+
+Chrome Web Store 上架文案、权限说明、素材路径和发布步骤见：
+
+```text
+docs/CHROME_WEB_STORE_RELEASE.md
+```
+
 ## 自定义 API 接口说明
 
 - 当前版本支持两种接口类型：

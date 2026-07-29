@@ -38,6 +38,7 @@ jobs:
         run: npm run build:site
         env:
           VITE_GITHUB_REPOSITORY: ${{ github.repository }}
+          VITE_CHROME_WEB_STORE_URL: ${{ vars.CHROME_WEB_STORE_URL }}
 
       - name: Upload website
         uses: actions/upload-pages-artifact@v4

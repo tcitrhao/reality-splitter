@@ -15,6 +15,7 @@ export interface WebsiteContent {
     statement: string;
     intro: string;
     downloadButtonLabel: string;
+    storeButtonLabel: string;
     howItWorksLabel: string;
     iterationsLinkLabel: string;
     sectionTitle: string;
@@ -56,6 +57,16 @@ export interface WebsiteContent {
     description: string;
     paragraphs: string[];
     principles: Array<{ title: string; body: string }>;
+  };
+  privacyPage: {
+    title: string;
+    description: string;
+    updatedAt: string;
+    intro: string;
+    sections: Array<{
+      title: string;
+      paragraphs: string[];
+    }>;
   };
 }
 
