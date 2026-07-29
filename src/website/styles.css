@@ -7,7 +7,9 @@
   --faint: #aaa59c;
   --line: #dedad2;
   --accent: #2d5bd1;
-  --content-offset: 152px;
+  --content-width: 760px;
+  --reading-width: 680px;
+  --meta-column: 112px;
   --serif: "Songti SC", "STSong", "Noto Serif CJK SC", serif;
   --sans: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
   --mono: "SFMono-Regular", "Cascadia Code", "Liberation Mono", monospace;
@@ -35,6 +37,11 @@ body {
 a {
   color: inherit;
   text-decoration: none;
+}
+
+a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 5px;
 }
 
 p,
@@ -92,7 +99,7 @@ ul {
 }
 
 .product-hero {
-  padding: 88px 0 64px;
+  padding: 80px 0 60px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -109,23 +116,25 @@ ul {
 }
 
 .product-hero h1 {
-  margin-bottom: 10px;
+  max-width: var(--reading-width);
+  margin-bottom: 14px;
   font-family: var(--serif);
-  font-size: clamp(2.8rem, 5.4vw, 4.2rem);
+  font-size: clamp(2.7rem, 5vw, 3.9rem);
   font-weight: 600;
-  letter-spacing: -0.065em;
-  line-height: 0.96;
+  letter-spacing: -0.06em;
+  line-height: 1;
 }
 
 .hero-statement {
-  margin-bottom: 30px;
+  max-width: var(--reading-width);
+  margin-bottom: 22px;
   font-family: var(--serif);
-  font-size: clamp(1.3rem, 2.4vw, 1.85rem);
-  line-height: 1.35;
+  font-size: clamp(1.25rem, 2.2vw, 1.7rem);
+  line-height: 1.4;
 }
 
 .hero-intro {
-  max-width: 640px;
+  max-width: 600px;
   margin-bottom: 26px;
   color: var(--muted);
   font-size: 15px;
@@ -150,27 +159,27 @@ ul {
 }
 
 .reading-section {
-  padding: 80px 0;
+  padding: 72px 0 80px;
   border-bottom: 1px solid var(--line);
 }
 
 .page-hero {
-  padding: 80px 0 56px var(--content-offset);
+  padding: 72px 0 52px;
   border-bottom: 1px solid var(--line);
 }
 
 .page-hero h1 {
-  max-width: 680px;
+  max-width: var(--reading-width);
   margin-bottom: 18px;
   font-family: var(--serif);
-  font-size: clamp(2rem, 4vw, 3rem);
+  font-size: clamp(2rem, 3.8vw, 2.9rem);
   font-weight: 600;
   letter-spacing: -0.055em;
   line-height: 1.08;
 }
 
 .page-hero__description {
-  max-width: 620px;
+  max-width: 600px;
 }
 
 .page-hero__description p {
@@ -181,20 +190,20 @@ ul {
 }
 
 .page-content {
-  padding: 64px 0 96px;
+  padding: 56px 0 88px;
   border-bottom: 1px solid var(--line);
 }
 
 .section-title {
-  max-width: 640px;
-  margin: 0 0 48px var(--content-offset);
+  max-width: var(--reading-width);
+  margin: 0 0 44px;
 }
 
 .section-title h2 {
-  max-width: 640px;
-  margin-bottom: 20px;
+  max-width: var(--reading-width);
+  margin-bottom: 18px;
   font-family: var(--serif);
-  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  font-size: clamp(1.75rem, 3vw, 2.3rem);
   font-weight: 600;
   letter-spacing: -0.045em;
   line-height: 1.16;
@@ -213,7 +222,7 @@ ul {
 .product-example {
   display: grid;
   grid-template-columns: 0.86fr 1.14fr;
-  margin-left: var(--content-offset);
+  width: min(100%, var(--content-width));
   border-top: 1px solid var(--text);
   border-bottom: 1px solid var(--text);
 }
@@ -260,7 +269,8 @@ ul {
 .step-list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  margin: 48px 0 0 var(--content-offset);
+  width: min(100%, var(--content-width));
+  margin: 44px 0 0;
   border-top: 1px solid var(--line);
 }
 
@@ -299,15 +309,15 @@ ul {
 
 .iteration-list,
 .meditation-list {
-  margin-left: var(--content-offset);
+  width: min(100%, var(--content-width));
   border-top: 1px solid var(--text);
 }
 
 .iteration-list article {
   display: grid;
-  grid-template-columns: 132px 1fr;
-  gap: 24px;
-  padding: 24px 0;
+  grid-template-columns: var(--meta-column) 1fr;
+  gap: 28px;
+  padding: 28px 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -347,10 +357,10 @@ ul {
 
 .meditation-entry {
   display: grid;
-  grid-template-columns: 52px 1fr 72px;
-  gap: 26px;
+  grid-template-columns: var(--meta-column) 1fr 80px;
+  gap: 28px;
   align-items: start;
-  padding: 26px 0;
+  padding: 28px 0;
 }
 
 a.meditation-entry h2 {
@@ -380,10 +390,11 @@ a.meditation-entry:hover h2 {
 
 .continuation-note {
   display: grid;
-  grid-template-columns: 132px 1fr;
-  gap: 24px;
-  margin: 48px 0 0 var(--content-offset);
-  padding: 20px 0;
+  grid-template-columns: var(--meta-column) 1fr;
+  width: min(100%, var(--content-width));
+  gap: 28px;
+  margin: 44px 0 0;
+  padding: 22px 0;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -402,13 +413,13 @@ a.meditation-entry:hover h2 {
 }
 
 .archive-note {
-  margin: 36px 0 0 var(--content-offset);
+  width: min(100%, var(--content-width));
+  margin: 32px 0 0;
   line-height: 1.75;
 }
 
 .meditation-article {
-  max-width: 680px;
-  margin-left: var(--content-offset);
+  max-width: var(--reading-width);
   padding: 64px 0 104px;
 }
 
@@ -578,8 +589,7 @@ a.meditation-entry:hover h2 {
 }
 
 .about-copy {
-  max-width: 620px;
-  margin-left: var(--content-offset);
+  max-width: var(--reading-width);
 }
 
 .about-copy p {
@@ -590,15 +600,16 @@ a.meditation-entry:hover h2 {
 }
 
 .project-principles {
-  margin: 48px 0 0 var(--content-offset);
+  width: min(100%, var(--content-width));
+  margin: 44px 0 0;
   border-top: 1px solid var(--text);
 }
 
 .project-principles div {
   display: grid;
-  grid-template-columns: 132px 1fr;
-  gap: 24px;
-  padding: 20px 0;
+  grid-template-columns: var(--meta-column) 1fr;
+  gap: 28px;
+  padding: 22px 0;
   border-bottom: 1px solid var(--line);
 }
 
@@ -633,11 +644,11 @@ a.meditation-entry:hover h2 {
   }
 
   .product-hero {
-    padding: 72px 0 60px;
+    padding: 64px 0 52px;
   }
 
   .product-hero h1 {
-    font-size: clamp(2.65rem, 12.5vw, 3.2rem);
+    font-size: clamp(2.5rem, 12vw, 3.1rem);
   }
 
   .hero-links {
@@ -646,31 +657,19 @@ a.meditation-entry:hover h2 {
   }
 
   .reading-section {
-    padding: 64px 0;
+    padding: 56px 0 64px;
   }
 
   .page-hero {
-    padding: 68px 0 54px;
+    padding: 60px 0 48px;
   }
 
   .page-content {
-    padding: 48px 0 72px;
+    padding: 44px 0 68px;
   }
 
   .section-title {
     margin: 0 0 42px;
-  }
-
-  .product-example,
-  .step-list,
-  .iteration-list,
-  .meditation-list,
-  .meditation-article,
-  .about-copy,
-  .continuation-note,
-  .archive-note,
-  .project-principles {
-    margin-left: 0;
   }
 
   .product-example {
@@ -703,7 +702,7 @@ a.meditation-entry:hover h2 {
   }
 
   .iteration-list article {
-    grid-template-columns: 96px 1fr;
+    grid-template-columns: 84px 1fr;
     gap: 18px;
   }
 
@@ -723,7 +722,7 @@ a.meditation-entry:hover h2 {
 
   .continuation-note,
   .project-principles div {
-    grid-template-columns: 96px 1fr;
+    grid-template-columns: 84px 1fr;
     gap: 18px;
   }
 
