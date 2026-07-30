@@ -258,9 +258,15 @@ ul {
   border-bottom: 1px solid var(--line);
 }
 
+.offline-install__intro {
+  align-self: center;
+  text-align: center;
+  transform: translateY(20px);
+}
+
 .offline-install__intro h2 {
   max-width: 390px;
-  margin: 0 0 16px;
+  margin: 0 auto 16px;
   font-family: var(--serif);
   font-size: clamp(1.8rem, 3vw, 2.5rem);
   font-weight: 600;
@@ -270,7 +276,7 @@ ul {
 
 .offline-install__intro p {
   max-width: 430px;
-  margin: 0;
+  margin: 0 auto;
   color: var(--muted);
   font-size: 14px;
   line-height: 1.75;
@@ -886,8 +892,7 @@ a.meditation-entry:hover h2 {
 .site-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 24px;
+  justify-content: center;
   min-height: 94px;
   color: var(--muted);
   font-size: 12px;
@@ -897,23 +902,6 @@ a.meditation-entry:hover h2 {
   margin: 0;
   font-family: var(--mono);
   letter-spacing: 0.015em;
-}
-
-.site-footer nav {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.site-footer a {
-  padding-bottom: 3px;
-  border-bottom: 1px solid transparent;
-  transition: color 160ms ease, border-color 160ms ease;
-}
-
-.site-footer a:hover {
-  color: var(--accent);
-  border-bottom-color: var(--accent);
 }
 
 @media (max-width: 760px) {
@@ -969,6 +957,10 @@ a.meditation-entry:hover h2 {
     grid-template-columns: 1fr;
     gap: 34px;
     padding: 54px 0;
+  }
+
+  .offline-install__intro {
+    transform: translateY(8px);
   }
 
   .offline-install__note {
@@ -1042,11 +1034,7 @@ a.meditation-entry:hover h2 {
   }
 
   .site-footer {
-    align-items: flex-start;
-    flex-direction: column;
-    justify-content: center;
-    gap: 10px;
-    min-height: 112px;
+    min-height: 94px;
     padding: 24px 0;
   }
 

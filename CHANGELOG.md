@@ -9,6 +9,8 @@ All notable product changes should be recorded here before a build is shared.
 - Simplified the offline installation section by removing its English eyebrow.
 - Lowered the homepage hero `R` artwork for a more balanced composition.
 - Added a shared copyright and privacy footer across the public website.
+- Centered and lowered the offline installation introduction.
+- Simplified the footer to the copyright line only.
 
 ## 0.2.2 - 2026-07-30
 

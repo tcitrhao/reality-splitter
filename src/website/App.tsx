@@ -77,10 +77,6 @@ function SiteFooter() {
   return (
     <footer className="site-footer">
       <p>{content.site.footer.copyright}</p>
-      <nav aria-label="页脚导航">
-        <a href={pageLinks.privacy}>{content.site.footer.privacyLabel}</a>
-        <span>{content.site.footer.rights}</span>
-      </nav>
     </footer>
   );
 }

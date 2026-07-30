@@ -12,8 +12,6 @@ export interface WebsiteContent {
     };
     footer: {
       copyright: string;
-      privacyLabel: string;
-      rights: string;
     };
   };
   product: {
