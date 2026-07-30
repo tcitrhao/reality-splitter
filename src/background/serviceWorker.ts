@@ -28,8 +28,8 @@ import type { AIResponse, ModelConnectionTestResult, TweetInput } from "../share
 const CONTEXT_MENU_ROOT_ID = "reality-splitter-root";
 const CONTEXT_MENU_QUICK_ID = "reality-splitter-quick";
 const CONTEXT_MENU_LONGFORM_ID = "reality-splitter-longform";
-const CONTENT_SHOW_INLINE_MESSAGE = "REALITY_SPLITTER_SHOW_INLINE_V8";
-const CONTENT_SCRIPT_VERSION = "0.2.2";
+const CONTENT_SHOW_INLINE_MESSAGE = "REALITY_SPLITTER_SHOW_INLINE_V9";
+const CONTENT_SCRIPT_VERSION = "0.2.3";
 
 void initializeSidePanelBehavior();
 void initializeContextMenus();
@@ -313,6 +313,16 @@ async function captureInputFromActiveTab(tabId: number): Promise<TweetInput | nu
           text: selected,
           url: window.location.href
         };
+      }
+
+      const hostname = window.location.hostname;
+      const isTwitter =
+        hostname === "x.com" ||
+        hostname === "twitter.com" ||
+        hostname.endsWith(".x.com") ||
+        hostname.endsWith(".twitter.com");
+      if (!isTwitter) {
+        return null;
       }
 
       const candidateArticles = Array.from(document.querySelectorAll("article"));

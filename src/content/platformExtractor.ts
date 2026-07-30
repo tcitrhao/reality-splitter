@@ -72,7 +72,7 @@ export function getPostRootSelector(platform: SupportedPlatform): string {
     case "weibo":
       return WEIBO_POST_SELECTOR;
     default:
-      return "article";
+      return "";
   }
 }
 
@@ -83,7 +83,11 @@ export function collectPostRoots(scope: ParentNode): HTMLElement[] {
     return collectWeiboPostRoots(scope);
   }
 
-  return Array.from(scope.querySelectorAll<HTMLElement>(getPostRootSelector(platform)));
+  if (platform === "twitter") {
+    return Array.from(scope.querySelectorAll<HTMLElement>("article"));
+  }
+
+  return [];
 }
 
 export function findClosestPostRoot(node: Node | null): HTMLElement | null {
@@ -102,8 +106,7 @@ export function findClosestPostRoot(node: Node | null): HTMLElement | null {
     );
   }
 
-  const selector = getPostRootSelector(platform);
-  return node.closest(selector);
+  return platform === "twitter" ? node.closest<HTMLElement>("article") : null;
 }
 
 export function isRenderablePostRoot(root: HTMLElement): boolean {
@@ -114,7 +117,7 @@ export function isRenderablePostRoot(root: HTMLElement): boolean {
     return estimateWeiboTextLength(root) >= 16 && rect.height > 80 && rect.width > 220;
   }
 
-  return true;
+  return platform === "twitter";
 }
 
 export function findButtonAnchor(root: HTMLElement): HTMLElement | null {
@@ -124,7 +127,7 @@ export function findButtonAnchor(root: HTMLElement): HTMLElement | null {
     return findWeiboButtonAnchor(root);
   }
 
-  return findTwitterButtonAnchor(root);
+  return platform === "twitter" ? findTwitterButtonAnchor(root) : null;
 }
 
 export function extractPostInputFromRoot(root: Element | null): TweetInput | null {

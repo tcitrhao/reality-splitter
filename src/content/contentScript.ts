@@ -42,8 +42,12 @@ const LEGACY_INLINE_SURFACE_SELECTOR = [
   "[aria-label='Reality Splitter'][role='dialog']"
 ].join(", ");
 const SCAN_INTERVAL_MS = 1600;
-const CONTENT_SCRIPT_VERSION = "0.2.2";
-const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V8";
+const CONTENT_SCRIPT_VERSION = "0.2.3";
+const SHOW_INLINE_MESSAGE_TYPE = "REALITY_SPLITTER_SHOW_INLINE_V9";
+
+type ContentRuntimeMessageListener = Parameters<
+  typeof chrome.runtime.onMessage.addListener
+>[0];
 
 let lastSelection = "";
 let intervalId: number | null = null;
@@ -63,8 +67,12 @@ let inlineLongformRequestId = 0;
 declare global {
   interface Window {
     __realitySplitterBooted?: boolean | string;
+    __realitySplitterRuntimeMessageListener?: ContentRuntimeMessageListener;
   }
 }
+
+// Extension reloads invalidate the old Chrome listener while leaving the page marker behind.
+bindRuntimeMessages();
 
 if (window.__realitySplitterBooted !== CONTENT_SCRIPT_VERSION) {
   window.__realitySplitterBooted = CONTENT_SCRIPT_VERSION;
@@ -74,10 +82,14 @@ if (window.__realitySplitterBooted !== CONTENT_SCRIPT_VERSION) {
 function boot() {
   injectStyles();
   bindSelectionListeners();
-  bindRuntimeMessages();
 
-  if (detectPlatform() === "weibo") {
+  const platform = detectPlatform();
+  if (platform === "weibo") {
     enforceWeiboButtonRemoval();
+    return;
+  }
+
+  if (platform !== "twitter") {
     return;
   }
 
@@ -87,7 +99,16 @@ function boot() {
 }
 
 function bindRuntimeMessages() {
-  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  const previousListener = window.__realitySplitterRuntimeMessageListener;
+  if (previousListener) {
+    try {
+      chrome.runtime.onMessage.removeListener(previousListener);
+    } catch {
+      // A listener from an invalidated extension context cannot be removed.
+    }
+  }
+
+  const listener: ContentRuntimeMessageListener = (message, _sender, sendResponse) => {
     if (message?.type !== SHOW_INLINE_MESSAGE_TYPE) {
       return false;
     }
@@ -108,7 +129,10 @@ function bindRuntimeMessages() {
     });
     sendResponse({ ok: true, version: CONTENT_SCRIPT_VERSION });
     return false;
-  });
+  };
+
+  window.__realitySplitterRuntimeMessageListener = listener;
+  chrome.runtime.onMessage.addListener(listener);
 }
 
 function bindSelectionListeners() {

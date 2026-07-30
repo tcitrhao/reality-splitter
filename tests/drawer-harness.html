@@ -26,6 +26,12 @@
           onMessage: {
             addListener(listener) {
               runtimeListeners.push(listener);
+            },
+            removeListener(listener) {
+              const index = runtimeListeners.indexOf(listener);
+              if (index >= 0) {
+                runtimeListeners.splice(index, 1);
+              }
             }
           },
           async sendMessage(message) {
@@ -104,9 +110,17 @@
 
       window.openRealitySplitterDrawer = (workspaceMode = "quick") => {
         const listener = runtimeListeners.at(-1);
+        if (!listener) {
+          document.documentElement.dataset.drawerAck = JSON.stringify({
+            ok: false,
+            error: "No active runtime listener"
+          });
+          return;
+        }
+
         listener(
           {
-            type: "REALITY_SPLITTER_SHOW_INLINE_V8",
+            type: "REALITY_SPLITTER_SHOW_INLINE_V9",
             payload: {
               input: {
                 text: "有人预测，这个行业将在两年内发生重大变化。",
@@ -120,6 +134,23 @@
             document.documentElement.dataset.drawerAck = JSON.stringify(response);
           }
         );
+      };
+
+      window.simulateExtensionReload = () => {
+        runtimeListeners.splice(0);
+
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script");
+          script.src = `/dist/contentScript.js?reload=${Date.now()}`;
+          script.onload = () => {
+            document.documentElement.dataset.runtimeListenerCount = String(
+              runtimeListeners.length
+            );
+            resolve();
+          };
+          script.onerror = reject;
+          document.body.appendChild(script);
+        });
       };
     </script>
   </head>
@@ -138,11 +169,20 @@
       <h1>抽屉测试页</h1>
       <p>这个页面会先放入一个旧版本弹窗，再加载当前构建，不连接真实模型。</p>
       <p>打开后，旧节点必须被替换为固定在左侧的 aside 抽屉。</p>
+      <article id="generic-article">
+        普通网页中的 article 不能被误判为 X 帖子，也不能出现 Reality Splitter 按钮。
+      </article>
       <button type="button" onclick="window.openRealitySplitterDrawer('quick')">
         模拟右键发送到短文模式
       </button>
       <button type="button" onclick="window.openRealitySplitterDrawer('longform')">
         模拟右键发送到长文模式
+      </button>
+      <button
+        type="button"
+        onclick="window.simulateExtensionReload().then(() => window.openRealitySplitterDrawer('quick'))"
+      >
+        模拟扩展重新加载
       </button>
     </main>
     <script src="/dist/contentScript.js"></script>

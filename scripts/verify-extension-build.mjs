@@ -10,6 +10,10 @@ const contentScriptSource = await readFile(
   resolve(root, "src/content/contentScript.ts"),
   "utf8"
 );
+const platformExtractorSource = await readFile(
+  resolve(root, "src/content/platformExtractor.ts"),
+  "utf8"
+);
 const sidePanelSource = await readFile(resolve(root, "src/sidepanel/App.tsx"), "utf8");
 const aiClientSource = await readFile(resolve(root, "src/shared/aiClient.ts"), "utf8");
 const adminSource = await readFile(resolve(root, "src/site/App.tsx"), "utf8");
@@ -25,7 +29,7 @@ const checks = [
     message: "contentScript.js contains ES module syntax that Chrome content scripts cannot execute"
   },
   {
-    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V8"),
+    pass: contentScript.includes("REALITY_SPLITTER_SHOW_INLINE_V9"),
     message: "contentScript.js is missing the versioned drawer message handler"
   },
   {
@@ -53,10 +57,32 @@ const checks = [
     message: "contentScript.js contains a Weibo button creation path"
   },
   {
-    pass: /if \(detectPlatform\(\) === "weibo"\) \{\s*enforceWeiboButtonRemoval\(\);\s*return;\s*\}/.test(
-      contentScriptSource
-    ),
+    pass:
+      /if \(platform === "weibo"\) \{\s*enforceWeiboButtonRemoval\(\);\s*return;\s*\}/.test(
+        contentScriptSource
+      ) && contentScriptSource.includes('if (platform !== "twitter")'),
     message: "the Weibo bootstrap path must only remove legacy buttons and return"
+  },
+  {
+    pass:
+      contentScriptSource.indexOf("bindRuntimeMessages();") <
+        contentScriptSource.indexOf(
+          "if (window.__realitySplitterBooted !== CONTENT_SCRIPT_VERSION)"
+        ) &&
+      contentScriptSource.includes("__realitySplitterRuntimeMessageListener") &&
+      contentScriptSource.includes("chrome.runtime.onMessage.removeListener"),
+    message: "drawer message listeners are not rebuilt after extension reload"
+  },
+  {
+    pass:
+      platformExtractorSource.includes('return platform === "twitter";') &&
+      platformExtractorSource.includes(
+        'return platform === "twitter" ? node.closest<HTMLElement>("article") : null;'
+      ) &&
+      /if \(platform === "twitter"\) \{\s*return Array\.from\(scope\.querySelectorAll<HTMLElement>\("article"\)\);\s*\}\s*return \[\];/.test(
+        platformExtractorSource
+      ),
+    message: "unknown websites can still receive X-only post buttons"
   },
   {
     pass:

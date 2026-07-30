@@ -13,6 +13,23 @@ All notable product changes should be recorded here before a build is shared.
 - Simplified the footer to the copyright line only.
 - Added the `v0.2.2` website iteration record to the public iteration timeline.
 
+## 0.2.3 - 2026-07-30
+
+### Fixed
+
+- Rebuilt the current-page drawer message listener after an extension reload, even when the page still carries the same version marker.
+- Prevented generic websites from receiving the X-only per-post button after a toolbar or context-menu injection.
+- Limited toolbar article capture to X / Twitter while preserving selected-text capture on other websites.
+- Advanced the drawer handshake to `REALITY_SPLITTER_SHOW_INLINE_V9`.
+
+### Verification
+
+- TypeScript checks and the production extension build pass.
+- Short-text and longform context-menu delivery open the correct workspace without starting analysis.
+- Same-version extension reload restores exactly one active drawer listener.
+- Generic pages do not receive X-only post buttons, and the browser regression reports no console errors.
+- Chrome Web Store and offline ZIP archives pass integrity checks and contain manifest version `0.2.3`.
+
 ## 0.2.2 - 2026-07-30
 
 ### Changed
