@@ -2,14 +2,13 @@
   "manifest_version": 3,
   "name": "Reality Splitter",
   "description": "把高刺激内容拆成更清晰、更低刺激的认知层。",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "homepage_url": "https://tcitrhao.github.io/reality-splitter/",
   "permissions": [
     "activeTab",
     "storage",
     "sidePanel",
     "scripting",
-    "permissions",
     "contextMenus"
   ],
   "host_permissions": [

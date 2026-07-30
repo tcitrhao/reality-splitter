@@ -4,6 +4,9 @@ import { defineConfig } from "vite";
 const resolveFromRoot = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
 export default defineConfig({
+  define: {
+    "process.env.NODE_ENV": JSON.stringify("production")
+  },
   publicDir: false,
   build: {
     outDir: "dist",

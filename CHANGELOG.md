@@ -13,6 +13,25 @@ All notable product changes should be recorded here before a build is shared.
 - Simplified the footer to the copyright line only.
 - Added the `v0.2.2` website iteration record to the public iteration timeline.
 
+## 0.3.1 - 2026-07-30
+
+### Fixed
+
+- Built the React content script against the production runtime so the bundle no longer references Node's unavailable `process` global and crashes at startup in Chrome.
+- Removed the unknown `permissions` entry from the Manifest V3 permission list.
+
+### Added
+
+- Added a release guard that rejects content-script bundles containing Node `process` references.
+- Added a release guard that rejects the invalid Manifest permission.
+- Added a real Chrome extension smoke-test harness for Chrome for Testing or Chromium.
+
+### Verification
+
+- Reloaded the unpacked `dist` build in Chrome 150 and confirmed the Service Worker starts without extension errors.
+- Confirmed real Chrome injection acknowledges version `0.3.1`, opens the Shadow DOM drawer, switches between short-text and longform workspaces, and preserves the input.
+- TypeScript checks, architecture tests, packaged entry tests, production build verification, and both release archive integrity checks pass.
+
 ## 0.3.0 - 2026-07-30
 
 ### Changed

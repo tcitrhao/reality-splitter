@@ -32,6 +32,14 @@ const checks = [
     "contentScript.js contains ES module syntax that Chrome content scripts cannot execute"
   ),
   check(
+    !/\bprocess(?:\.env|\.)/.test(contentBundle),
+    "contentScript.js contains a Node process reference that will crash in Chrome"
+  ),
+  check(
+    !manifest.permissions?.includes("permissions"),
+    'manifest declares the unknown Chrome permission "permissions"'
+  ),
+  check(
     contentBundle.includes("REALITY_SPLITTER_SHOW_INLINE_V10") &&
       serviceWorkerBundle.includes("REALITY_SPLITTER_SHOW_INLINE_V10"),
     "content and background bundles do not share the V10 drawer protocol"
