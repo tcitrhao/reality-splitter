@@ -2,6 +2,14 @@
 
 All notable product changes should be recorded here before a build is shared.
 
+## Unreleased
+
+### Changed
+
+- Simplified the offline installation section by removing its English eyebrow.
+- Lowered the homepage hero `R` artwork for a more balanced composition.
+- Added a shared copyright and privacy footer across the public website.
+
 ## 0.2.2 - 2026-07-30
 
 ### Changed

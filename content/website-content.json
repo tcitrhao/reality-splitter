@@ -7,6 +7,11 @@
       "iterations": "迭代",
       "meditations": "AI 沉思录",
       "about": "关于"
+    },
+    "footer": {
+      "copyright": "© 2026 Reality Splitter",
+      "privacyLabel": "隐私政策",
+      "rights": "保留所有权利"
     }
   },
   "product": {
@@ -58,7 +63,6 @@
       }
     ],
     "offlineInstall": {
-      "eyebrow": "OFFLINE INSTALL",
       "title": "下载后，三步装进 Chrome。",
       "description": "GitHub 安装包不能直接双击运行。先解压 ZIP，再让 Chrome 加载其中的 Reality Splitter 文件夹。",
       "steps": [

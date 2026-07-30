@@ -34,6 +34,7 @@ export default function App() {
         {currentPage === "about" ? <AboutPage /> : null}
         {currentPage === "privacy" ? <PrivacyPage /> : null}
       </main>
+      <SiteFooter />
     </div>
   );
 }
@@ -72,6 +73,18 @@ function SiteHeader({ currentPage }: { currentPage: PageKey }) {
   );
 }
 
+function SiteFooter() {
+  return (
+    <footer className="site-footer">
+      <p>{content.site.footer.copyright}</p>
+      <nav aria-label="页脚导航">
+        <a href={pageLinks.privacy}>{content.site.footer.privacyLabel}</a>
+        <span>{content.site.footer.rights}</span>
+      </nav>
+    </footer>
+  );
+}
+
 function ProductPage() {
   const product = content.product;
 
@@ -93,7 +106,6 @@ function ProductPage() {
 
       <section className="offline-install" id="offline-install">
         <div className="offline-install__intro">
-          <span>{product.offlineInstall.eyebrow}</span>
           <h2>{product.offlineInstall.title}</h2>
           <p>{product.offlineInstall.description}</p>
         </div>

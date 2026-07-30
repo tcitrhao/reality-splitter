@@ -10,6 +10,11 @@ export interface WebsiteContent {
       meditations: string;
       about: string;
     };
+    footer: {
+      copyright: string;
+      privacyLabel: string;
+      rights: string;
+    };
   };
   product: {
     title: string;
@@ -27,7 +32,6 @@ export interface WebsiteContent {
     results: Array<{ label: string; text: string }>;
     steps: Array<{ number: string; title: string; body: string }>;
     offlineInstall: {
-      eyebrow: string;
       title: string;
       description: string;
       steps: Array<{ number: string; title: string; body: string }>;

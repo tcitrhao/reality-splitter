@@ -10,7 +10,6 @@
   --accent: #2b6754;
   --accent-deep: #1f493c;
   --accent-soft: #dfece5;
-  --warm: #c27a42;
   --content-width: 820px;
   --reading-width: 680px;
   --meta-column: 112px;
@@ -154,7 +153,7 @@ ul {
 
 .product-hero::before {
   position: absolute;
-  top: 55px;
+  top: 88px;
   right: 18px;
   display: grid;
   width: 250px;
@@ -259,17 +258,9 @@ ul {
   border-bottom: 1px solid var(--line);
 }
 
-.offline-install__intro > span {
-  color: var(--warm);
-  font-family: var(--mono);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-
 .offline-install__intro h2 {
   max-width: 390px;
-  margin: 14px 0 16px;
+  margin: 0 0 16px;
   font-family: var(--serif);
   font-size: clamp(1.8rem, 3vw, 2.5rem);
   font-weight: 600;
@@ -892,6 +883,39 @@ a.meditation-entry:hover h2 {
   margin-bottom: 0;
 }
 
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 94px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.site-footer p {
+  margin: 0;
+  font-family: var(--mono);
+  letter-spacing: 0.015em;
+}
+
+.site-footer nav {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.site-footer a {
+  padding-bottom: 3px;
+  border-bottom: 1px solid transparent;
+  transition: color 160ms ease, border-color 160ms ease;
+}
+
+.site-footer a:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
 @media (max-width: 760px) {
   .blog-shell {
     width: min(100% - 32px, 1040px);
@@ -918,7 +942,7 @@ a.meditation-entry:hover h2 {
   }
 
   .product-hero::before {
-    top: 42px;
+    top: 68px;
     right: -72px;
     width: 190px;
     height: 190px;
@@ -1015,6 +1039,15 @@ a.meditation-entry:hover h2 {
   .project-principles div {
     grid-template-columns: 84px 1fr;
     gap: 18px;
+  }
+
+  .site-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    justify-content: center;
+    gap: 10px;
+    min-height: 112px;
+    padding: 24px 0;
   }
 
 }
