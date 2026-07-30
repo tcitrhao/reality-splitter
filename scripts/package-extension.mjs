@@ -1,5 +1,5 @@
 import { execFile } from "node:child_process";
-import { cp, mkdir, readFile, rm } from "node:fs/promises";
+import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, relative, resolve } from "node:path";
 import { promisify } from "node:util";
 import { fileURLToPath } from "node:url";
@@ -10,6 +10,9 @@ const distRoot = resolve(projectRoot, "dist");
 const releaseRoot = resolve(projectRoot, "release");
 const stagingRoot = resolve(releaseRoot, "reality-splitter-chrome");
 const archivePath = resolve(releaseRoot, "reality-splitter-chrome.zip");
+const offlineStagingRoot = resolve(releaseRoot, "reality-splitter-offline");
+const offlineExtensionRoot = resolve(offlineStagingRoot, "Reality Splitter");
+const offlineArchivePath = resolve(releaseRoot, "reality-splitter-offline.zip");
 const packageJson = JSON.parse(await readFile(resolve(projectRoot, "package.json"), "utf8"));
 const expectedTag = `v${packageJson.version}`;
 
@@ -19,7 +22,11 @@ if (process.env.GITHUB_REF_NAME && process.env.GITHUB_REF_NAME !== expectedTag) 
   );
 }
 
-await rm(releaseRoot, { recursive: true, force: true });
+await mkdir(releaseRoot, { recursive: true });
+await rm(stagingRoot, { recursive: true, force: true });
+await rm(offlineStagingRoot, { recursive: true, force: true });
+await rm(archivePath, { force: true });
+await rm(offlineArchivePath, { force: true });
 await mkdir(stagingRoot, { recursive: true });
 
 const requiredFiles = [
@@ -71,6 +78,33 @@ await cp(resolve(distRoot, "icons"), resolve(stagingRoot, "icons"), {
 });
 
 await execFileAsync("zip", ["-qry", archivePath, "."], { cwd: stagingRoot });
+await mkdir(offlineStagingRoot, { recursive: true });
+await cp(stagingRoot, offlineExtensionRoot, { recursive: true });
+await writeFile(
+  resolve(offlineStagingRoot, "INSTALL.txt"),
+  [
+    "Reality Splitter offline installation",
+    "",
+    "1. Extract this ZIP completely.",
+    "2. Open chrome://extensions/ in Chrome.",
+    "3. Enable Developer mode.",
+    "4. Click Load unpacked.",
+    "5. Select the enclosed Reality Splitter folder (it contains manifest.json).",
+    "",
+    "Do not select this ZIP file directly.",
+    "",
+    "The extension can be installed without the Chrome Web Store.",
+    "Cloud model analysis still requires network access and your own API configuration.",
+    "A local OpenAI-compatible model service can use a localhost Base URL.",
+    ""
+  ].join("\n"),
+  "utf8"
+);
+await execFileAsync("zip", ["-qry", offlineArchivePath, "."], {
+  cwd: offlineStagingRoot
+});
 await rm(stagingRoot, { recursive: true, force: true });
+await rm(offlineStagingRoot, { recursive: true, force: true });
 
 console.log(`Extension package created: ${archivePath}`);
+console.log(`Offline package created: ${offlineArchivePath}`);

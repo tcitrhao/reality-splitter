@@ -144,20 +144,33 @@ git push origin main
 git push origin --tags
 ```
 
-版本标签必须与 `package.json` 中的版本一致。Release 生成后，官网的下载按钮会自动指向：
+版本标签必须与 `package.json` 中的版本一致。Release 会同时生成：
 
 ```text
-https://github.com/<owner>/<repository>/releases/latest/download/reality-splitter-chrome.zip
+reality-splitter-chrome.zip   # Chrome Web Store 上传包
+reality-splitter-offline.zip  # GitHub 用户离线安装包
 ```
 
 内容后台中的“发布内容”只负责写入本地内容文件。完成修改后仍需提交并推送到 `main`，公网官网才会更新。
 
 ## Chrome 加载方式
 
+从 GitHub Release 下载时，请使用 `reality-splitter-offline.zip`：
+
+1. 完整解压 ZIP，不要直接双击 ZIP，也不要把 ZIP 文件拖进 Chrome
+2. 打开 Chrome，进入 `chrome://extensions/`
+3. 打开右上角的 `Developer mode`
+4. 点击 `Load unpacked`
+5. 选择解压后包含 `manifest.json` 的 `Reality Splitter` 文件夹
+
+本地开发时可以直接加载项目生成的 `dist/`：
+
 1. 打开 Chrome，进入 `chrome://extensions/`
 2. 打开右上角的 `Developer mode`
 3. 点击 `Load unpacked`
 4. 选择本项目下的 `dist/` 目录
+
+离线安装只表示插件文件不依赖 Chrome Web Store。DeepSeek、Kimi 等云模型分析仍需要联网；如果本机运行 OpenAI-Compatible 模型服务，可以在模型后台使用 `localhost` Base URL。
 
 ## 使用方式
 

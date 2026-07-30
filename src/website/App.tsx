@@ -16,7 +16,7 @@ const pageLinks: Record<PageKey, string> = {
 const githubRepository =
   import.meta.env.VITE_GITHUB_REPOSITORY?.trim() || "tcitrhao/reality-splitter";
 const repositoryUrl = `https://github.com/${githubRepository}`;
-const downloadUrl = `${repositoryUrl}/releases/latest/download/reality-splitter-chrome.zip`;
+const downloadUrl = `${repositoryUrl}/releases/latest/download/reality-splitter-offline.zip`;
 const chromeWebStoreUrl = import.meta.env.VITE_CHROME_WEB_STORE_URL?.trim();
 const installUrl = chromeWebStoreUrl || downloadUrl;
 
@@ -86,9 +86,31 @@ function ProductPage() {
           <a className="hero-download" href={installUrl} target="_blank" rel="noreferrer">
             {chromeWebStoreUrl ? product.storeButtonLabel : product.downloadButtonLabel}
           </a>
-          <a href="#how-it-works">{product.howItWorksLabel}</a>
+          <a href="#offline-install">{product.howItWorksLabel}</a>
           <a href={pageLinks.iterations}>{product.iterationsLinkLabel}</a>
         </div>
+      </section>
+
+      <section className="offline-install" id="offline-install">
+        <div className="offline-install__intro">
+          <span>{product.offlineInstall.eyebrow}</span>
+          <h2>{product.offlineInstall.title}</h2>
+          <p>{product.offlineInstall.description}</p>
+        </div>
+
+        <ol className="offline-install__steps">
+          {product.offlineInstall.steps.map((step) => (
+            <li key={step.number}>
+              <span>{step.number}</span>
+              <div>
+                <strong>{step.title}</strong>
+                <p>{step.body}</p>
+              </div>
+            </li>
+          ))}
+        </ol>
+
+        <p className="offline-install__note">{product.offlineInstall.networkNote}</p>
       </section>
 
       <section className="reading-section" id="how-it-works">

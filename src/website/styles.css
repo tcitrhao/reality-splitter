@@ -251,6 +251,89 @@ ul {
   border-bottom-color: var(--accent);
 }
 
+.offline-install {
+  display: grid;
+  grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
+  gap: 56px;
+  padding: 68px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.offline-install__intro > span {
+  color: var(--warm);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.offline-install__intro h2 {
+  max-width: 390px;
+  margin: 14px 0 16px;
+  font-family: var(--serif);
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  line-height: 1.14;
+}
+
+.offline-install__intro p {
+  max-width: 430px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+.offline-install__steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+
+.offline-install__steps li {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 14px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.offline-install__steps li > span {
+  color: var(--faint);
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.offline-install__steps strong {
+  color: var(--accent-deep);
+  font-family: var(--serif);
+  font-size: 1.08rem;
+}
+
+.offline-install__steps p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.offline-install__note {
+  grid-column: 1 / -1;
+  margin: -20px 0 0;
+  padding: 13px 16px;
+  border: 1px solid rgba(194, 122, 66, 0.2);
+  border-radius: 12px;
+  background: rgba(248, 235, 219, 0.52);
+  color: #79583d;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
 .reading-section {
   padding: 72px 0 80px;
   border-bottom: 1px solid var(--line);
@@ -856,6 +939,17 @@ a.meditation-entry:hover h2 {
 
   .reading-section {
     padding: 56px 0 64px;
+  }
+
+  .offline-install {
+    grid-template-columns: 1fr;
+    gap: 34px;
+    padding: 54px 0;
+  }
+
+  .offline-install__note {
+    grid-column: auto;
+    margin-top: -10px;
   }
 
   .page-hero {

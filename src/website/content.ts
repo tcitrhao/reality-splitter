@@ -26,6 +26,13 @@ export interface WebsiteContent {
     resultLabel: string;
     results: Array<{ label: string; text: string }>;
     steps: Array<{ number: string; title: string; body: string }>;
+    offlineInstall: {
+      eyebrow: string;
+      title: string;
+      description: string;
+      steps: Array<{ number: string; title: string; body: string }>;
+      networkNote: string;
+    };
   };
   iterationsPage: {
     title: string;

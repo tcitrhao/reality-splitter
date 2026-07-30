@@ -2,7 +2,7 @@
 
 All notable product changes should be recorded here before a build is shared.
 
-## Unreleased
+## 0.2.2 - 2026-07-30
 
 ### Changed
 
@@ -10,11 +10,20 @@ All notable product changes should be recorded here before a build is shared.
 - Updated the homepage color system to match the extension's deep-green identity.
 - Refined the hero actions, analysis example, and three-step workflow into clearer product surfaces.
 - Added responsive behavior, reduced-motion support, and subtle first-load motion.
+- Changed the GitHub download fallback to a dedicated offline-install package.
+- Added a visible three-step offline installation guide to the product homepage.
+- Advanced the drawer handshake to `REALITY_SPLITTER_SHOW_INLINE_V8` for the `0.2.2` package.
+
+### Added
+
+- Added `reality-splitter-offline.zip`, which extracts into a single `Reality Splitter` folder and includes `INSTALL.txt`.
+- Kept `reality-splitter-chrome.zip` as the separate Chrome Web Store upload package.
 
 ### Verification
 
 - Production website build passes.
 - Desktop and 390px mobile layouts were browser-tested with no horizontal overflow or console errors.
+- Both release archives pass ZIP integrity checks and contain the expected Manifest V3 package.
 
 ## 0.2.1 - 2026-07-29
 

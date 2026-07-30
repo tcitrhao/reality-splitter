@@ -13,9 +13,9 @@
     "title": "Reality Splitter",
     "statement": "把刺激性信息，拆成可判断的事实。",
     "intro": "一个拆解信息的 Chrome 插件，也是一份持续更新的 AI 产品实践。",
-    "downloadButtonLabel": "免费下载插件",
+    "downloadButtonLabel": "下载离线安装包",
     "storeButtonLabel": "从 Chrome 商店安装",
-    "howItWorksLabel": "如何工作",
+    "howItWorksLabel": "离线安装说明",
     "iterationsLinkLabel": "查看迭代",
     "sectionTitle": "先拆开，再判断。",
     "sectionDescription": "区分事实、观点、情绪和待核查点。答案仍由你决定。",
@@ -56,7 +56,30 @@
         "title": "再判断",
         "body": "保留决定权，也给自己多一点思考的时间。"
       }
-    ]
+    ],
+    "offlineInstall": {
+      "eyebrow": "OFFLINE INSTALL",
+      "title": "下载后，三步装进 Chrome。",
+      "description": "GitHub 安装包不能直接双击运行。先解压 ZIP，再让 Chrome 加载其中的 Reality Splitter 文件夹。",
+      "steps": [
+        {
+          "number": "01",
+          "title": "解压安装包",
+          "body": "下载 reality-splitter-offline.zip，并完整解压到一个固定位置。"
+        },
+        {
+          "number": "02",
+          "title": "打开扩展管理",
+          "body": "访问 chrome://extensions/，打开右上角的开发者模式。"
+        },
+        {
+          "number": "03",
+          "title": "加载文件夹",
+          "body": "点击“加载已解压的扩展程序”，选择包含 manifest.json 的 Reality Splitter 文件夹。"
+        }
+      ],
+      "networkNote": "离线安装不等于离线分析：DeepSeek、Kimi 等云模型仍需联网。若使用本机 OpenAI-Compatible 模型服务，可把 Base URL 配置为 localhost。"
+    }
   },
   "iterationsPage": {
     "title": "从一个问题开始，持续迭代。",
