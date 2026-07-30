@@ -13,6 +13,32 @@ All notable product changes should be recorded here before a build is shared.
 - Simplified the footer to the copyright line only.
 - Added the `v0.2.2` website iteration record to the public iteration timeline.
 
+## 0.3.0 - 2026-07-30
+
+### Changed
+
+- Replaced the duplicated native-DOM page drawer with a React drawer that reuses the same action and result components as the Side Panel fallback.
+- Added an isolated per-tab `TabSession` with independent short-text and longform inputs, results, errors, loading state and stale-request protection.
+- Split toolbar, context-menu, current-page drawer and X button behavior into explicit entry adapters.
+- Reduced `contentScript.ts` from 1,442 lines to under 200 lines and `serviceWorker.ts` from 524 lines to about 220 lines.
+- Split input preparation, model response parsing, OpenAI-Compatible protocol handling and Kimi web-search tools out of `aiClient.ts`.
+- Routed background analysis through explicit `quick-analysis` and `longform-check` Skill contracts.
+- Advanced the drawer protocol to `REALITY_SPLITTER_SHOW_INLINE_V10`.
+
+### Added
+
+- Added an executable product contract for manual-only analysis, current-tab session ownership, independent workspaces and platform capabilities.
+- Added architecture guards that fail the build when orchestration files grow back into monoliths or bypass Skill, session, UI-sharing and provider boundaries.
+- Added a `TabSession` regression suite covering manual opening, concurrent workspaces, result preservation, input isolation and stale responses.
+- Added packaged Service Worker entry tests for toolbar, short-text context menu and longform context menu delivery.
+- Added `docs/PRODUCT_TECH_ARCHITECTURE.md` as the product and technical architecture source of truth.
+
+### Verification
+
+- TypeScript checks, the `TabSession` contract suite and production extension build pass.
+- Browser regression confirms manual-only opening, shared React result rendering, short/long result preservation, same-version reinjection with one listener and one drawer, and no X button on generic pages.
+- Desktop and 390px mobile drawer layouts have no console errors or horizontal overflow.
+
 ## 0.2.3 - 2026-07-30
 
 ### Fixed
