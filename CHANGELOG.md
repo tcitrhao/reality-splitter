@@ -11,6 +11,7 @@ All notable product changes should be recorded here before a build is shared.
 - Added a shared copyright and privacy footer across the public website.
 - Centered and lowered the offline installation introduction.
 - Simplified the footer to the copyright line only.
+- Added the `v0.2.2` website iteration record to the public iteration timeline.
 
 ## 0.2.2 - 2026-07-30
 
