@@ -1,6 +1,6 @@
 # Chrome Web Store 发布材料
 
-本文件对应 Reality Splitter `0.2.1`。正式提交前，先执行：
+本文件对应 Reality Splitter 当前版本。正式提交前，先执行：
 
 ```bash
 npm ci
@@ -10,7 +10,7 @@ npm run package:extension
 上传文件：
 
 ```text
-release/reality-splitter-chrome.zip
+release/reality-splitter-chrome-v<version>.zip
 ```
 
 ## 开发者账号
@@ -216,7 +216,7 @@ API Key 保存在 chrome.storage.local，并只发送到用户配置的模型接
 ## Submit
 
 1. 在 Developer Dashboard 点击 `Add new item`。
-2. 上传 `release/reality-splitter-chrome.zip`。
+2. 上传 `release/reality-splitter-chrome-v<version>.zip`。
 3. 完成 `Store Listing`、`Privacy`、`Distribution`。
 4. 如果审核人员需要模型能力，可在 `Test instructions` 说明：用户需自行配置兼容模型 API；不应提交你自己的生产 API Key。
 5. 点击 `Submit for Review`。首发建议选择 deferred publishing，审核通过后先做一次最终检查再手动发布。

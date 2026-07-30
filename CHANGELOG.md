@@ -4,6 +4,8 @@ All notable product changes should be recorded here before a build is shared.
 
 ## Unreleased
 
+## 0.3.2 - 2026-07-31
+
 ### Changed
 
 - Simplified the offline installation section by removing its English eyebrow.
@@ -12,6 +14,9 @@ All notable product changes should be recorded here before a build is shared.
 - Centered and lowered the offline installation introduction.
 - Simplified the footer to the copyright line only.
 - Added the `v0.2.2` website iteration record to the public iteration timeline.
+- Added product versions to the primary Chrome Web Store and offline ZIP filenames.
+- Updated the website download URL, button, installation copy, and iteration timeline to the current package version.
+- Kept stable unversioned ZIP aliases for compatibility with previously published links.
 
 ## 0.3.1 - 2026-07-30
 

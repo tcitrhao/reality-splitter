@@ -1,8 +1,7 @@
-import packageJson from "../../package.json";
 import type { WorkspaceMode } from "../shared/types";
 
 export const PRODUCT_RELEASE = {
-  version: packageJson.version,
+  version: __REALITY_SPLITTER_VERSION__,
   drawerMessageType: "REALITY_SPLITTER_SHOW_INLINE_V10"
 } as const;
 

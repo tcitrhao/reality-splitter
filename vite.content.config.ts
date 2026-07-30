@@ -1,10 +1,12 @@
 import { fileURLToPath, URL } from "node:url";
 import { defineConfig } from "vite";
+import { productVersionDefine } from "./vite.version";
 
 const resolveFromRoot = (path: string) => fileURLToPath(new URL(path, import.meta.url));
 
 export default defineConfig({
   define: {
+    ...productVersionDefine,
     "process.env.NODE_ENV": JSON.stringify("production")
   },
   publicDir: false,

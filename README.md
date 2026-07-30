@@ -147,15 +147,17 @@ git push origin --tags
 版本标签必须与 `package.json` 中的版本一致。Release 会同时生成：
 
 ```text
-reality-splitter-chrome.zip   # Chrome Web Store 上传包
-reality-splitter-offline.zip  # GitHub 用户离线安装包
+reality-splitter-chrome-v0.3.2.zip   # Chrome Web Store 上传包
+reality-splitter-offline-v0.3.2.zip  # GitHub 用户离线安装包
 ```
+
+文件名中的版本由 `package.json` 自动生成。无版本文件名只作为旧链接的兼容别名保留。
 
 内容后台中的“发布内容”只负责写入本地内容文件。完成修改后仍需提交并推送到 `main`，公网官网才会更新。
 
 ## Chrome 加载方式
 
-从 GitHub Release 下载时，请使用 `reality-splitter-offline.zip`：
+从 GitHub Release 下载时，请使用带版本号的 `reality-splitter-offline-v<version>.zip`：
 
 1. 完整解压 ZIP，不要直接双击 ZIP，也不要把 ZIP 文件拖进 Chrome
 2. 打开 Chrome，进入 `chrome://extensions/`

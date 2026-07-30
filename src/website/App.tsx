@@ -16,7 +16,9 @@ const pageLinks: Record<PageKey, string> = {
 const githubRepository =
   import.meta.env.VITE_GITHUB_REPOSITORY?.trim() || "tcitrhao/reality-splitter";
 const repositoryUrl = `https://github.com/${githubRepository}`;
-const downloadUrl = `${repositoryUrl}/releases/latest/download/reality-splitter-offline.zip`;
+const productVersion = __REALITY_SPLITTER_VERSION__;
+const offlinePackageName = `reality-splitter-offline-v${productVersion}.zip`;
+const downloadUrl = `${repositoryUrl}/releases/latest/download/${offlinePackageName}`;
 const chromeWebStoreUrl = import.meta.env.VITE_CHROME_WEB_STORE_URL?.trim();
 const installUrl = chromeWebStoreUrl || downloadUrl;
 
@@ -93,7 +95,9 @@ function ProductPage() {
 
         <div className="hero-links">
           <a className="hero-download" href={installUrl} target="_blank" rel="noreferrer">
-            {chromeWebStoreUrl ? product.storeButtonLabel : product.downloadButtonLabel}
+            {chromeWebStoreUrl
+              ? product.storeButtonLabel
+              : `${product.downloadButtonLabel} v${productVersion}`}
           </a>
           <a href="#offline-install">{product.howItWorksLabel}</a>
           <a href={pageLinks.iterations}>{product.iterationsLinkLabel}</a>
@@ -112,7 +116,7 @@ function ProductPage() {
               <span>{step.number}</span>
               <div>
                 <strong>{step.title}</strong>
-                <p>{step.body}</p>
+                <p>{step.body.replace("{offlinePackageName}", offlinePackageName)}</p>
               </div>
             </li>
           ))}
