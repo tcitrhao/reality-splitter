@@ -16,8 +16,30 @@ release/reality-splitter-chrome.zip
 ## 开发者账号
 
 1. 使用长期维护的 Google 账号登录 Chrome Web Store Developer Dashboard。
-2. 同意开发者协议并支付一次性注册费。
-3. 完成开发者资料与联系邮箱设置。
+2. 为发布账号开启 Google 两步验证。Chrome Web Store 会在未开启时拒绝上传 ZIP。
+3. 同意开发者协议并支付一次性注册费。
+4. 完成开发者资料与联系邮箱设置。
+
+当前发布账号：
+
+```text
+Google account: tcitr.feng@gmail.com
+Publisher: Reality Splitter
+Publisher ID: 21c24b34-8647-4212-aee6-0b3c3136b262
+Trader status: Non-trader / 非交易者
+```
+
+两步验证：
+
+```text
+https://myaccount.google.com/signinoptions/two-step-verification
+```
+
+整理后的提交包：
+
+```text
+release/chrome-web-store-v0.2.1/
+```
 
 ## Store Listing
 
