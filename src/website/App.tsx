@@ -1,5 +1,6 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import siteIconUrl from "../../public/icons/icon.svg?url";
 import { websiteContent as content } from "./content";
 
 type PageKey = "product" | "iterations" | "meditations" | "about" | "privacy";
@@ -49,7 +50,11 @@ function SiteHeader({ currentPage }: { currentPage: PageKey }) {
   return (
     <header className="site-header">
       <a className="site-name" href={pageLinks.product}>
-        {content.site.brand}
+        <img src={siteIconUrl} alt="" width="36" height="36" />
+        <span className="site-name__copy">
+          <strong>{content.site.brand}</strong>
+          <small>{content.site.tagline}</small>
+        </span>
       </a>
       <nav aria-label="主要导航">
         {items.map((item) => (

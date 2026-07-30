@@ -3,6 +3,7 @@ import rawContent from "../../content/website-content.json";
 export interface WebsiteContent {
   site: {
     brand: string;
+    tagline: string;
     navigation: {
       product: string;
       iterations: string;

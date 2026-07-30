@@ -2,6 +2,20 @@
 
 All notable product changes should be recorded here before a build is shared.
 
+## Unreleased
+
+### Changed
+
+- Added the `R` icon, product name, and positioning line as a unified website brand lockup.
+- Updated the homepage color system to match the extension's deep-green identity.
+- Refined the hero actions, analysis example, and three-step workflow into clearer product surfaces.
+- Added responsive behavior, reduced-motion support, and subtle first-load motion.
+
+### Verification
+
+- Production website build passes.
+- Desktop and 390px mobile layouts were browser-tested with no horizontal overflow or console errors.
+
 ## 0.2.1 - 2026-07-29
 
 ### Added
