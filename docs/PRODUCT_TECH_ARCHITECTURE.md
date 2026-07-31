@@ -210,6 +210,8 @@ src/
 └── shared/                        跨层类型、存储和过渡期模块
 ```
 
+智谱模型 Profile 额外保存网页搜索引擎选择。运行时只读取当前长文默认 Profile，可在 `search_std`、`search_pro`、`search_pro_sogou` 与 `search_pro_quark` 之间切换，不影响短文工作流。
+
 核心规模守卫：
 
 ```text

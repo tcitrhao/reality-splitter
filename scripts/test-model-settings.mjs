@@ -50,6 +50,27 @@ const library = createStoredSettings(
 );
 assert.equal(library.quick.model, "quick-model");
 assert.equal(library.longform.model, "longform-model");
+assert.equal(
+  library.longform.zhipuSearchEngine,
+  "search_pro",
+  "existing profiles should default to the pro search engine"
+);
+
+const configurableSearch = createStoredSettings(
+  [
+    {
+      id: "zhipu",
+      name: "Zhipu",
+      ...longformLegacy,
+      model: "glm-5.2",
+      baseUrl: "https://open.bigmodel.cn/api/paas/v4",
+      zhipuSearchEngine: "search_pro_sogou"
+    }
+  ],
+  { quick: "zhipu", longform: "zhipu" }
+);
+assert.equal(configurableSearch.profiles[0].zhipuSearchEngine, "search_pro_sogou");
+assert.equal(configurableSearch.longform.zhipuSearchEngine, "search_pro_sogou");
 
 const repairedDefaults = createStoredSettings(library.profiles, {
   quick: "missing",

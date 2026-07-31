@@ -20,7 +20,9 @@ const sources = await readSources({
   zhipuSearchProtocol: "src/infrastructure/search/zhipuSearchProtocol.ts",
   sidePanel: "src/sidepanel/App.tsx",
   admin: "src/site/App.tsx",
+  modelProfileCard: "src/site/components/ModelProfileCard.tsx",
   modelSettings: "src/shared/modelSettings.ts",
+  zhipuSearchSettings: "src/shared/zhipuSearch.ts",
   storage: "src/shared/storage.ts",
   messages: "src/shared/messages.ts"
 });
@@ -124,7 +126,13 @@ const checks = [
   check(
     sources.providerProfiles.includes('return "zhipu"') &&
       sources.zhipuSearchProtocol.includes("/paas/v4/web_search") &&
-      sources.zhipuSearchProtocol.includes('search_engine: "search_pro"') &&
+      sources.zhipuSearchProtocol.includes("search_engine: searchEngine") &&
+      sources.zhipuSearchProtocol.includes("DEFAULT_ZHIPU_SEARCH_ENGINE") &&
+      sources.zhipuSearchSettings.includes('value: "search_std"') &&
+      sources.zhipuSearchSettings.includes('value: "search_pro"') &&
+      sources.zhipuSearchSettings.includes('value: "search_pro_sogou"') &&
+      sources.zhipuSearchSettings.includes('value: "search_pro_quark"') &&
+      sources.modelProfileCard.includes("长文网页搜索引擎") &&
       sources.aiClient.includes('params.providerProfile === "zhipu"') &&
       sources.aiClient.includes("fetchZhipuLongformEvidence"),
     "Zhipu web search is missing or no longer restricted to the longform workflow"

@@ -8,6 +8,7 @@ import {
   requestZhipuWebSearchPermission
 } from "../shared/apiPermissions";
 import { detectProviderProfile } from "../shared/providerProfiles";
+import { getZhipuSearchEngineLabel } from "../shared/zhipuSearch.ts";
 import {
   createDefaultSettings,
   createStoredSettings,
@@ -431,7 +432,7 @@ export default function App() {
             </div>
             <ul className="admin-list">
               <li>短文和长文可以共享同一个配置，也可以使用不同模型。</li>
-              <li>长文默认模型为智谱 GLM 时，会自动调用智谱高级网页搜索；短文不会联网搜索。</li>
+              <li>智谱 GLM 配置可以选择四种网页搜索引擎；只有长文模式会调用。</li>
               <li>切换默认模型后，下一次拆解立即生效，无需重新构建插件。</li>
               <li>进行中的请求不会中途换模型，避免结果混杂。</li>
             </ul>
@@ -515,7 +516,9 @@ function DefaultAssignment({
       <span className="default-assignment__title-row">
         <strong>{selected.name}</strong>
         {zhipuSearchEnabled ? (
-          <span className="admin-chip">高级网页搜索已启用</span>
+          <span className="admin-chip">
+            {getZhipuSearchEngineLabel(selected.zhipuSearchEngine)}搜索
+          </span>
         ) : null}
       </span>
       <small>{description}</small>

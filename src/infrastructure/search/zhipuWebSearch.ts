@@ -1,4 +1,5 @@
 import { UserVisibleError } from "../../application/errors/userVisibleError";
+import type { ZhipuSearchEngine } from "../../shared/types";
 import { isTimeoutError, timeoutSignal } from "../models/openAICompatible";
 import { readErrorMessage, safeReadJson } from "../models/responseParsing";
 import {
@@ -16,8 +17,9 @@ const MAX_SEARCH_CONTEXT_CHARS = 9000;
 export async function searchZhipuWeb(params: {
   apiKey: string;
   query: string;
+  searchEngine: ZhipuSearchEngine;
 }): Promise<ZhipuSearchResult[]> {
-  const requestBody = buildZhipuSearchRequest(params.query);
+  const requestBody = buildZhipuSearchRequest(params.query, params.searchEngine);
   if (!requestBody.search_query) {
     return [];
   }
@@ -54,14 +56,17 @@ export async function searchZhipuWeb(params: {
 
 export async function fetchZhipuLongformEvidence(
   articleText: string,
-  apiKey: string
+  apiKey: string,
+  searchEngine: ZhipuSearchEngine
 ): Promise<string> {
   const queries = deriveZhipuSearchQueries(articleText);
   const evidence: ZhipuSearchEvidence[] = [];
   const seenLinks = new Set<string>();
 
   for (const query of queries) {
-    const results = (await searchZhipuWeb({ apiKey, query })).filter((result) => {
+    const results = (
+      await searchZhipuWeb({ apiKey, query, searchEngine })
+    ).filter((result) => {
       if (!result.link || seenLinks.has(result.link)) {
         return false;
       }

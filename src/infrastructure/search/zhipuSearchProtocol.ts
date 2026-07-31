@@ -1,4 +1,8 @@
-import type { LongformCheckResult } from "../../shared/types";
+import type {
+  LongformCheckResult,
+  ZhipuSearchEngine
+} from "../../shared/types";
+import { DEFAULT_ZHIPU_SEARCH_ENGINE } from "../../shared/zhipuSearch.ts";
 
 export const ZHIPU_WEB_SEARCH_ENDPOINT =
   "https://open.bigmodel.cn/api/paas/v4/web_search";
@@ -53,10 +57,13 @@ export function deriveZhipuSearchQueries(articleText: string): string[] {
     : [normalizeSearchQuery(normalized)];
 }
 
-export function buildZhipuSearchRequest(query: string): Record<string, unknown> {
+export function buildZhipuSearchRequest(
+  query: string,
+  searchEngine: ZhipuSearchEngine = DEFAULT_ZHIPU_SEARCH_ENGINE
+): Record<string, unknown> {
   return {
     search_query: normalizeSearchQuery(query),
-    search_engine: "search_pro",
+    search_engine: searchEngine,
     search_intent: false,
     count: MAX_RESULTS_PER_QUERY,
     content_size: "medium"

@@ -5,6 +5,7 @@ import type {
   StoredSettings,
   WorkspaceMode
 } from "./types";
+import { normalizeZhipuSearchEngine } from "./zhipuSearch.ts";
 
 export const DEFAULT_PROVIDER = "openai";
 export const DEFAULT_MODEL = "gpt-4.1-mini";
@@ -77,6 +78,7 @@ export function normalizeModelProfile(profile: ModelProfile, index = 0): ModelPr
     provider: profile.provider === "openai-compatible" ? "openai-compatible" : DEFAULT_PROVIDER,
     apiKey: profile.apiKey.trim(),
     model: profile.model.trim() || DEFAULT_MODEL,
+    zhipuSearchEngine: normalizeZhipuSearchEngine(profile.zhipuSearchEngine),
     baseUrl:
       profile.provider === "openai"
         ? DEFAULT_BASE_URL
@@ -108,7 +110,8 @@ function createDefaultProfile(): ModelProfile {
     provider: DEFAULT_PROVIDER,
     apiKey: "",
     model: DEFAULT_MODEL,
-    baseUrl: DEFAULT_BASE_URL
+    baseUrl: DEFAULT_BASE_URL,
+    zhipuSearchEngine: normalizeZhipuSearchEngine(undefined)
   };
 }
 
@@ -125,7 +128,8 @@ function toRuntimeSettings(profile: ModelProfile): ModelRuntimeSettings {
     provider: profile.provider,
     apiKey: profile.apiKey,
     model: profile.model,
-    baseUrl: profile.baseUrl
+    baseUrl: profile.baseUrl,
+    zhipuSearchEngine: normalizeZhipuSearchEngine(profile.zhipuSearchEngine)
   };
 }
 

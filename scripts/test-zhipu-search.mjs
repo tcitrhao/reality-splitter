@@ -9,6 +9,11 @@ import {
   normalizeZhipuSearchResults,
   restrictZhipuSourceUrls
 } from "../src/infrastructure/search/zhipuSearchProtocol.ts";
+import {
+  DEFAULT_ZHIPU_SEARCH_ENGINE,
+  ZHIPU_SEARCH_ENGINE_OPTIONS,
+  normalizeZhipuSearchEngine
+} from "../src/shared/zhipuSearch.ts";
 
 const queries = deriveZhipuSearchQueries(
   "某公司在2026年7月宣布完成新一轮融资，金额达到10亿元。作者认为这家公司未来一定会成为行业第一。另一份报告显示该行业收入同比增长20%。"
@@ -32,6 +37,16 @@ assert.equal(requestBody.search_engine, "search_pro");
 assert.equal(requestBody.search_intent, false);
 assert.equal(requestBody.count, 5);
 assert.ok(requestBody.search_query.length <= 70);
+
+for (const option of ZHIPU_SEARCH_ENGINE_OPTIONS) {
+  assert.equal(
+    buildZhipuSearchRequest(queries[0], option.value).search_engine,
+    option.value,
+    `${option.value} should be passed to Zhipu without remapping`
+  );
+}
+assert.equal(normalizeZhipuSearchEngine(undefined), DEFAULT_ZHIPU_SEARCH_ENGINE);
+assert.equal(normalizeZhipuSearchEngine("unknown"), "search_pro");
 
 const results = normalizeZhipuSearchResults({
   search_result: [

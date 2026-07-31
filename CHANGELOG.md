@@ -7,6 +7,7 @@ All notable product changes should be recorded here before a build is shared.
 ### Changed
 
 - Upgraded Zhipu longform retrieval from `search_std` to the higher-recall `search_pro` engine while keeping the three-query request limit.
+- Made all four Zhipu Web Search engines configurable per model profile, with existing profiles defaulting to `search_pro`.
 
 ## 0.4.0 - 2026-07-31
 

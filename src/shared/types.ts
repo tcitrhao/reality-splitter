@@ -3,12 +3,18 @@ export type QuickAnalysisMode = Exclude<AnalysisMode, "longform">;
 export type WorkspaceMode = "quick" | "longform";
 export type AIProvider = "openai" | "openai-compatible";
 export type InputProfile = "generic" | "market" | "rumor" | "wealth";
+export type ZhipuSearchEngine =
+  | "search_std"
+  | "search_pro"
+  | "search_pro_sogou"
+  | "search_pro_quark";
 
 export interface ModelRuntimeSettings {
   provider: AIProvider;
   apiKey: string;
   model: string;
   baseUrl: string;
+  zhipuSearchEngine?: ZhipuSearchEngine;
 }
 
 export interface ModelProfile extends ModelRuntimeSettings {

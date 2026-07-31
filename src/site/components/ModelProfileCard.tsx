@@ -1,7 +1,16 @@
 import { useState } from "react";
 import { detectProviderProfile } from "../../shared/providerProfiles";
 import { DEFAULT_BASE_URL, DEFAULT_MODEL } from "../../shared/storage";
-import type { AIProvider, ModelProfile, WorkspaceMode } from "../../shared/types";
+import type {
+  AIProvider,
+  ModelProfile,
+  WorkspaceMode,
+  ZhipuSearchEngine
+} from "../../shared/types";
+import {
+  ZHIPU_SEARCH_ENGINE_OPTIONS,
+  normalizeZhipuSearchEngine
+} from "../../shared/zhipuSearch.ts";
 import {
   getProfileLabel,
   type ConnectionState
@@ -117,6 +126,30 @@ export function ModelProfileCard({
             spellCheck={false}
           />
         </label>
+
+        {providerProfile === "zhipu" ? (
+          <label className="admin-field admin-field--wide">
+            <span>长文网页搜索引擎</span>
+            <select
+              value={normalizeZhipuSearchEngine(profile.zhipuSearchEngine)}
+              onChange={(event) =>
+                onChange({
+                  ...profile,
+                  zhipuSearchEngine: event.target.value as ZhipuSearchEngine
+                })
+              }
+            >
+              {ZHIPU_SEARCH_ENGINE_OPTIONS.map((option) => (
+                <option value={option.value} key={option.value}>
+                  {option.label} / {option.value} · {option.description}
+                </option>
+              ))}
+            </select>
+            <small className="admin-field__help">
+              仅长文模式调用；实际价格和可用范围以智谱平台为准。
+            </small>
+          </label>
+        ) : null}
 
         <div className="admin-field admin-field--wide">
           <label htmlFor={`${profile.id}-api-key`}>API Key</label>

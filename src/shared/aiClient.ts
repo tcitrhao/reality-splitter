@@ -35,6 +35,7 @@ import {
 import { buildLongformPrompt, buildPrompt } from "./prompts";
 import { detectProviderProfile, validateProviderSettings, type ProviderProfile } from "./providerProfiles";
 import { getSettings } from "./storage";
+import { normalizeZhipuSearchEngine } from "./zhipuSearch.ts";
 import type {
   AIProvider,
   AIResponse,
@@ -51,7 +52,8 @@ import type {
   QuickAnalysisMode,
   SplitAnalysisResult,
   TweetInput,
-  WorkspaceMode
+  WorkspaceMode,
+  ZhipuSearchEngine
 } from "./types";
 
 const MAX_LONGFORM_INPUT_CHARS = 12000;
@@ -181,6 +183,7 @@ export async function runLongformCheck(
     model: settings.model,
     baseUrl: settings.baseUrl,
     apiKey: settings.apiKey,
+    zhipuSearchEngine: normalizeZhipuSearchEngine(settings.zhipuSearchEngine),
     providerProfile,
     attempt: 1
   });
@@ -659,6 +662,7 @@ async function runLongformAttempt(params: {
   model: string;
   baseUrl: string;
   apiKey: string;
+  zhipuSearchEngine: ZhipuSearchEngine;
   providerProfile: ProviderProfile;
   attempt: 1 | 2;
   temperatureOverride?: number;
@@ -688,7 +692,8 @@ async function runLongformAttempt(params: {
     try {
       const webSearchContext = await fetchZhipuLongformEvidence(
         params.input.articleText,
-        params.apiKey
+        params.apiKey,
+        params.zhipuSearchEngine
       );
       return runLongformAttempt({
         ...params,
@@ -816,6 +821,7 @@ async function runKimiLongformAttemptWithWebSearch(
     model: string;
     baseUrl: string;
     apiKey: string;
+    zhipuSearchEngine: ZhipuSearchEngine;
     providerProfile: ProviderProfile;
     attempt: 1 | 2;
     temperatureOverride?: number;

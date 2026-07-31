@@ -567,6 +567,12 @@ button {
   font-weight: 800;
 }
 
+.admin-field__help {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
 .admin-field input,
 .admin-field select {
   width: 100%;

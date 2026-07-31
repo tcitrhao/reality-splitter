@@ -13,6 +13,10 @@ import type {
   StoredSettings,
   WorkspaceMode
 } from "../shared/types";
+import {
+  DEFAULT_ZHIPU_SEARCH_ENGINE,
+  normalizeZhipuSearchEngine
+} from "../shared/zhipuSearch.ts";
 
 export type ConnectionState = {
   status: "idle" | "testing" | "success" | "error";
@@ -65,7 +69,8 @@ export function createBlankProfile(index: number): ModelProfile {
     provider: "openai-compatible",
     apiKey: "",
     model: "",
-    baseUrl: ""
+    baseUrl: "",
+    zhipuSearchEngine: DEFAULT_ZHIPU_SEARCH_ENGINE
   };
 }
 
@@ -100,6 +105,7 @@ export function normalizeProfileDraft(profile: ModelProfile): ModelProfile {
     provider: profile.provider || DEFAULT_PROVIDER,
     apiKey: profile.apiKey.trim(),
     model: profile.model.trim() || DEFAULT_MODEL,
+    zhipuSearchEngine: normalizeZhipuSearchEngine(profile.zhipuSearchEngine),
     baseUrl:
       profile.provider === "openai"
         ? DEFAULT_BASE_URL
