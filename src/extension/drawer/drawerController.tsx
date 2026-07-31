@@ -12,7 +12,7 @@ export interface DrawerController {
   open: (input: TweetInput, workspaceMode: WorkspaceMode) => void;
   close: () => void;
   isOpen: () => boolean;
-  updateCurrentSelection: (input: TweetInput) => void;
+  updateCurrentSelection: (input: TweetInput) => boolean;
   destroy: () => void;
   store: TabSessionStore;
 }

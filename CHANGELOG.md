@@ -4,6 +4,16 @@ All notable product changes should be recorded here before a build is shared.
 
 ## Unreleased
 
+## 0.3.3 - 2026-07-31
+
+### Fixed
+
+- Prevented page selections made during an active analysis from replacing the current input, clearing the drawer, or invalidating the in-flight response.
+
+### Verification
+
+- Added a TabSession regression that preserves the active input, loading state and request ID when the user selects other page text during analysis.
+
 ## 0.3.2 - 2026-07-31
 
 ### Changed

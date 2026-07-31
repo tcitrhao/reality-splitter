@@ -48,7 +48,7 @@ export interface TabSessionStore {
   open: (input: TweetInput, workspaceMode: WorkspaceMode) => void;
   close: () => void;
   setWorkspaceMode: (workspaceMode: WorkspaceMode) => void;
-  updateCurrentSelection: (input: TweetInput) => void;
+  updateCurrentSelection: (input: TweetInput) => boolean;
   updateQuickText: (text: string) => void;
   updateLongformText: (text: string) => void;
   beginQuickRequest: (mode: QuickAnalysisMode) => PendingQuickRequest | null;
@@ -161,7 +161,13 @@ export function createTabSessionStore(currentUrl: () => string): TabSessionStore
     },
     updateCurrentSelection(input) {
       if (!snapshot.open) {
-        return;
+        return false;
+      }
+
+      const activeWorkspace =
+        snapshot.workspaceMode === "longform" ? snapshot.longform : snapshot.quick;
+      if (activeWorkspace.loading) {
+        return false;
       }
 
       publish(
@@ -169,6 +175,7 @@ export function createTabSessionStore(currentUrl: () => string): TabSessionStore
           ? { ...snapshot, longform: updateLongformInput(input) }
           : { ...snapshot, quick: updateQuickInput(input) }
       );
+      return true;
     },
     updateQuickText(text) {
       const nextInput = {

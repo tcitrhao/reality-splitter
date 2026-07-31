@@ -137,12 +137,14 @@ function bindSelectionListeners(): () => void {
         return;
       }
 
-      lastSelection = text;
       if (drawer.isOpen()) {
-        drawer.updateCurrentSelection({
+        const accepted = drawer.updateCurrentSelection({
           text,
           url: window.location.href
         });
+        if (accepted) {
+          lastSelection = text;
+        }
       }
     }, 0);
   };
