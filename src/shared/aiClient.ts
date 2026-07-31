@@ -25,8 +25,13 @@ import {
   callKimiFormulaTool,
   fetchKimiWebSearchTools
 } from "../infrastructure/search/kimiWebSearch";
+import { fetchZhipuLongformEvidence } from "../infrastructure/search/zhipuWebSearch";
+import { restrictZhipuSourceUrls } from "../infrastructure/search/zhipuSearchProtocol";
 import { buildFallbackResult, detectInputProfile, enrichAnalysisResult } from "./analysisHeuristics";
-import { ensureApiPermission } from "./apiPermissions";
+import {
+  ensureApiPermission,
+  ensureZhipuWebSearchPermission
+} from "./apiPermissions";
 import { buildLongformPrompt, buildPrompt } from "./prompts";
 import { detectProviderProfile, validateProviderSettings, type ProviderProfile } from "./providerProfiles";
 import { getSettings } from "./storage";
@@ -159,6 +164,13 @@ export async function runLongformCheck(
   }
 
   const providerProfile = detectProviderProfile(settings);
+  if (providerProfile === "zhipu" && !referenceNotes) {
+    try {
+      await ensureZhipuWebSearchPermission();
+    } catch (error) {
+      throw new UserVisibleError(toUserMessage(error));
+    }
+  }
   const result = await runLongformAttempt({
     input: {
       articleText: article.text,
@@ -498,6 +510,20 @@ function toSafeString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function toSafeHttpUrl(value: unknown): string {
+  const rawUrl = toSafeString(value);
+  if (!rawUrl) {
+    return "";
+  }
+
+  try {
+    const url = new URL(rawUrl);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.toString() : "";
+  } catch {
+    return "";
+  }
+}
+
 function toEvidenceStrength(value: unknown): "strong" | "medium" | "weak" | "unclear" {
   return value === "strong" || value === "medium" || value === "weak" ? value : "unclear";
 }
@@ -566,7 +592,8 @@ function toLongformEvidenceItems(value: unknown): LongformCheckResult["facts"] {
         claim: toSafeString(candidate?.claim),
         verdict: candidate?.verdict === "supported" ? "supported" : "unsupported",
         evidenceNote: toSafeString((candidate as { evidenceNote?: unknown })?.evidenceNote),
-        sourceHint: toSafeString((candidate as { sourceHint?: unknown })?.sourceHint)
+        sourceHint: toSafeString((candidate as { sourceHint?: unknown })?.sourceHint),
+        sourceUrl: toSafeHttpUrl((candidate as { sourceUrl?: unknown })?.sourceUrl)
       };
     })
     .filter((item) => Boolean(item.claim));
@@ -640,6 +667,7 @@ async function runLongformAttempt(params: {
     articleText: params.input.articleText,
     referenceLinks: params.input.referenceLinks,
     referenceNotes: params.input.referenceNotes,
+    webSearchContext: params.input.webSearchContext,
     providerProfile: params.providerProfile,
     attempt: params.attempt
   });
@@ -647,9 +675,31 @@ async function runLongformAttempt(params: {
   const shouldUseKimiWebSearch =
     params.providerProfile === "kimi" &&
     !params.input.referenceNotes.trim();
+  const shouldUseZhipuWebSearch =
+    params.providerProfile === "zhipu" &&
+    !params.input.referenceNotes.trim() &&
+    !params.input.webSearchContext?.trim();
 
   if (shouldUseKimiWebSearch) {
     return runKimiLongformAttemptWithWebSearch(params, prompt);
+  }
+
+  if (shouldUseZhipuWebSearch) {
+    try {
+      const webSearchContext = await fetchZhipuLongformEvidence(
+        params.input.articleText,
+        params.apiKey
+      );
+      return runLongformAttempt({
+        ...params,
+        input: { ...params.input, webSearchContext }
+      });
+    } catch (error) {
+      if (params.attempt === 1) {
+        return runLongformAttempt({ ...params, attempt: 2 });
+      }
+      throw error;
+    }
   }
 
   let response: Response;
@@ -753,7 +803,10 @@ async function runLongformAttempt(params: {
     throw new UserVisibleError("模型返回的长文核查内容不是可解析的 JSON。");
   }
 
-  return normalizeAnalysisResult("longform", parsed);
+  const normalizedResult = normalizeAnalysisResult("longform", parsed);
+  return params.input.webSearchContext
+    ? restrictZhipuSourceUrls(normalizedResult, params.input.webSearchContext)
+    : normalizedResult;
 }
 
 async function runKimiLongformAttemptWithWebSearch(

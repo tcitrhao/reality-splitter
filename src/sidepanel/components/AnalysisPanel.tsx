@@ -314,6 +314,16 @@ function EvidenceList({
           <p className="evidence-item__note">{item.evidenceNote || "这次没有返回更具体的核查说明。"}</p>
           <p className="evidence-item__source">
             参考依据：{item.sourceHint || "未明确说明来源"}
+            {item.sourceUrl ? (
+              <a
+                className="evidence-item__source-link"
+                href={item.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+              >
+                查看来源
+              </a>
+            ) : null}
           </p>
         </li>
       ))}

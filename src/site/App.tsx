@@ -3,7 +3,10 @@ import {
   MESSAGE_TYPES,
   type ModelConnectionTestResponse
 } from "../shared/messages";
-import { requestApiPermission } from "../shared/apiPermissions";
+import {
+  requestApiPermission,
+  requestZhipuWebSearchPermission
+} from "../shared/apiPermissions";
 import { detectProviderProfile } from "../shared/providerProfiles";
 import {
   createDefaultSettings,
@@ -206,6 +209,10 @@ export default function App() {
     try {
       for (const profile of normalized.profiles) {
         await requestApiPermission(profile);
+      }
+      const longformProfile = getDraftDefault(normalized, "longform");
+      if (detectProviderProfile(longformProfile) === "zhipu") {
+        await requestZhipuWebSearchPermission();
       }
 
       const saved = await saveSettings(normalized);
@@ -424,6 +431,7 @@ export default function App() {
             </div>
             <ul className="admin-list">
               <li>短文和长文可以共享同一个配置，也可以使用不同模型。</li>
+              <li>长文默认模型为智谱 GLM 时，会自动调用智谱网页搜索；短文不会联网搜索。</li>
               <li>切换默认模型后，下一次拆解立即生效，无需重新构建插件。</li>
               <li>进行中的请求不会中途换模型，避免结果混杂。</li>
             </ul>
@@ -499,10 +507,17 @@ function DefaultAssignment({
   onChange: (mode: WorkspaceMode, profileId: string) => void;
 }) {
   const selected = getDraftDefault(settings, mode);
+  const zhipuSearchEnabled =
+    mode === "longform" && detectProviderProfile(selected) === "zhipu";
   return (
     <label className={`default-assignment is-${mode}`}>
       <span className="default-assignment__label">{title}</span>
-      <strong>{selected.name}</strong>
+      <span className="default-assignment__title-row">
+        <strong>{selected.name}</strong>
+        {zhipuSearchEnabled ? (
+          <span className="admin-chip">网页搜索已启用</span>
+        ) : null}
+      </span>
       <small>{description}</small>
       <select
         value={settings.defaultProfileIds[mode]}

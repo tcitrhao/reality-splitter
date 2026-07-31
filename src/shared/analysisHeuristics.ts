@@ -335,7 +335,8 @@ function buildLongformFallback(
             claim,
             verdict: "unsupported",
             evidenceNote: "当前结果里还没有稳定的核查依据说明。",
-            sourceHint: "未补充参考来源"
+            sourceHint: "未补充参考来源",
+            sourceUrl: ""
           })),
     opinions:
       currentResult.opinions.length > 0
@@ -344,7 +345,8 @@ function buildLongformFallback(
             claim,
             verdict: "unsupported",
             evidenceNote: "当前结果里还没有稳定的支撑依据说明。",
-            sourceHint: "未补充参考来源"
+            sourceHint: "未补充参考来源",
+            sourceUrl: ""
           }))
   };
 }

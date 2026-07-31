@@ -371,6 +371,11 @@ button {
   color: #5e4f82;
 }
 
+.profile-badge.is-zhipu {
+  background: #e3e9f8;
+  color: #31599a;
+}
+
 .preset-row {
   display: flex;
   flex-wrap: wrap;
@@ -448,6 +453,13 @@ button {
 .default-assignment strong {
   font-family: "Iowan Old Style", "Songti SC", Georgia, serif;
   font-size: 20px;
+}
+
+.default-assignment__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
 }
 
 .default-assignment small {

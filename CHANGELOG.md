@@ -11,16 +11,20 @@ All notable product changes should be recorded here before a build is shared.
 - Added a reusable model API profile library with named configurations.
 - Added independent default-profile selectors for short-text and longform analysis.
 - Added per-profile connection testing, quick presets, deletion safeguards and unsaved-state feedback.
+- Added Zhipu Web Search to longform analysis when a GLM profile is selected as the longform default.
+- Added structured source URLs and clickable source links to longform evidence results.
 
 ### Changed
 
 - Replaced the duplicated short-text and longform model forms with one shared model library.
 - Migrated existing local model settings and API keys into profiles without changing the analysis runtime contract.
 - Kept the resolved short-text and longform settings in legacy storage fields for downgrade compatibility.
+- Limited Zhipu search to at most three short queries and treated returned snippets as untrusted evidence rather than instructions.
 
 ### Verification
 
 - Added migration tests for shared, independent, missing-default and empty-library cases.
+- Added protocol tests for Zhipu provider detection, query limits, official request fields, response normalization and prompt boundaries.
 - Verified add-profile and default-switch interactions in the browser at desktop and mobile widths.
 - TypeScript, architecture tests, model migration tests, packaged entry tests and production build verification pass.
 

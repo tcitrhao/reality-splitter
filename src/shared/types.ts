@@ -85,6 +85,7 @@ export interface LongformEvidenceItem {
   verdict: "supported" | "unsupported";
   evidenceNote: string;
   sourceHint: string;
+  sourceUrl: string;
 }
 
 export interface LongformCheckResult {
@@ -117,7 +118,7 @@ export interface StoredSettings {
 export interface ModelConnectionTestResult {
   mode: WorkspaceMode;
   model: string;
-  providerProfile: "deepseek" | "kimi" | "generic";
+  providerProfile: "deepseek" | "kimi" | "zhipu" | "generic";
   latencyMs: number;
 }
 
@@ -130,4 +131,5 @@ export interface LongformCheckInput {
   articleText: string;
   referenceLinks: string[];
   referenceNotes: string;
+  webSearchContext?: string;
 }

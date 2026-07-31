@@ -83,9 +83,9 @@ flowchart TD
 
     subgraph INFRA["供应商与工具基础设施"]
         F1["OpenAI-Compatible 协议"]
-        F2["DeepSeek / Kimi Profile"]
+        F2["DeepSeek / Kimi / Zhipu Profile"]
         F3["超时 / 重试 / Token 预算"]
-        F4["Kimi Web Search"]
+        F4["Kimi Tool Search / Zhipu Web Search"]
         F5["API 权限"]
     end
 
@@ -203,7 +203,7 @@ src/
 │   └── longform-check/            长文任务合同、运行与校验
 ├── infrastructure/
 │   ├── models/                    输入、协议、解析
-│   └── search/                    Kimi 搜索工具
+│   └── search/                    Kimi 与智谱搜索适配器
 ├── background/                    消息编排，不承载产品规则
 ├── content/                       页面启动、平台提取、样式
 ├── sidepanel/                     降级界面与共享 React 结果组件

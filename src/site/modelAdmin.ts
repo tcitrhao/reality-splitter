@@ -170,6 +170,8 @@ export function getProfileLabel(profile: ProviderProfile): string {
       return "DeepSeek";
     case "kimi":
       return "Kimi";
+    case "zhipu":
+      return "智谱 GLM";
     default:
       return "通用模型";
   }

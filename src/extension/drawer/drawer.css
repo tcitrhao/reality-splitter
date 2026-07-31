@@ -361,6 +361,13 @@ a {
   font-size: 12px;
 }
 
+.evidence-item__source-link {
+  margin-left: 8px;
+  color: var(--accent);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
 @media (max-width: 420px) {
   .drawer-shell {
     padding: 14px;

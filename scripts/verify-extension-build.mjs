@@ -14,7 +14,10 @@ const sources = await readSources({
   openDrawer: "src/extension/entries/openDrawer.ts",
   serviceWorker: "src/background/serviceWorker.ts",
   aiClient: "src/shared/aiClient.ts",
+  providerProfiles: "src/shared/providerProfiles.ts",
   modelProtocol: "src/infrastructure/models/openAICompatible.ts",
+  zhipuSearch: "src/infrastructure/search/zhipuWebSearch.ts",
+  zhipuSearchProtocol: "src/infrastructure/search/zhipuSearchProtocol.ts",
   sidePanel: "src/sidepanel/App.tsx",
   admin: "src/site/App.tsx",
   modelSettings: "src/shared/modelSettings.ts",
@@ -114,8 +117,17 @@ const checks = [
     sources.aiClient.includes('from "../infrastructure/models/inputPreparation"') &&
       sources.aiClient.includes('from "../infrastructure/models/responseParsing"') &&
       sources.aiClient.includes('from "../infrastructure/models/openAICompatible"') &&
-      sources.aiClient.includes('from "../infrastructure/search/kimiWebSearch"'),
+      sources.aiClient.includes('from "../infrastructure/search/kimiWebSearch"') &&
+      sources.aiClient.includes('from "../infrastructure/search/zhipuWebSearch"'),
     "model infrastructure has been folded back into aiClient.ts"
+  ),
+  check(
+    sources.providerProfiles.includes('return "zhipu"') &&
+      sources.zhipuSearchProtocol.includes("/paas/v4/web_search") &&
+      sources.zhipuSearchProtocol.includes('search_engine: "search_std"') &&
+      sources.aiClient.includes('params.providerProfile === "zhipu"') &&
+      sources.aiClient.includes("fetchZhipuLongformEvidence"),
+    "Zhipu web search is missing or no longer restricted to the longform workflow"
   ),
   check(
     sources.modelProtocol.includes("isRetryableStatus") &&

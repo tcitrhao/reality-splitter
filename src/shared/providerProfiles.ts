@@ -1,7 +1,7 @@
 import type { ModelRuntimeSettings } from "./types";
 
 const DEEPSEEK_MODELS = new Set(["deepseek-v4-pro", "deepseek-v4-flash"]);
-export type ProviderProfile = "deepseek" | "kimi" | "generic";
+export type ProviderProfile = "deepseek" | "kimi" | "zhipu" | "generic";
 
 export function detectProviderProfile(settings: ModelRuntimeSettings): ProviderProfile {
   const normalizedModel = settings.model.trim().toLowerCase();
@@ -16,6 +16,10 @@ export function detectProviderProfile(settings: ModelRuntimeSettings): ProviderP
     return "kimi";
   }
 
+  if (normalizedModel.startsWith("glm-") || normalizedModel.includes("chatglm")) {
+    return "zhipu";
+  }
+
   try {
     const rawUrl = settings.baseUrl || "";
     const url = new URL(rawUrl);
@@ -27,6 +31,14 @@ export function detectProviderProfile(settings: ModelRuntimeSettings): ProviderP
 
     if (hostname.includes("moonshot.cn") || hostname.includes("moonshot.ai") || hostname.includes("kimi")) {
       return "kimi";
+    }
+
+    if (
+      hostname.includes("bigmodel.cn") ||
+      hostname.includes("zhipuai.cn") ||
+      hostname === "api.z.ai"
+    ) {
+      return "zhipu";
     }
 
     return "generic";
