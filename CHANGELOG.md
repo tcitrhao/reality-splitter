@@ -2,7 +2,7 @@
 
 All notable product changes should be recorded here before a build is shared.
 
-## Unreleased
+## 0.4.1 - 2026-07-31
 
 ### Changed
 
