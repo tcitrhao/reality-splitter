@@ -124,7 +124,7 @@ const checks = [
   check(
     sources.providerProfiles.includes('return "zhipu"') &&
       sources.zhipuSearchProtocol.includes("/paas/v4/web_search") &&
-      sources.zhipuSearchProtocol.includes('search_engine: "search_std"') &&
+      sources.zhipuSearchProtocol.includes('search_engine: "search_pro"') &&
       sources.aiClient.includes('params.providerProfile === "zhipu"') &&
       sources.aiClient.includes("fetchZhipuLongformEvidence"),
     "Zhipu web search is missing or no longer restricted to the longform workflow"

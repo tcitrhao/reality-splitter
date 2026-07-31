@@ -431,7 +431,7 @@ export default function App() {
             </div>
             <ul className="admin-list">
               <li>短文和长文可以共享同一个配置，也可以使用不同模型。</li>
-              <li>长文默认模型为智谱 GLM 时，会自动调用智谱网页搜索；短文不会联网搜索。</li>
+              <li>长文默认模型为智谱 GLM 时，会自动调用智谱高级网页搜索；短文不会联网搜索。</li>
               <li>切换默认模型后，下一次拆解立即生效，无需重新构建插件。</li>
               <li>进行中的请求不会中途换模型，避免结果混杂。</li>
             </ul>
@@ -515,7 +515,7 @@ function DefaultAssignment({
       <span className="default-assignment__title-row">
         <strong>{selected.name}</strong>
         {zhipuSearchEnabled ? (
-          <span className="admin-chip">网页搜索已启用</span>
+          <span className="admin-chip">高级网页搜索已启用</span>
         ) : null}
       </span>
       <small>{description}</small>

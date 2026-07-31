@@ -4,6 +4,10 @@ All notable product changes should be recorded here before a build is shared.
 
 ## Unreleased
 
+### Changed
+
+- Upgraded Zhipu longform retrieval from `search_std` to the higher-recall `search_pro` engine while keeping the three-query request limit.
+
 ## 0.4.0 - 2026-07-31
 
 ### Added

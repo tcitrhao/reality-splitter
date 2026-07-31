@@ -28,7 +28,7 @@ assert.equal(
 
 assert.equal(ZHIPU_WEB_SEARCH_ENDPOINT, "https://open.bigmodel.cn/api/paas/v4/web_search");
 const requestBody = buildZhipuSearchRequest(queries[0]);
-assert.equal(requestBody.search_engine, "search_std");
+assert.equal(requestBody.search_engine, "search_pro");
 assert.equal(requestBody.search_intent, false);
 assert.equal(requestBody.count, 5);
 assert.ok(requestBody.search_query.length <= 70);

@@ -56,7 +56,7 @@ export function deriveZhipuSearchQueries(articleText: string): string[] {
 export function buildZhipuSearchRequest(query: string): Record<string, unknown> {
   return {
     search_query: normalizeSearchQuery(query),
-    search_engine: "search_std",
+    search_engine: "search_pro",
     search_intent: false,
     count: MAX_RESULTS_PER_QUERY,
     content_size: "medium"
