@@ -1,12 +1,32 @@
 import type {
   LongformCheckInput,
+  ModelProfile,
   ModelRuntimeSettings,
   StoredSettings,
   TweetInput,
   WorkspaceMode
 } from "./types";
+import {
+  createStoredSettings,
+  DEFAULT_BASE_URL,
+  DEFAULT_MODEL,
+  DEFAULT_PROVIDER,
+  migrateLegacySettings
+} from "./modelSettings";
+
+export {
+  createDefaultSettings,
+  createStoredSettings,
+  DEFAULT_BASE_URL,
+  DEFAULT_MODEL,
+  DEFAULT_PROVIDER,
+  resolveDefaultProfile
+} from "./modelSettings";
 
 export const STORAGE_KEYS = {
+  modelProfiles: "modelProfiles",
+  quickDefaultProfileId: "quickDefaultProfileId",
+  longformDefaultProfileId: "longformDefaultProfileId",
   quickProvider: "quickProvider",
   quickApiKey: "quickApiKey",
   quickModel: "quickModel",
@@ -25,13 +45,13 @@ export const STORAGE_KEYS = {
   longformInput: "longformInput"
 } as const;
 
-export const DEFAULT_PROVIDER = "openai";
-export const DEFAULT_MODEL = "gpt-4.1-mini";
-export const DEFAULT_BASE_URL = "https://api.openai.com/v1";
 export const DEFAULT_WORKSPACE_MODE: WorkspaceMode = "quick";
 
 export async function getSettings(): Promise<StoredSettings> {
   const data = await chrome.storage.local.get([
+    STORAGE_KEYS.modelProfiles,
+    STORAGE_KEYS.quickDefaultProfileId,
+    STORAGE_KEYS.longformDefaultProfileId,
     STORAGE_KEYS.quickProvider,
     STORAGE_KEYS.quickApiKey,
     STORAGE_KEYS.quickModel,
@@ -46,23 +66,36 @@ export async function getSettings(): Promise<StoredSettings> {
     STORAGE_KEYS.legacyBaseUrl
   ]);
 
-  return {
-    quick: readModeSettings(data, "quick"),
-    longform: readModeSettings(data, "longform")
-  };
+  const storedProfiles = readStoredProfiles(data[STORAGE_KEYS.modelProfiles]);
+  if (storedProfiles.length > 0) {
+    return createStoredSettings(storedProfiles, {
+      quick: readString(data[STORAGE_KEYS.quickDefaultProfileId]),
+      longform: readString(data[STORAGE_KEYS.longformDefaultProfileId])
+    });
+  }
+
+  return migrateLegacySettings(
+    readModeSettings(data, "quick"),
+    readModeSettings(data, "longform")
+  );
 }
 
-export async function saveSettings(settings: StoredSettings): Promise<void> {
+export async function saveSettings(settings: StoredSettings): Promise<StoredSettings> {
+  const normalized = createStoredSettings(settings.profiles, settings.defaultProfileIds);
   await chrome.storage.local.set({
-    [STORAGE_KEYS.quickProvider]: settings.quick.provider,
-    [STORAGE_KEYS.quickApiKey]: settings.quick.apiKey.trim(),
-    [STORAGE_KEYS.quickModel]: settings.quick.model.trim() || DEFAULT_MODEL,
-    [STORAGE_KEYS.quickBaseUrl]: normalizeBaseUrl(settings.quick.baseUrl) || DEFAULT_BASE_URL,
-    [STORAGE_KEYS.longformProvider]: settings.longform.provider,
-    [STORAGE_KEYS.longformApiKey]: settings.longform.apiKey.trim(),
-    [STORAGE_KEYS.longformModel]: settings.longform.model.trim() || DEFAULT_MODEL,
-    [STORAGE_KEYS.longformBaseUrl]: normalizeBaseUrl(settings.longform.baseUrl) || DEFAULT_BASE_URL
+    [STORAGE_KEYS.modelProfiles]: normalized.profiles,
+    [STORAGE_KEYS.quickDefaultProfileId]: normalized.defaultProfileIds.quick,
+    [STORAGE_KEYS.longformDefaultProfileId]: normalized.defaultProfileIds.longform,
+    [STORAGE_KEYS.quickProvider]: normalized.quick.provider,
+    [STORAGE_KEYS.quickApiKey]: normalized.quick.apiKey,
+    [STORAGE_KEYS.quickModel]: normalized.quick.model,
+    [STORAGE_KEYS.quickBaseUrl]: normalized.quick.baseUrl,
+    [STORAGE_KEYS.longformProvider]: normalized.longform.provider,
+    [STORAGE_KEYS.longformApiKey]: normalized.longform.apiKey,
+    [STORAGE_KEYS.longformModel]: normalized.longform.model,
+    [STORAGE_KEYS.longformBaseUrl]: normalized.longform.baseUrl
   });
+  return normalized;
 }
 
 export async function getCurrentInput(): Promise<TweetInput | null> {
@@ -122,6 +155,34 @@ export async function setLongformInput(input: LongformCheckInput): Promise<void>
 
 function normalizeBaseUrl(value: string): string {
   return value.trim().replace(/\/+$/, "");
+}
+
+function readStoredProfiles(value: unknown): ModelProfile[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(isModelProfile);
+}
+
+function isModelProfile(value: unknown): value is ModelProfile {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const profile = value as Partial<ModelProfile>;
+  return (
+    typeof profile.id === "string" &&
+    typeof profile.name === "string" &&
+    typeof profile.apiKey === "string" &&
+    typeof profile.model === "string" &&
+    typeof profile.baseUrl === "string" &&
+    (profile.provider === "openai" || profile.provider === "openai-compatible")
+  );
+}
+
+function readString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
 }
 
 function readModeSettings(

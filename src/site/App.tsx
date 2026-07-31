@@ -4,84 +4,37 @@ import {
   type ModelConnectionTestResponse
 } from "../shared/messages";
 import { requestApiPermission } from "../shared/apiPermissions";
+import { detectProviderProfile } from "../shared/providerProfiles";
 import {
-  detectProviderProfile,
-  validateProviderSettings,
-  type ProviderProfile
-} from "../shared/providerProfiles";
-import {
-  DEFAULT_BASE_URL,
-  DEFAULT_MODEL,
-  DEFAULT_PROVIDER,
+  createDefaultSettings,
+  createStoredSettings,
   getSettings,
   saveSettings
 } from "../shared/storage";
 import type {
-  AIProvider,
-  ModelRuntimeSettings,
+  ModelProfile,
   StoredSettings,
   WorkspaceMode
 } from "../shared/types";
+import { ModelProfileCard } from "./components/ModelProfileCard";
+import {
+  areAdminSettingsEqual,
+  createBlankProfile,
+  createPresetProfile,
+  DEFAULT_CONNECTION_MESSAGE,
+  getDraftDefault,
+  getProfileLabel,
+  isDefaultDirty,
+  MODEL_PRESETS,
+  normalizeProfileDraft,
+  validateProfileDraft,
+  type ConnectionState,
+  type ModelPreset
+} from "./modelAdmin";
 
 type Notice = {
   tone: "success" | "error" | "info";
   message: string;
-};
-
-type ConnectionState = {
-  status: "idle" | "testing" | "success" | "error";
-  message: string;
-};
-
-type ModelPreset = {
-  label: string;
-  description: string;
-  settings: Omit<ModelRuntimeSettings, "apiKey">;
-};
-
-const MODEL_PRESETS: Record<WorkspaceMode, ModelPreset[]> = {
-  quick: [
-    {
-      label: "DeepSeek V4 Flash",
-      description: "更快，适合高频短文拆解",
-      settings: {
-        provider: "openai-compatible",
-        model: "deepseek-v4-flash",
-        baseUrl: "https://api.deepseek.com/v1"
-      }
-    },
-    {
-      label: "DeepSeek V4 Pro",
-      description: "更完整，适合复杂短文",
-      settings: {
-        provider: "openai-compatible",
-        model: "deepseek-v4-pro",
-        baseUrl: "https://api.deepseek.com/v1"
-      }
-    }
-  ],
-  longform: [
-    {
-      label: "Kimi K2.6",
-      description: "适合长文和联网核查",
-      settings: {
-        provider: "openai-compatible",
-        model: "kimi-k2.6",
-        baseUrl: "https://api.moonshot.cn/v1"
-      }
-    }
-  ]
-};
-
-const EMPTY_CONNECTION_STATE: Record<WorkspaceMode, ConnectionState> = {
-  quick: {
-    status: "idle",
-    message: "保存前可先测试 API Key、模型名和接口地址。"
-  },
-  longform: {
-    status: "idle",
-    message: "连接测试只验证模型接口，正式联网核查仍会使用完整工具链。"
-  }
 };
 
 export default function App() {
@@ -90,11 +43,13 @@ export default function App() {
     typeof chrome.runtime?.id === "string" &&
     chrome.runtime.id.length > 0;
   const [settings, setSettings] = useState<StoredSettings>(createDefaultSettings);
-  const [savedSettings, setSavedSettings] = useState<StoredSettings>(createDefaultSettings);
-  const [savingMode, setSavingMode] = useState<WorkspaceMode | "all" | null>(null);
+  const [savedSettings, setSavedSettings] =
+    useState<StoredSettings>(createDefaultSettings);
+  const [saving, setSaving] = useState(false);
   const [notice, setNotice] = useState<Notice | null>(null);
-  const [connectionStates, setConnectionStates] =
-    useState<Record<WorkspaceMode, ConnectionState>>(EMPTY_CONNECTION_STATE);
+  const [connectionStates, setConnectionStates] = useState<
+    Record<string, ConnectionState>
+  >({});
 
   useEffect(() => {
     if (!extensionRuntimeAvailable) {
@@ -114,43 +69,105 @@ export default function App() {
       });
   }, [extensionRuntimeAvailable]);
 
-  const dirtyModes = useMemo(
-    () => ({
-      quick: !areModeSettingsEqual(settings.quick, savedSettings.quick),
-      longform: !areModeSettingsEqual(settings.longform, savedSettings.longform)
-    }),
+  const hasUnsavedChanges = useMemo(
+    () => !areAdminSettingsEqual(settings, savedSettings),
     [savedSettings, settings]
   );
-  const hasUnsavedChanges = dirtyModes.quick || dirtyModes.longform;
+  const quickDefault = getDraftDefault(savedSettings, "quick");
+  const longformDefault = getDraftDefault(savedSettings, "longform");
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    await persistSettings("all");
+    await persistSettings();
   };
 
-  const updateMode = (mode: WorkspaceMode, next: ModelRuntimeSettings) => {
+  const updateProfile = (profileId: string, next: ModelProfile) => {
     setSettings((current) => ({
       ...current,
-      [mode]: next
+      profiles: current.profiles.map((profile) =>
+        profile.id === profileId ? next : profile
+      )
     }));
-    setConnectionStates((current) => ({
+    setConnectionState(profileId, "idle", "配置已修改，请重新测试连接。");
+    setNotice(null);
+  };
+
+  const addBlankProfile = () => {
+    const profile = createBlankProfile(settings.profiles.length);
+    setSettings((current) => ({
       ...current,
-      [mode]: {
-        status: "idle",
-        message: "配置已修改，请重新测试连接。"
+      profiles: [...current.profiles, profile]
+    }));
+    setNotice({
+      tone: "info",
+      message: "已新增一项空白 API 配置，填写后记得保存全部修改。"
+    });
+  };
+
+  const addPresetProfile = (preset: ModelPreset) => {
+    const profile = createPresetProfile(preset, settings.profiles);
+    setSettings((current) => ({
+      ...current,
+      profiles: [...current.profiles, profile]
+    }));
+    setNotice({
+      tone: "info",
+      message: `已新增 ${preset.label}，补充 API Key 后即可测试和保存。`
+    });
+  };
+
+  const removeProfile = (profileId: string) => {
+    if (settings.profiles.length === 1) {
+      setNotice({
+        tone: "error",
+        message: "至少需要保留一个模型配置。"
+      });
+      return;
+    }
+
+    const target = settings.profiles.find((profile) => profile.id === profileId);
+    if (!window.confirm(`确认删除“${target?.name || "这项模型配置"}”吗？`)) {
+      return;
+    }
+
+    setSettings((current) => {
+      const profiles = current.profiles.filter((profile) => profile.id !== profileId);
+      const fallbackId = profiles[0].id;
+      return {
+        ...current,
+        profiles,
+        defaultProfileIds: {
+          quick:
+            current.defaultProfileIds.quick === profileId
+              ? fallbackId
+              : current.defaultProfileIds.quick,
+          longform:
+            current.defaultProfileIds.longform === profileId
+              ? fallbackId
+              : current.defaultProfileIds.longform
+        }
+      };
+    });
+    setConnectionStates((current) => {
+      const next = { ...current };
+      delete next[profileId];
+      return next;
+    });
+    setNotice(null);
+  };
+
+  const setDefaultProfile = (mode: WorkspaceMode, profileId: string) => {
+    setSettings((current) => ({
+      ...current,
+      defaultProfileIds: {
+        ...current.defaultProfileIds,
+        [mode]: profileId
       }
     }));
     setNotice(null);
   };
 
-  const applyPreset = (mode: WorkspaceMode, preset: ModelPreset) => {
-    updateMode(mode, {
-      ...preset.settings,
-      apiKey: settings[mode].apiKey
-    });
-  };
-
-  const persistSettings = async (target: WorkspaceMode | "all") => {
+  const persistSettings = async () => {
     if (!extensionRuntimeAvailable) {
       setNotice({
         tone: "error",
@@ -159,50 +176,44 @@ export default function App() {
       return;
     }
 
-    const modes: WorkspaceMode[] = target === "all" ? ["quick", "longform"] : [target];
-    const nextSettings: StoredSettings = {
-      ...savedSettings
-    };
+    const duplicateName = findDuplicateName(settings.profiles);
+    if (duplicateName) {
+      setNotice({
+        tone: "error",
+        message: `配置名称“${duplicateName}”重复，请使用不同名称。`
+      });
+      return;
+    }
 
-    for (const mode of modes) {
-      const normalized = normalizeModeSettings(settings[mode]);
-      const validationError = validateModeDraft(normalized);
-
+    for (const profile of settings.profiles) {
+      const validationError = validateProfileDraft(profile, true);
       if (validationError) {
         setNotice({
           tone: "error",
-          message: `${mode === "quick" ? "短文" : "长文"}模型：${validationError}`
+          message: `${profile.name || "未命名配置"}：${validationError}`
         });
         return;
       }
-
-      nextSettings[mode] = normalized;
     }
 
-    setSavingMode(target);
+    const normalized = createStoredSettings(
+      settings.profiles.map(normalizeProfileDraft),
+      settings.defaultProfileIds
+    );
+    setSaving(true);
     setNotice(null);
 
     try {
-      for (const mode of modes) {
-        await requestApiPermission(nextSettings[mode]);
+      for (const profile of normalized.profiles) {
+        await requestApiPermission(profile);
       }
 
-      await saveSettings(nextSettings);
-      setSavedSettings(nextSettings);
-      setSettings((current) =>
-        target === "all"
-          ? nextSettings
-          : {
-              ...current,
-              [target]: nextSettings[target]
-            }
-      );
+      const saved = await saveSettings(normalized);
+      setSavedSettings(saved);
+      setSettings(saved);
       setNotice({
         tone: "success",
-        message:
-          target === "all"
-            ? "两套模型配置已保存并立即生效。"
-            : `${target === "quick" ? "短文" : "长文"}模型配置已保存并立即生效。`
+        message: "模型配置库与两种模式的默认模型已保存，并从下一次分析开始生效。"
       });
     } catch (error) {
       setNotice({
@@ -210,25 +221,26 @@ export default function App() {
         message: error instanceof Error ? error.message : "保存失败，可以再试一次。"
       });
     } finally {
-      setSavingMode(null);
+      setSaving(false);
     }
   };
 
-  const testConnection = async (mode: WorkspaceMode) => {
+  const testConnection = async (profile: ModelProfile) => {
     if (!extensionRuntimeAvailable) {
-      setConnectionState(mode, "error", "本地预览页无法连接扩展运行时。");
+      setConnectionState(profile.id, "error", "本地预览页无法连接扩展运行时。");
       return;
     }
 
-    const normalized = normalizeModeSettings(settings[mode]);
-    const validationError = validateModeDraft(normalized, true);
-
+    const validationError = validateProfileDraft(profile, true);
     if (validationError) {
-      setConnectionState(mode, "error", validationError);
+      setConnectionState(profile.id, "error", validationError);
       return;
     }
 
-    setConnectionState(mode, "testing", "正在验证接口、密钥和模型响应...");
+    const normalized = normalizeProfileDraft(profile);
+    const mode: WorkspaceMode =
+      settings.defaultProfileIds.longform === profile.id ? "longform" : "quick";
+    setConnectionState(profile.id, "testing", "正在验证接口、密钥和模型响应...");
 
     try {
       await requestApiPermission(normalized);
@@ -241,19 +253,18 @@ export default function App() {
       })) as ModelConnectionTestResponse;
 
       if (!response.ok || !response.data) {
-        setConnectionState(mode, "error", response.error || "连接测试失败。");
+        setConnectionState(profile.id, "error", response.error || "连接测试失败。");
         return;
       }
 
-      const profileLabel = getProfileLabel(response.data.providerProfile);
       setConnectionState(
-        mode,
+        profile.id,
         "success",
-        `${profileLabel} / ${response.data.model} 已连接，响应 ${response.data.latencyMs}ms。`
+        `${getProfileLabel(response.data.providerProfile)} / ${response.data.model} 已连接，响应 ${response.data.latencyMs}ms。`
       );
     } catch (error) {
       setConnectionState(
-        mode,
+        profile.id,
         "error",
         error instanceof Error ? error.message : "连接测试失败。"
       );
@@ -261,16 +272,13 @@ export default function App() {
   };
 
   const setConnectionState = (
-    mode: WorkspaceMode,
+    profileId: string,
     status: ConnectionState["status"],
     message: string
   ) => {
     setConnectionStates((current) => ({
       ...current,
-      [mode]: {
-        status,
-        message
-      }
+      [profileId]: { status, message }
     }));
   };
 
@@ -281,7 +289,7 @@ export default function App() {
           <p className="admin-eyebrow">Reality Splitter / Model Control</p>
           <h1>模型管理后台</h1>
           <p className="admin-copy">
-            短文和长文使用两套独立配置。这里保存的是插件当前真正生效的模型，不是演示参数。
+            保存多个模型 API，再分别指定短文和长文的默认调用模型。切换默认项后，下一次分析立即生效。
           </p>
           <div className="admin-status-row">
             <span className={`admin-live-dot ${extensionRuntimeAvailable ? "is-live" : ""}`} />
@@ -293,13 +301,13 @@ export default function App() {
         <div className="admin-summary-grid">
           <SummaryCard
             title="短文当前生效"
-            settings={savedSettings.quick}
-            dirty={dirtyModes.quick}
+            profile={quickDefault}
+            dirty={isDefaultDirty("quick", settings, savedSettings)}
           />
           <SummaryCard
             title="长文当前生效"
-            settings={savedSettings.longform}
-            dirty={dirtyModes.longform}
+            profile={longformDefault}
+            dirty={isDefaultDirty("longform", settings, savedSettings)}
           />
         </div>
       </header>
@@ -318,49 +326,86 @@ export default function App() {
         ) : null}
 
         <form className="admin-form" onSubmit={handleSubmit}>
-          <ModeConfigSection
-            mode="quick"
-            title="短文模型"
-            index="01"
-            hint="负责拆解、降刺激、替代解释和小实验。推荐使用响应快、结构化输出稳定的模型。"
-            value={settings.quick}
-            dirty={dirtyModes.quick}
-            saving={savingMode === "quick" || savingMode === "all"}
-            connectionState={connectionStates.quick}
-            presets={MODEL_PRESETS.quick}
-            onChange={(next) => updateMode("quick", next)}
-            onPreset={(preset) => applyPreset("quick", preset)}
-            onSave={() => void persistSettings("quick")}
-            onTest={() => void testConnection("quick")}
+          <DefaultAssignments
+            settings={settings}
+            onChange={setDefaultProfile}
           />
 
-          <ModeConfigSection
-            mode="longform"
-            title="长文模型"
-            index="02"
-            hint="负责长文核查与来源搜索。Kimi 配置会自动启用现有的联网工具链。"
-            value={settings.longform}
-            dirty={dirtyModes.longform}
-            saving={savingMode === "longform" || savingMode === "all"}
-            connectionState={connectionStates.longform}
-            presets={MODEL_PRESETS.longform}
-            onChange={(next) => updateMode("longform", next)}
-            onPreset={(preset) => applyPreset("longform", preset)}
-            onSave={() => void persistSettings("longform")}
-            onTest={() => void testConnection("longform")}
-          />
+          <section className="model-library">
+            <div className="mode-config__head">
+              <div className="mode-config__index">02</div>
+              <div className="mode-config__intro model-library__intro">
+                <div className="mode-config__title-row">
+                  <h2>API 配置库</h2>
+                  <span className="admin-chip">{settings.profiles.length} 个配置</span>
+                </div>
+                <p>每项配置包含接口、模型名称与本机 API Key，可供短文和长文复用。</p>
+              </div>
+              <button
+                className="admin-button admin-button--primary model-library__add"
+                type="button"
+                onClick={addBlankProfile}
+                disabled={saving}
+              >
+                新增 API 配置
+              </button>
+            </div>
+
+            <div className="preset-row" aria-label="快速新增模型预设">
+              {MODEL_PRESETS.map((preset) => (
+                <button
+                  className="preset-button"
+                  type="button"
+                  key={preset.label}
+                  onClick={() => addPresetProfile(preset)}
+                  disabled={saving}
+                >
+                  <strong>+ {preset.label}</strong>
+                  <span>{preset.description}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="model-profile-list">
+              {settings.profiles.map((profile, index) => {
+                const defaultModes: WorkspaceMode[] = (["quick", "longform"] as const).filter(
+                  (mode) => settings.defaultProfileIds[mode] === profile.id
+                );
+                const savedProfile = savedSettings.profiles.find(
+                  (item) => item.id === profile.id
+                );
+                return (
+                  <ModelProfileCard
+                    key={profile.id}
+                    index={index}
+                    profile={profile}
+                    defaultModes={defaultModes}
+                    dirty={!savedProfile || JSON.stringify(profile) !== JSON.stringify(savedProfile)}
+                    saving={saving}
+                    connectionState={connectionStates[profile.id] ?? {
+                      status: "idle",
+                      message: DEFAULT_CONNECTION_MESSAGE
+                    }}
+                    onChange={(next) => updateProfile(profile.id, next)}
+                    onDelete={() => removeProfile(profile.id)}
+                    onTest={() => void testConnection(profile)}
+                  />
+                );
+              })}
+            </div>
+          </section>
 
           <section className="admin-save-bar">
             <div>
-              <strong>{hasUnsavedChanges ? "配置尚未全部保存" : "当前配置已同步"}</strong>
+              <strong>{hasUnsavedChanges ? "配置尚未保存" : "当前配置已同步"}</strong>
               <span>API Key 仅保存在本机 `chrome.storage.local`，不会写入项目代码。</span>
             </div>
             <button
               className="admin-button admin-button--primary"
               type="submit"
-              disabled={!hasUnsavedChanges || savingMode !== null}
+              disabled={!hasUnsavedChanges || saving}
             >
-              {savingMode === "all" ? "保存中..." : "保存全部修改"}
+              {saving ? "保存中..." : "保存全部修改"}
             </button>
           </section>
         </form>
@@ -378,21 +423,21 @@ export default function App() {
               <span className="admin-chip">即时读取</span>
             </div>
             <ul className="admin-list">
-              <li>短文与长文分别读取自己的模型配置，可以并行运行。</li>
-              <li>保存后下一次拆解立即使用新模型，无需重新构建插件。</li>
-              <li>已经进行中的请求不会中途切换模型，避免结果混杂。</li>
+              <li>短文和长文可以共享同一个配置，也可以使用不同模型。</li>
+              <li>切换默认模型后，下一次拆解立即生效，无需重新构建插件。</li>
+              <li>进行中的请求不会中途换模型，避免结果混杂。</li>
             </ul>
           </article>
 
           <article className="admin-card">
             <div className="admin-card__head">
-              <h2>连接测试边界</h2>
-              <span className="admin-chip">30 秒超时</span>
+              <h2>数据边界</h2>
+              <span className="admin-chip">仅保存在本机</span>
             </div>
             <ul className="admin-list">
+              <li>不同用户拥有各自的模型配置库，发布者无法读取或远程修改。</li>
               <li>测试会真实请求一次模型，因此可能产生极少量 Token 费用。</li>
-              <li>测试通过代表地址、密钥和模型可响应，不代表正式拆解永不失败。</li>
-              <li>Kimi 正式长文核查还会继续验证搜索工具和多轮调用。</li>
+              <li>连接成功只代表接口可响应，不代表所有分析输入都能稳定通过。</li>
             </ul>
           </article>
         </section>
@@ -401,182 +446,88 @@ export default function App() {
   );
 }
 
-function ModeConfigSection({
-  mode,
-  title,
-  index,
-  hint,
-  value,
-  dirty,
-  saving,
-  connectionState,
-  presets,
-  onChange,
-  onPreset,
-  onSave,
-  onTest
+function DefaultAssignments({
+  settings,
+  onChange
 }: {
-  mode: WorkspaceMode;
-  title: string;
-  index: string;
-  hint: string;
-  value: ModelRuntimeSettings;
-  dirty: boolean;
-  saving: boolean;
-  connectionState: ConnectionState;
-  presets: ModelPreset[];
-  onChange: (next: ModelRuntimeSettings) => void;
-  onPreset: (preset: ModelPreset) => void;
-  onSave: () => void;
-  onTest: () => void;
+  settings: StoredSettings;
+  onChange: (mode: WorkspaceMode, profileId: string) => void;
 }) {
-  const [showApiKey, setShowApiKey] = useState(false);
-  const profile = detectProviderProfile(value);
-
   return (
-    <section className={`mode-config mode-config--${mode}`}>
+    <section className="default-config">
       <div className="mode-config__head">
-        <div className="mode-config__index">{index}</div>
+        <div className="mode-config__index">01</div>
         <div className="mode-config__intro">
           <div className="mode-config__title-row">
-            <h2>{title}</h2>
-            <span className={`profile-badge is-${profile}`}>{getProfileLabel(profile)}</span>
-            {dirty ? <span className="dirty-badge">未保存</span> : null}
+            <h2>默认调用模型</h2>
           </div>
-          <p>{hint}</p>
+          <p>为两种工作区选择默认配置；同一项 API 可以同时被两种模式使用。</p>
         </div>
       </div>
 
-      <div className="preset-row" aria-label={`${title}快速预设`}>
-        {presets.map((preset) => (
-          <button
-            className="preset-button"
-            type="button"
-            key={preset.label}
-            onClick={() => onPreset(preset)}
-          >
-            <strong>{preset.label}</strong>
-            <span>{preset.description}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="field-grid">
-        <label className="admin-field">
-          <span>接口类型</span>
-          <select
-            value={value.provider}
-            onChange={(event) =>
-              onChange({
-                ...value,
-                provider: event.target.value as AIProvider
-              })
-            }
-          >
-            <option value="openai">OpenAI 官方接口</option>
-            <option value="openai-compatible">OpenAI-Compatible 自定义接口</option>
-          </select>
-        </label>
-
-        <label className="admin-field">
-          <span>模型名称</span>
-          <input
-            type="text"
-            value={value.model}
-            onChange={(event) =>
-              onChange({
-                ...value,
-                model: event.target.value
-              })
-            }
-            placeholder={DEFAULT_MODEL}
-            spellCheck={false}
-          />
-        </label>
-
-        <label className="admin-field admin-field--wide">
-          <span>Base URL / 接口地址</span>
-          <input
-            type="url"
-            value={value.provider === "openai" ? DEFAULT_BASE_URL : value.baseUrl}
-            onChange={(event) =>
-              onChange({
-                ...value,
-                baseUrl: event.target.value
-              })
-            }
-            placeholder="https://api.example.com/v1"
-            disabled={value.provider === "openai"}
-            spellCheck={false}
-          />
-        </label>
-
-        <div className="admin-field admin-field--wide">
-          <label htmlFor={`${mode}-api-key`}>API Key</label>
-          <div className="secret-field">
-            <input
-              id={`${mode}-api-key`}
-              type={showApiKey ? "text" : "password"}
-              autoComplete="off"
-              value={value.apiKey}
-              onChange={(event) =>
-                onChange({
-                  ...value,
-                  apiKey: event.target.value
-                })
-              }
-              placeholder="sk-..."
-              spellCheck={false}
-            />
-            <button
-              type="button"
-              aria-label={`${showApiKey ? "隐藏" : "显示"}${title} API Key`}
-              onClick={() => setShowApiKey((current) => !current)}
-            >
-              {showApiKey ? "隐藏" : "显示"}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div className={`connection-state is-${connectionState.status}`}>
-        <span className="connection-state__dot" />
-        <span>{connectionState.message}</span>
-      </div>
-
-      <div className="mode-config__actions">
-        <button
-          className="admin-button"
-          type="button"
-          onClick={onTest}
-          disabled={saving || connectionState.status === "testing"}
-        >
-          {connectionState.status === "testing" ? "测试中..." : "测试连接"}
-        </button>
-        <button
-          className="admin-button admin-button--primary"
-          type="button"
-          onClick={onSave}
-          disabled={!dirty || saving}
-        >
-          {saving ? "保存中..." : `保存${title}`}
-        </button>
+      <div className="default-assignment-grid">
+        <DefaultAssignment
+          mode="quick"
+          title="短文模式"
+          description="拆解、降刺激、替代解释与小实验"
+          settings={settings}
+          onChange={onChange}
+        />
+        <DefaultAssignment
+          mode="longform"
+          title="长文模式"
+          description="长文核查、来源搜索与证据整理"
+          settings={settings}
+          onChange={onChange}
+        />
       </div>
     </section>
   );
 }
 
+function DefaultAssignment({
+  mode,
+  title,
+  description,
+  settings,
+  onChange
+}: {
+  mode: WorkspaceMode;
+  title: string;
+  description: string;
+  settings: StoredSettings;
+  onChange: (mode: WorkspaceMode, profileId: string) => void;
+}) {
+  const selected = getDraftDefault(settings, mode);
+  return (
+    <label className={`default-assignment is-${mode}`}>
+      <span className="default-assignment__label">{title}</span>
+      <strong>{selected.name}</strong>
+      <small>{description}</small>
+      <select
+        value={settings.defaultProfileIds[mode]}
+        onChange={(event) => onChange(mode, event.target.value)}
+      >
+        {settings.profiles.map((profile) => (
+          <option value={profile.id} key={profile.id}>
+            {profile.name || "未命名配置"} / {profile.model || "未填写模型"}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 function SummaryCard({
   title,
-  settings,
+  profile,
   dirty
 }: {
   title: string;
-  settings: ModelRuntimeSettings;
+  profile: ModelProfile;
   dirty: boolean;
 }) {
-  const profile = detectProviderProfile(settings);
-
+  const providerProfile = detectProviderProfile(profile);
   return (
     <article className="summary-card">
       <div className="summary-card__topline">
@@ -585,76 +536,22 @@ function SummaryCard({
           {dirty ? "编辑中" : "生效中"}
         </span>
       </div>
-      <strong>{settings.model.trim() || DEFAULT_MODEL}</strong>
-      <small>{getProfileLabel(profile)}</small>
+      <strong>{profile.name}</strong>
+      <small>
+        {profile.model} / {getProfileLabel(providerProfile)}
+      </small>
     </article>
   );
 }
 
-function getProfileLabel(profile: ProviderProfile): string {
-  switch (profile) {
-    case "deepseek":
-      return "DeepSeek";
-    case "kimi":
-      return "Kimi";
-    default:
-      return "通用模型";
-  }
-}
-
-function createDefaultModeSettings(): ModelRuntimeSettings {
-  return {
-    provider: DEFAULT_PROVIDER,
-    apiKey: "",
-    model: DEFAULT_MODEL,
-    baseUrl: DEFAULT_BASE_URL
-  };
-}
-
-function createDefaultSettings(): StoredSettings {
-  return {
-    quick: createDefaultModeSettings(),
-    longform: createDefaultModeSettings()
-  };
-}
-
-function normalizeModeSettings(settings: ModelRuntimeSettings): ModelRuntimeSettings {
-  return {
-    provider: settings.provider || DEFAULT_PROVIDER,
-    apiKey: settings.apiKey.trim(),
-    model: settings.model.trim() || DEFAULT_MODEL,
-    baseUrl:
-      settings.provider === "openai"
-        ? DEFAULT_BASE_URL
-        : settings.baseUrl.trim().replace(/\/+$/, "") || DEFAULT_BASE_URL
-  };
-}
-
-function validateModeDraft(
-  settings: ModelRuntimeSettings,
-  requireApiKey = false
-): string | null {
-  if (requireApiKey && !settings.apiKey) {
-    return "需要先填写 API Key。";
-  }
-
-  if (settings.provider === "openai-compatible") {
-    try {
-      const url = new URL(settings.baseUrl);
-      if (url.protocol !== "https:" && !["localhost", "127.0.0.1"].includes(url.hostname)) {
-        return "接口地址必须使用 HTTPS；本地开发地址除外。";
-      }
-    } catch {
-      return "Base URL 格式不正确。";
+function findDuplicateName(profiles: ModelProfile[]): string | null {
+  const names = new Set<string>();
+  for (const profile of profiles) {
+    const normalizedName = profile.name.trim().toLocaleLowerCase();
+    if (names.has(normalizedName)) {
+      return profile.name.trim();
     }
+    names.add(normalizedName);
   }
-
-  return validateProviderSettings(settings);
-}
-
-function areModeSettingsEqual(
-  first: ModelRuntimeSettings,
-  second: ModelRuntimeSettings
-): boolean {
-  return JSON.stringify(normalizeModeSettings(first)) === JSON.stringify(normalizeModeSettings(second));
+  return null;
 }

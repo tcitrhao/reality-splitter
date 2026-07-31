@@ -57,6 +57,8 @@ button {
 .admin-hero,
 .admin-card,
 .mode-config,
+.default-config,
+.model-library,
 .admin-save-bar,
 .admin-notice {
   max-width: 1180px;
@@ -217,6 +219,8 @@ button {
 
 .admin-card,
 .mode-config,
+.default-config,
+.model-library,
 .admin-save-bar,
 .admin-notice {
   border: 1px solid var(--line);
@@ -278,6 +282,28 @@ button {
   border-radius: 30px;
 }
 
+.default-config,
+.model-library {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  width: 100%;
+  padding: clamp(22px, 4vw, 38px);
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: rgba(248, 247, 241, 0.9);
+  box-shadow: 0 12px 38px rgba(34, 48, 43, 0.055);
+}
+
+.default-config {
+  border-top: 4px solid var(--forest);
+}
+
+.model-library {
+  border-top: 4px solid var(--amber);
+}
+
 .mode-config--quick {
   border-top: 4px solid var(--forest);
 }
@@ -301,6 +327,15 @@ button {
 
 .mode-config__intro {
   min-width: 0;
+}
+
+.model-library__intro {
+  flex: 1;
+}
+
+.model-library__add {
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
 .mode-config__title-row {
@@ -370,6 +405,131 @@ button {
   margin-top: 5px;
   color: var(--muted);
   font-size: 12px;
+}
+
+.default-assignment-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.default-assignment {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  overflow: hidden;
+  padding: 20px;
+  border: 1px solid rgba(31, 73, 61, 0.14);
+  border-radius: 19px;
+  background: var(--paper-strong);
+}
+
+.default-assignment::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 4px;
+  background: var(--forest);
+  content: "";
+}
+
+.default-assignment.is-longform::before {
+  background: var(--amber);
+}
+
+.default-assignment__label {
+  color: var(--forest-bright);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.default-assignment strong {
+  font-family: "Iowan Old Style", "Songti SC", Georgia, serif;
+  font-size: 20px;
+}
+
+.default-assignment small {
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.default-assignment select {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 7px;
+  padding: 0 13px;
+  border: 1px solid rgba(28, 44, 41, 0.14);
+  border-radius: 13px;
+  outline: none;
+  background: #f5f4ee;
+  color: var(--ink);
+}
+
+.default-assignment select:focus {
+  border-color: rgba(31, 73, 61, 0.55);
+  box-shadow: 0 0 0 4px rgba(31, 73, 61, 0.08);
+}
+
+.model-profile-list {
+  display: grid;
+  gap: 14px;
+}
+
+.model-profile-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid rgba(31, 73, 61, 0.14);
+  border-radius: 22px;
+  background: var(--paper-strong);
+}
+
+.model-profile-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.model-profile-card__head > div {
+  min-width: 0;
+}
+
+.model-profile-card__index {
+  display: block;
+  margin-bottom: 6px;
+  color: rgba(31, 73, 61, 0.38);
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-size: 11px;
+}
+
+.model-profile-card__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.model-profile-card__title > strong {
+  max-width: 34rem;
+  overflow: hidden;
+  font-family: "Iowan Old Style", "Songti SC", Georgia, serif;
+  font-size: 22px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.admin-button--danger {
+  border-color: rgba(164, 73, 62, 0.2);
+  color: var(--red);
+}
+
+.admin-button--danger:hover:not(:disabled) {
+  border-color: rgba(164, 73, 62, 0.5);
+  background: var(--red-soft);
 }
 
 .field-grid {
@@ -594,8 +754,18 @@ button {
 
   .admin-hero,
   .admin-grid,
-  .field-grid {
+  .field-grid,
+  .default-assignment-grid {
     grid-template-columns: 1fr;
+  }
+
+  .model-library__add {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .model-library > .mode-config__head {
+    flex-direction: column;
   }
 
   .admin-field--wide {
@@ -614,7 +784,9 @@ button {
 
 @media (max-width: 520px) {
   .admin-hero,
-  .mode-config {
+  .mode-config,
+  .default-config,
+  .model-library {
     border-radius: 22px;
   }
 
@@ -633,5 +805,18 @@ button {
   .mode-config__actions {
     display: grid;
     grid-template-columns: 1fr;
+  }
+
+  .model-profile-card {
+    padding: 18px 15px;
+  }
+
+  .model-profile-card__head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .model-profile-card__head > .admin-button {
+    width: 100%;
   }
 }

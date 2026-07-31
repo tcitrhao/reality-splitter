@@ -11,6 +11,13 @@ export interface ModelRuntimeSettings {
   baseUrl: string;
 }
 
+export interface ModelProfile extends ModelRuntimeSettings {
+  id: string;
+  name: string;
+}
+
+export type DefaultModelProfileIds = Record<WorkspaceMode, string>;
+
 export interface TweetInput {
   text: string;
   url?: string;
@@ -101,6 +108,8 @@ export interface AIResponse<M extends AnalysisMode = AnalysisMode> {
 }
 
 export interface StoredSettings {
+  profiles: ModelProfile[];
+  defaultProfileIds: DefaultModelProfileIds;
   quick: ModelRuntimeSettings;
   longform: ModelRuntimeSettings;
 }

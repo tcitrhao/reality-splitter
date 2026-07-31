@@ -17,6 +17,8 @@ const sources = await readSources({
   modelProtocol: "src/infrastructure/models/openAICompatible.ts",
   sidePanel: "src/sidepanel/App.tsx",
   admin: "src/site/App.tsx",
+  modelSettings: "src/shared/modelSettings.ts",
+  storage: "src/shared/storage.ts",
   messages: "src/shared/messages.ts"
 });
 const contentBundle = await read("dist/contentScript.js");
@@ -130,9 +132,11 @@ const checks = [
   check(
     sources.admin.includes("模型管理后台") &&
       sources.admin.includes("测试连接") &&
-      sources.admin.includes('onSave={() => void persistSettings("quick")}') &&
-      sources.admin.includes('onSave={() => void persistSettings("longform")}'),
-    "independent quick and longform model administration is missing"
+      sources.admin.includes("新增 API 配置") &&
+      sources.admin.includes("默认调用模型") &&
+      sources.storage.includes("modelProfiles") &&
+      sources.modelSettings.includes("migrateLegacySettings"),
+    "model profile library, workspace defaults, or legacy migration is missing"
   ),
   check(
     manifest.options_page === "options.html" &&

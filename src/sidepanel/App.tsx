@@ -5,10 +5,8 @@ import { LongformWorkspace } from "./components/LongformWorkspace";
 import { SettingsPanel } from "./components/SettingsPanel";
 import { MESSAGE_TYPES, type AnalysisResponse } from "../shared/messages";
 import {
-  DEFAULT_BASE_URL,
-  DEFAULT_MODEL,
-  DEFAULT_PROVIDER,
   DEFAULT_WORKSPACE_MODE,
+  createDefaultSettings,
   getCurrentInput,
   getLongformInput,
   getSettings,
@@ -29,20 +27,7 @@ import type { WorkspaceMode } from "../shared/types";
 import { PRODUCT_COPY } from "../shared/productCopy";
 
 export default function App() {
-  const [settings, setSettings] = useState<StoredSettings>({
-    quick: {
-      provider: DEFAULT_PROVIDER,
-      apiKey: "",
-      model: DEFAULT_MODEL,
-      baseUrl: DEFAULT_BASE_URL
-    },
-    longform: {
-      provider: DEFAULT_PROVIDER,
-      apiKey: "",
-      model: DEFAULT_MODEL,
-      baseUrl: DEFAULT_BASE_URL
-    }
-  });
+  const [settings, setSettings] = useState<StoredSettings>(createDefaultSettings);
   const [currentInput, setCurrentInputState] = useState<TweetInput | null>(null);
   const [uiError, setUiErrorState] = useState<string | null>(null);
   const [quickResponse, setQuickResponse] = useState<AIResponse | null>(null);
@@ -101,6 +86,9 @@ export default function App() {
       }
 
       if (
+        changes[STORAGE_KEYS.modelProfiles] ||
+        changes[STORAGE_KEYS.quickDefaultProfileId] ||
+        changes[STORAGE_KEYS.longformDefaultProfileId] ||
         changes[STORAGE_KEYS.quickProvider] ||
         changes[STORAGE_KEYS.quickApiKey] ||
         changes[STORAGE_KEYS.quickModel] ||

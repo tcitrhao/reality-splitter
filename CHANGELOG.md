@@ -4,6 +4,26 @@ All notable product changes should be recorded here before a build is shared.
 
 ## Unreleased
 
+## 0.4.0 - 2026-07-31
+
+### Added
+
+- Added a reusable model API profile library with named configurations.
+- Added independent default-profile selectors for short-text and longform analysis.
+- Added per-profile connection testing, quick presets, deletion safeguards and unsaved-state feedback.
+
+### Changed
+
+- Replaced the duplicated short-text and longform model forms with one shared model library.
+- Migrated existing local model settings and API keys into profiles without changing the analysis runtime contract.
+- Kept the resolved short-text and longform settings in legacy storage fields for downgrade compatibility.
+
+### Verification
+
+- Added migration tests for shared, independent, missing-default and empty-library cases.
+- Verified add-profile and default-switch interactions in the browser at desktop and mobile widths.
+- TypeScript, architecture tests, model migration tests, packaged entry tests and production build verification pass.
+
 ## 0.3.3 - 2026-07-31
 
 ### Fixed
