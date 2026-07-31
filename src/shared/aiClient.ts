@@ -25,7 +25,10 @@ import {
   callKimiFormulaTool,
   fetchKimiWebSearchTools
 } from "../infrastructure/search/kimiWebSearch";
-import { fetchZhipuLongformEvidence } from "../infrastructure/search/zhipuWebSearch";
+import {
+  fetchZhipuLongformEvidence,
+  searchZhipuWeb
+} from "../infrastructure/search/zhipuWebSearch";
 import { restrictZhipuSourceUrls } from "../infrastructure/search/zhipuSearchProtocol";
 import { buildFallbackResult, detectInputProfile, enrichAnalysisResult } from "./analysisHeuristics";
 import {
@@ -189,14 +192,15 @@ export async function runLongformCheck(
   });
 
   if (isResultTooThin("longform", result)) {
+    const fallbackResult = buildFallbackResult({
+      mode: "longform",
+      inputText: article.text,
+      inputProfile: "generic",
+      currentResult: result as AnalysisResultMap["longform"]
+    });
     return {
       mode: "longform",
-      result: buildFallbackResult({
-        mode: "longform",
-        inputText: article.text,
-        inputProfile: "generic",
-        currentResult: result as AnalysisResultMap["longform"]
-      })
+      result: fallbackResult
     };
   }
 
@@ -286,11 +290,36 @@ export async function testModelConnection(
     throw new UserVisibleError("接口已经响应，但没有返回可用内容，请检查模型名是否正确。");
   }
 
+  const webSearch =
+    providerProfile === "zhipu"
+      ? await testZhipuWebSearch(settings)
+      : undefined;
+
   return {
     mode,
     model: settings.model.trim(),
     providerProfile,
-    latencyMs: Date.now() - startedAt
+    latencyMs: Date.now() - startedAt,
+    ...(webSearch ? { webSearch } : {})
+  };
+}
+
+async function testZhipuWebSearch(
+  settings: ModelRuntimeSettings
+): Promise<NonNullable<ModelConnectionTestResult["webSearch"]>> {
+  await ensureZhipuWebSearchPermission();
+  const engine = normalizeZhipuSearchEngine(settings.zhipuSearchEngine);
+  const results = await searchZhipuWeb({
+    apiKey: settings.apiKey.trim(),
+    query: "人工智能",
+    searchEngine: engine
+  });
+
+  return {
+    provider: "zhipu",
+    engine,
+    queryCount: 1,
+    sourceCount: results.length
   };
 }
 
@@ -689,22 +718,28 @@ async function runLongformAttempt(params: {
   }
 
   if (shouldUseZhipuWebSearch) {
+    let webSearchEvidence;
     try {
-      const webSearchContext = await fetchZhipuLongformEvidence(
+      webSearchEvidence = await fetchZhipuLongformEvidence(
         params.input.articleText,
         params.apiKey,
         params.zhipuSearchEngine
       );
-      return runLongformAttempt({
-        ...params,
-        input: { ...params.input, webSearchContext }
-      });
     } catch (error) {
       if (params.attempt === 1) {
         return runLongformAttempt({ ...params, attempt: 2 });
       }
       throw error;
     }
+
+    const result = await runLongformAttempt({
+      ...params,
+      input: { ...params.input, webSearchContext: webSearchEvidence.context }
+    });
+    return {
+      ...result,
+      webSearch: webSearchEvidence.execution
+    };
   }
 
   let response: Response;

@@ -7,6 +7,7 @@ import type {
   SplitAnalysisResult
 } from "../../shared/types";
 import { PRODUCT_COPY } from "../../shared/productCopy";
+import { getZhipuSearchEngineLabel } from "../../shared/zhipuSearch.ts";
 import { ResultCard } from "./ResultCard";
 
 interface AnalysisPanelProps {
@@ -206,6 +207,14 @@ function LongformView({ result }: { result: LongformCheckResult }) {
 
   return (
     <div className="stack">
+      {result.webSearch ? (
+        <div className="web-search-status" role="status">
+          <strong>已使用 {getZhipuSearchEngineLabel(result.webSearch.engine)}联网核查</strong>
+          <span>
+            {result.webSearch.engine} · 检索 {result.webSearch.queryCount} 个问题 · 使用 {result.webSearch.sourceCount} 条来源
+          </span>
+        </div>
+      ) : null}
       <ResultCard title={PRODUCT_COPY.results.longformFacts}>
         <EvidenceList items={facts} emptyText="这次没有稳定提取出可核查事实。" />
       </ResultCard>

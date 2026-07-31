@@ -261,6 +261,27 @@ textarea {
   gap: 12px;
 }
 
+.web-search-status {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 13px;
+  border: 1px solid rgba(84, 122, 103, 0.24);
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.web-search-status strong {
+  font-size: 13px;
+}
+
+.web-search-status span {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
 .result-card {
   padding: 16px;
 }

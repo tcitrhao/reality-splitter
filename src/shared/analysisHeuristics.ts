@@ -328,6 +328,7 @@ function buildLongformFallback(
   const extracted = extractLongformClaims(inputText);
 
   return {
+    ...(currentResult.webSearch ? { webSearch: currentResult.webSearch } : {}),
     facts:
       currentResult.facts.length > 0
         ? currentResult.facts

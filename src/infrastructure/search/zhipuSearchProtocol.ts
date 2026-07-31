@@ -9,7 +9,7 @@ export const ZHIPU_WEB_SEARCH_ENDPOINT =
 
 const MAX_SEARCH_QUERY_CHARS = 70;
 const MAX_SEARCH_QUERIES = 3;
-const MAX_RESULTS_PER_QUERY = 5;
+const MAX_RESULTS_PER_QUERY = 10;
 const MAX_RESULT_CONTENT_CHARS = 700;
 
 export interface ZhipuSearchResult {
@@ -66,7 +66,7 @@ export function buildZhipuSearchRequest(
     search_engine: searchEngine,
     search_intent: false,
     count: MAX_RESULTS_PER_QUERY,
-    content_size: "medium"
+    content_size: "high"
   };
 }
 
@@ -121,6 +121,7 @@ export function restrictZhipuSourceUrls(
     }));
 
   return {
+    ...result,
     facts: restrictItems(result.facts),
     opinions: restrictItems(result.opinions)
   };

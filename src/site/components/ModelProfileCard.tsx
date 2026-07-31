@@ -39,6 +39,7 @@ export function ModelProfileCard({
 }) {
   const [showApiKey, setShowApiKey] = useState(false);
   const providerProfile = detectProviderProfile(profile);
+  const testsZhipuSearch = providerProfile === "zhipu";
 
   return (
     <article className="model-profile-card">
@@ -186,8 +187,17 @@ export function ModelProfileCard({
           onClick={onTest}
           disabled={saving || connectionState.status === "testing"}
         >
-          {connectionState.status === "testing" ? "测试中..." : "测试连接"}
+          {connectionState.status === "testing"
+            ? "测试中..."
+            : testsZhipuSearch
+              ? "测试模型与搜索"
+              : "测试连接"}
         </button>
+        {testsZhipuSearch ? (
+          <small className="admin-action-note">
+            会实际调用 1 次当前搜索引擎，并产生对应搜索费用。
+          </small>
+        ) : null}
       </div>
     </article>
   );

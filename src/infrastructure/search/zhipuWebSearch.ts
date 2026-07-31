@@ -1,5 +1,8 @@
 import { UserVisibleError } from "../../application/errors/userVisibleError";
-import type { ZhipuSearchEngine } from "../../shared/types";
+import type {
+  WebSearchExecution,
+  ZhipuSearchEngine
+} from "../../shared/types";
 import { isTimeoutError, timeoutSignal } from "../models/openAICompatible";
 import { readErrorMessage, safeReadJson } from "../models/responseParsing";
 import {
@@ -13,6 +16,11 @@ import {
 } from "./zhipuSearchProtocol";
 
 const MAX_SEARCH_CONTEXT_CHARS = 9000;
+
+export interface ZhipuLongformEvidence {
+  context: string;
+  execution: WebSearchExecution;
+}
 
 export async function searchZhipuWeb(params: {
   apiKey: string;
@@ -58,7 +66,7 @@ export async function fetchZhipuLongformEvidence(
   articleText: string,
   apiKey: string,
   searchEngine: ZhipuSearchEngine
-): Promise<string> {
+): Promise<ZhipuLongformEvidence> {
   const queries = deriveZhipuSearchQueries(articleText);
   const evidence: ZhipuSearchEvidence[] = [];
   const seenLinks = new Set<string>();
@@ -85,5 +93,18 @@ export async function fetchZhipuLongformEvidence(
     );
   }
 
-  return formatZhipuSearchEvidence(evidence).slice(0, MAX_SEARCH_CONTEXT_CHARS);
+  const context = formatZhipuSearchEvidence(evidence).slice(
+    0,
+    MAX_SEARCH_CONTEXT_CHARS
+  );
+
+  return {
+    context,
+    execution: {
+      provider: "zhipu",
+      engine: searchEngine,
+      queryCount: queries.length,
+      sourceCount: Array.from(context.matchAll(/^链接：https?:\/\/\S+$/gm)).length
+    }
+  };
 }

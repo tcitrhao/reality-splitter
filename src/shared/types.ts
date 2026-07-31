@@ -94,9 +94,17 @@ export interface LongformEvidenceItem {
   sourceUrl: string;
 }
 
+export interface WebSearchExecution {
+  provider: "zhipu";
+  engine: ZhipuSearchEngine;
+  queryCount: number;
+  sourceCount: number;
+}
+
 export interface LongformCheckResult {
   facts: LongformEvidenceItem[];
   opinions: LongformEvidenceItem[];
+  webSearch?: WebSearchExecution;
 }
 
 export interface AnalysisResultMap {
@@ -126,6 +134,7 @@ export interface ModelConnectionTestResult {
   model: string;
   providerProfile: "deepseek" | "kimi" | "zhipu" | "generic";
   latencyMs: number;
+  webSearch?: WebSearchExecution;
 }
 
 export interface StoredAppState {

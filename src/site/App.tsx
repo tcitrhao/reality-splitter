@@ -248,10 +248,20 @@ export default function App() {
     const normalized = normalizeProfileDraft(profile);
     const mode: WorkspaceMode =
       settings.defaultProfileIds.longform === profile.id ? "longform" : "quick";
-    setConnectionState(profile.id, "testing", "正在验证接口、密钥和模型响应...");
+    const testsZhipuSearch = detectProviderProfile(normalized) === "zhipu";
+    setConnectionState(
+      profile.id,
+      "testing",
+      testsZhipuSearch
+        ? `正在验证模型，并实际调用一次${getZhipuSearchEngineLabel(normalized.zhipuSearchEngine)}搜索...`
+        : "正在验证接口、密钥和模型响应..."
+    );
 
     try {
       await requestApiPermission(normalized);
+      if (testsZhipuSearch) {
+        await requestZhipuWebSearchPermission();
+      }
       const response = (await chrome.runtime.sendMessage({
         type: MESSAGE_TYPES.TEST_MODEL_CONNECTION,
         payload: {
@@ -268,7 +278,9 @@ export default function App() {
       setConnectionState(
         profile.id,
         "success",
-        `${getProfileLabel(response.data.providerProfile)} / ${response.data.model} 已连接，响应 ${response.data.latencyMs}ms。`
+        response.data.webSearch
+          ? `${getProfileLabel(response.data.providerProfile)} / ${response.data.model} 已连接；${getZhipuSearchEngineLabel(response.data.webSearch.engine)}（${response.data.webSearch.engine}）搜索已返回 ${response.data.webSearch.sourceCount} 条结果。`
+          : `${getProfileLabel(response.data.providerProfile)} / ${response.data.model} 已连接，响应 ${response.data.latencyMs}ms。`
       );
     } catch (error) {
       setConnectionState(

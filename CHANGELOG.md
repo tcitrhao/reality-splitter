@@ -8,6 +8,16 @@ All notable product changes should be recorded here before a build is shared.
 
 - Upgraded Zhipu longform retrieval from `search_std` to the higher-recall `search_pro` engine while keeping the three-query request limit.
 - Made all four Zhipu Web Search engines configurable per model profile, with existing profiles defaulting to `search_pro`.
+- Increased each Zhipu query to 10 results and `high` content detail for compatibility across the four official engines.
+
+### Fixed
+
+- Made Zhipu search execution observable in connection tests and longform results, including the actual engine, query count and source count.
+- Prevented a failed model response from repeating already successful paid search requests during the retry path.
+
+### Verification
+
+- Added an end-to-end mocked runtime test proving the saved longform profile controls every outgoing `search_engine` field.
 
 ## 0.4.0 - 2026-07-31
 
