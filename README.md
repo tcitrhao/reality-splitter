@@ -111,6 +111,14 @@ http://127.0.0.1:4173/
 
 官网的默认文案统一保存在 `content/website-content.json`，公开页面不会再各自维护一份文案。
 
+线上后台：
+
+```text
+https://tcitrhao.github.io/reality-splitter/studio.html
+```
+
+线上后台使用仅授权本仓库 `Contents: Read and write` 的 GitHub Fine-grained Token 登录，可以编辑“迭代”和“AI 沉思录”，支持 Markdown 即时预览。发布会直接更新 `main` 中的内容文档并触发 GitHub Pages 部署；Token 只保存在当前浏览器标签页。详细步骤见 [在线内容后台说明](docs/ONLINE_CONTENT_STUDIO.md)。
+
 启动本地内容后台：
 
 ```bash
@@ -124,7 +132,7 @@ npm run studio
 官网预览：http://127.0.0.1:4180/
 ```
 
-后台可以管理首页文案、产品更新、AI 沉思录和关于页面。点击“发布内容”后，服务会写回内容文档并重新构建网站；这个操作只更新本地项目，不会自动部署到公网。
+本地后台与线上后台使用同一份内容文档。点击“发布修改”后，本地服务会写回内容文档并重新构建网站；这个操作只更新本地项目，不会自动部署到公网。直接编辑 JSON 或由 Codex 更新内容的方式保持不变。
 
 ## GitHub 发布
 
