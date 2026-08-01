@@ -179,11 +179,13 @@ function IterationsPage() {
               </div>
               <div>
                 <h2>{item.title}</h2>
-                <p>{item.body}</p>
-                <p className="iteration-learning">
+                <div className="iteration-markdown">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.body}</ReactMarkdown>
+                </div>
+                <div className="iteration-learning">
                   <strong>{page.learningLabel}</strong>
-                  {item.learning}
-                </p>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.learning}</ReactMarkdown>
+                </div>
               </div>
             </article>
           ))}

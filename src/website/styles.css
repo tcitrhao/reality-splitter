@@ -556,6 +556,32 @@ ul {
   line-height: 1.75;
 }
 
+.iteration-markdown > :first-child,
+.iteration-learning > :first-child {
+  margin-top: 0;
+}
+
+.iteration-markdown > :last-child,
+.iteration-learning > :last-child {
+  margin-bottom: 0;
+}
+
+.iteration-markdown a,
+.iteration-learning a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.iteration-markdown ul,
+.iteration-markdown ol {
+  max-width: 620px;
+  padding-left: 1.25rem;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
 .meditation-list article {
   border-bottom: 1px solid var(--line);
 }
@@ -586,9 +612,14 @@ a.meditation-entry:hover h2 {
   margin-top: 18px;
   padding-left: 14px;
   border-left: 1px solid var(--accent);
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
 }
 
 .iteration-learning strong {
+  display: block;
+  margin-bottom: 3px;
   color: var(--text);
   font-weight: 500;
 }

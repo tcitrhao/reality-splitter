@@ -20,7 +20,8 @@ export default defineConfig({
         iterations: resolveFromRoot("./iterations.html"),
         meditations: resolveFromRoot("./meditations.html"),
         about: resolveFromRoot("./about.html"),
-        privacy: resolveFromRoot("./privacy.html")
+        privacy: resolveFromRoot("./privacy.html"),
+        studio: resolveFromRoot("./studio.html")
       },
       output: {
         entryFileNames: "assets/[name]-[hash].js",
