@@ -290,23 +290,10 @@ export default function App() {
             重新载入
           </button>
           {!isLocalStudio ? (
-            <>
-              <button type="button" onClick={saveDraft} disabled={!hasChanges || publishing}>
-                保存草稿
-              </button>
-              <button type="button" onClick={signOut} disabled={publishing}>
-                退出
-              </button>
-            </>
+            <button type="button" onClick={signOut} disabled={publishing}>
+              退出
+            </button>
           ) : null}
-          <button
-            className="publish-button"
-            type="button"
-            onClick={() => void publishContent()}
-            disabled={!hasChanges || publishing}
-          >
-            {publishing ? "发布中..." : hasChanges ? "发布修改" : "已是最新"}
-          </button>
         </div>
       </header>
 
@@ -345,6 +332,14 @@ export default function App() {
             onChange={setContent}
             selectedIndex={selectedIteration}
             onSelect={setSelectedIteration}
+            actions={{
+              onSaveDraft: saveDraft,
+              onPublish: () => void publishContent(),
+              canSaveDraft: !isLocalStudio && hasChanges && !publishing,
+              canPublish: hasChanges && !publishing,
+              publishing,
+              localMode: isLocalStudio
+            }}
           />
         ) : (
           <MeditationsEditor
@@ -352,6 +347,14 @@ export default function App() {
             onChange={setContent}
             selectedIndex={selectedMeditation}
             onSelect={setSelectedMeditation}
+            actions={{
+              onSaveDraft: saveDraft,
+              onPublish: () => void publishContent(),
+              canSaveDraft: !isLocalStudio && hasChanges && !publishing,
+              canPublish: hasChanges && !publishing,
+              publishing,
+              localMode: isLocalStudio
+            }}
           />
         )}
       </main>
@@ -445,7 +448,8 @@ function IterationsEditor({
   content,
   onChange,
   selectedIndex,
-  onSelect
+  onSelect,
+  actions
 }: EditorProps) {
   const item = content.iterations[selectedIndex];
 
@@ -491,6 +495,7 @@ function IterationsEditor({
       onSelect={onSelect}
       onAdd={addItem}
       addLabel="新增迭代"
+      actions={actions}
     >
       <PageSettings title="迭代页设置">
         <Field label="页面标题" value={content.iterationsPage.title} onChange={(value) => updatePage("title", value)} />
@@ -517,7 +522,8 @@ function MeditationsEditor({
   content,
   onChange,
   selectedIndex,
-  onSelect
+  onSelect,
+  actions
 }: EditorProps) {
   const item = content.meditations[selectedIndex];
 
@@ -562,6 +568,7 @@ function MeditationsEditor({
       onSelect={onSelect}
       onAdd={addItem}
       addLabel="新增沉思"
+      actions={actions}
     >
       <PageSettings title="沉思录设置">
         <Field label="页面标题" value={content.meditationsPage.title} onChange={(value) => updatePage("title", value)} />
@@ -589,6 +596,16 @@ interface EditorProps {
   onChange: (content: WebsiteContent) => void;
   selectedIndex: number;
   onSelect: (index: number) => void;
+  actions: StudioEditorActions;
+}
+
+interface StudioEditorActions {
+  onSaveDraft: () => void;
+  onPublish: () => void;
+  canSaveDraft: boolean;
+  canPublish: boolean;
+  publishing: boolean;
+  localMode: boolean;
 }
 
 function ContentEditorLayout({
@@ -599,6 +616,7 @@ function ContentEditorLayout({
   onSelect,
   onAdd,
   addLabel,
+  actions,
   children
 }: {
   title: string;
@@ -608,6 +626,7 @@ function ContentEditorLayout({
   onSelect: (index: number) => void;
   onAdd: () => void;
   addLabel: string;
+  actions: StudioEditorActions;
   children: React.ReactNode;
 }) {
   return (
@@ -636,7 +655,44 @@ function ContentEditorLayout({
         </aside>
         <div className="editor-column">{children}</div>
       </div>
+      <StudioEditorActionsBar actions={actions} />
     </section>
+  );
+}
+
+function StudioEditorActionsBar({ actions }: { actions: StudioEditorActions }) {
+  return (
+    <div className="studio-editor-actions">
+      <div>
+        <strong>{actions.localMode ? "确认内容后写入本地" : "确认内容后再发布"}</strong>
+        <span>
+          {actions.localMode
+            ? "发布会写入工作区文件。"
+            : "修改会自动保存为浏览器草稿，发布后官网才会更新。"}
+        </span>
+      </div>
+      <div className="studio-editor-actions__buttons">
+        {!actions.localMode ? (
+          <button type="button" onClick={actions.onSaveDraft} disabled={!actions.canSaveDraft}>
+            保存草稿
+          </button>
+        ) : null}
+        <button
+          className="publish-button"
+          type="button"
+          onClick={actions.onPublish}
+          disabled={!actions.canPublish}
+        >
+          {actions.publishing
+            ? "发布中..."
+            : actions.localMode
+              ? "写入本地内容"
+              : actions.canPublish
+                ? "发布到官网"
+                : "已是最新"}
+        </button>
+      </div>
+    </div>
   );
 }
 
