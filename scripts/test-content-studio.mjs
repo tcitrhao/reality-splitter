@@ -117,7 +117,9 @@ try {
   canWrite = false;
   await assert.rejects(
     () => verifyGitHubWriteAccess("read-only-token"),
-    /不能发布/
+    (error) =>
+      error?.name === "GitHubWriteAccessError" &&
+      /Contents.*Read and write/.test(error.message)
   );
   canWrite = true;
 

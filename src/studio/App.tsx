@@ -277,6 +277,7 @@ export default function App() {
       <LoginScreen
         checking={studioState === "checking"}
         message={message}
+        permissionError={message.includes("Contents")}
         onSignIn={signIn}
       />
     );
@@ -380,15 +381,18 @@ export default function App() {
 function LoginScreen({
   checking,
   message,
+  permissionError,
   onSignIn
 }: {
   checking: boolean;
   message: string;
+  permissionError: boolean;
   onSignIn: (token: string) => Promise<void>;
 }) {
   const [token, setToken] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const showPermissionHelp = permissionError || error.includes("Contents");
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -454,6 +458,20 @@ function LoginScreen({
         <p className={error ? "login-feedback is-error" : "login-feedback"}>
           {error || message}
         </p>
+        {showPermissionHelp ? (
+          <aside className="login-permission-help">
+            <strong>请按下面步骤更新 Token</strong>
+            <ol>
+              <li>Resource owner 选择 <code>tcitrhao</code>。</li>
+              <li>Repository access 选择 Only select repositories，并勾选 <code>reality-splitter</code>。</li>
+              <li>Repository permissions → Contents 选择 <strong>Read and write</strong>。</li>
+              <li>创建或更新后，回到这里粘贴新的 Token 重新登录。</li>
+            </ol>
+            <a className="token-link" href={tokenSettingsUrl} target="_blank" rel="noreferrer">
+              打开 GitHub Token 设置 ↗
+            </a>
+          </aside>
+        ) : null}
       </section>
     </main>
   );

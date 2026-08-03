@@ -26,6 +26,19 @@ export interface GitHubPublishResult {
   sha: string;
 }
 
+export class GitHubWriteAccessError extends Error {
+  constructor() {
+    super(
+      "该凭证可以登录，但没有 reality-splitter 的写入权限。请将仓库权限中的 Contents 设置为 Read and write，然后用更新后的 Token 重新登录。"
+    );
+    this.name = "GitHubWriteAccessError";
+  }
+}
+
+export function isGitHubWriteAccessError(error: unknown): error is GitHubWriteAccessError {
+  return error instanceof GitHubWriteAccessError;
+}
+
 interface GitHubUserResponse {
   avatar_url: string;
   html_url: string;
@@ -74,9 +87,7 @@ export async function authenticateGitHub(token: string): Promise<GitHubIdentity>
 export async function verifyGitHubWriteAccess(token: string): Promise<void> {
   const repository = await githubRequest<GitHubRepositoryResponse>(repositoryEndpoint(), token);
   if (repository.permissions?.push !== true) {
-    throw new Error(
-      "当前凭证可以登录，但不能发布。请为 reality-splitter 仓库开启 Contents: Read and write。"
-    );
+    throw new GitHubWriteAccessError();
   }
 }
 
