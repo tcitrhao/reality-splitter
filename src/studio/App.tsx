@@ -17,7 +17,8 @@ import {
 import {
   clearStudioDraft,
   readStudioDraft,
-  saveStudioDraft
+  saveStudioDraft,
+  type StudioDraftEntry
 } from "./draftStorage";
 
 type StudioSection = "iterations" | "meditations";
@@ -39,7 +40,7 @@ export default function App() {
   const [identity, setIdentity] = useState<GitHubIdentity>();
   const [contentSha, setContentSha] = useState("");
   const [publishing, setPublishing] = useState(false);
-  const [draftSavedAt, setDraftSavedAt] = useState("");
+  const [draftEntries, setDraftEntries] = useState<StudioDraftEntry[]>([]);
   const [message, setMessage] = useState("正在读取官网内容...");
   const hasChanges = JSON.stringify(content) !== savedContent;
 
@@ -69,16 +70,17 @@ export default function App() {
         const draft = saveStudioDraft({
           baseContent: JSON.parse(savedContent) as WebsiteContent,
           baseSha: contentSha,
-          content
+          content,
+          draftEntries
         });
-        setDraftSavedAt(draft.savedAt);
+        void draft;
       } catch (error) {
         setMessage(errorMessage(error));
       }
     }, 500);
 
     return () => window.clearTimeout(timer);
-  }, [content, contentSha, hasChanges, savedContent, studioState]);
+  }, [content, contentSha, draftEntries, hasChanges, savedContent, studioState]);
 
   const initializeStudio = async () => {
     if (isLocalStudio) {
@@ -143,7 +145,7 @@ export default function App() {
       setContent(restoredContent);
       setSavedContent(JSON.stringify(snapshot.content));
       setContentSha(snapshot.sha);
-      setDraftSavedAt(draft.savedAt);
+      setDraftEntries(draft.draftEntries ?? []);
       setSelectedIteration(0);
       setSelectedMeditation(0);
       setStudioState("ready");
@@ -152,7 +154,7 @@ export default function App() {
     }
 
     applyContent(snapshot.content, snapshot.sha);
-    setDraftSavedAt("");
+    setDraftEntries([]);
     setMessage(`已连接 GitHub · ${nextIdentity.login} · 已确认发布权限`);
   };
 
@@ -178,7 +180,7 @@ export default function App() {
         await loadLocalContent();
       } else {
         clearStudioDraft();
-        setDraftSavedAt("");
+        setDraftEntries([]);
         const token = readSessionToken();
         if (!token) {
           signOut();
@@ -196,13 +198,24 @@ export default function App() {
       return;
     }
     try {
+      const draftEntry =
+        activeSection === "iterations"
+          ? content.iterations[selectedIteration]?.version
+          : content.meditations[selectedMeditation]?.index;
+      const nextDraftEntries = draftEntry
+        ? [
+            ...draftEntries.filter((entry) => entry.section !== activeSection || entry.key !== draftEntry),
+            { section: activeSection, key: draftEntry }
+          ]
+        : draftEntries;
       const draft = saveStudioDraft({
         baseContent: JSON.parse(savedContent) as WebsiteContent,
         baseSha: contentSha,
-        content
+        content,
+        draftEntries: nextDraftEntries
       });
-      setDraftSavedAt(draft.savedAt);
-      setMessage("草稿已保存到当前浏览器；确认无误后可继续发布到官网。");
+      setDraftEntries(draft.draftEntries ?? nextDraftEntries);
+      setMessage("草稿已保存，左侧内容已标记为【草稿】；确认无误后可继续发布到官网。");
     } catch (error) {
       setMessage(errorMessage(error));
     }
@@ -226,6 +239,8 @@ export default function App() {
           throw new Error(result.error || "本地发布失败。");
         }
         setSavedContent(JSON.stringify(content));
+        clearStudioDraft();
+        setDraftEntries([]);
         setMessage("已写入工作区。继续通过 Git 提交即可更新公网网站。");
       } else {
         const token = readSessionToken();
@@ -243,7 +258,7 @@ export default function App() {
         setContentSha(result.sha);
         setSavedContent(JSON.stringify(result.content));
         clearStudioDraft();
-        setDraftSavedAt("");
+        setDraftEntries([]);
         setMessage(
           mergedRemoteChanges
             ? "已合并远程更新并提交，GitHub Pages 正在自动部署。"
@@ -300,8 +315,6 @@ export default function App() {
       <div className="studio-status" data-ready={studioState === "ready"}>
         <span />
         <p>{message}</p>
-        {hasChanges ? <strong>有未发布修改</strong> : null}
-        {hasChanges && draftSavedAt ? <small>浏览器草稿已保存</small> : null}
       </div>
 
       <nav className="studio-tabs" aria-label="内容分类">
@@ -332,6 +345,7 @@ export default function App() {
             onChange={setContent}
             selectedIndex={selectedIteration}
             onSelect={setSelectedIteration}
+            draftEntries={draftEntries}
             actions={{
               onSaveDraft: saveDraft,
               onPublish: () => void publishContent(),
@@ -347,6 +361,7 @@ export default function App() {
             onChange={setContent}
             selectedIndex={selectedMeditation}
             onSelect={setSelectedMeditation}
+            draftEntries={draftEntries}
             actions={{
               onSaveDraft: saveDraft,
               onPublish: () => void publishContent(),
@@ -449,6 +464,7 @@ function IterationsEditor({
   onChange,
   selectedIndex,
   onSelect,
+  draftEntries,
   actions
 }: EditorProps) {
   const item = content.iterations[selectedIndex];
@@ -469,7 +485,7 @@ function IterationsEditor({
         month: "2-digit",
         day: "2-digit"
       }).format(new Date()).replaceAll("/", "."),
-      version: "v0.0.0",
+      version: `v0.0.0-draft-${Date.now().toString(36)}`,
       title: "新的产品迭代",
       body: "用 **Markdown** 记录这次更新。",
       learning: "这次真正学到了什么？"
@@ -490,7 +506,11 @@ function IterationsEditor({
     <ContentEditorLayout
       title="迭代"
       description="最新记录排在最前。正文与阶段学习均支持 Markdown。"
-      items={content.iterations.map((entry) => ({ meta: entry.version, title: entry.title }))}
+      items={content.iterations.map((entry) => ({
+        meta: entry.version,
+        title: entry.title,
+        isDraft: draftEntries.some((draft) => draft.section === "iterations" && draft.key === entry.version)
+      }))}
       selectedIndex={selectedIndex}
       onSelect={onSelect}
       onAdd={addItem}
@@ -523,6 +543,7 @@ function MeditationsEditor({
   onChange,
   selectedIndex,
   onSelect,
+  draftEntries,
   actions
 }: EditorProps) {
   const item = content.meditations[selectedIndex];
@@ -563,7 +584,11 @@ function MeditationsEditor({
     <ContentEditorLayout
       title="AI 沉思录"
       description="标题和摘要进入文章列表，Markdown 正文进入独立阅读页。"
-      items={content.meditations.map((entry) => ({ meta: `${entry.index} · ${entry.status}`, title: entry.title }))}
+      items={content.meditations.map((entry) => ({
+        meta: `${entry.index} · ${entry.status}`,
+        title: entry.title,
+        isDraft: draftEntries.some((draft) => draft.section === "meditations" && draft.key === entry.index)
+      }))}
       selectedIndex={selectedIndex}
       onSelect={onSelect}
       onAdd={addItem}
@@ -596,6 +621,7 @@ interface EditorProps {
   onChange: (content: WebsiteContent) => void;
   selectedIndex: number;
   onSelect: (index: number) => void;
+  draftEntries: StudioDraftEntry[];
   actions: StudioEditorActions;
 }
 
@@ -621,7 +647,7 @@ function ContentEditorLayout({
 }: {
   title: string;
   description: string;
-  items: Array<{ meta: string; title: string }>;
+  items: Array<{ meta: string; title: string; isDraft?: boolean }>;
   selectedIndex: number;
   onSelect: (index: number) => void;
   onAdd: () => void;
@@ -649,7 +675,10 @@ function ContentEditorLayout({
               onClick={() => onSelect(index)}
             >
               <small>{item.meta}</small>
-              <strong>{item.title || "未命名内容"}</strong>
+              <strong>
+                {item.isDraft ? "【草稿】" : ""}
+                {item.title || "未命名内容"}
+              </strong>
             </button>
           ))}
         </aside>

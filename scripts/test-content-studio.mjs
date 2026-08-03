@@ -163,10 +163,18 @@ try {
   const savedDraft = saveStudioDraft({
     baseContent,
     baseSha: "sha-base",
-    content: localContent
+    content: localContent,
+    draftEntries: [
+      { section: "iterations", key: "v2.0.0" },
+      { section: "meditations", key: "02" }
+    ]
   });
   assert.ok(savedDraft.savedAt);
   assert.equal(readStudioDraft()?.content.iterations[0].version, "v2.0.0");
+  assert.deepEqual(readStudioDraft()?.draftEntries, [
+    { section: "iterations", key: "v2.0.0" },
+    { section: "meditations", key: "02" }
+  ]);
   clearStudioDraft();
   assert.equal(readStudioDraft(), undefined);
 } finally {

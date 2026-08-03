@@ -7,6 +7,12 @@ export interface StudioDraft {
   baseSha: string;
   content: WebsiteContent;
   savedAt: string;
+  draftEntries?: StudioDraftEntry[];
+}
+
+export interface StudioDraftEntry {
+  section: "iterations" | "meditations";
+  key: string;
 }
 
 export function readStudioDraft(): StudioDraft | undefined {
