@@ -188,6 +188,14 @@ button:disabled {
   font-weight: 600;
 }
 
+.studio-status small {
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-size: 11px;
+}
+
 .studio-tabs {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

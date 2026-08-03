@@ -6,19 +6,28 @@ import {
   authenticateGitHub,
   clearSessionToken,
   loadGitHubContent,
-  publishGitHubContent,
+  mergeWebsiteContent,
+  publishGitHubContentSafely,
   readSessionToken,
   storeSessionToken,
   tokenSettingsUrl,
-  type GitHubIdentity
+  type GitHubIdentity,
+  verifyGitHubWriteAccess
 } from "./githubContent";
+import {
+  clearStudioDraft,
+  readStudioDraft,
+  saveStudioDraft
+} from "./draftStorage";
 
 type StudioSection = "iterations" | "meditations";
 type StudioState = "checking" | "signed-out" | "ready";
 type Iteration = WebsiteContent["iterations"][number];
 type Meditation = WebsiteContent["meditations"][number];
 
-const isLocalStudio = ["127.0.0.1", "localhost"].includes(window.location.hostname);
+const isLocalStudio =
+  import.meta.env?.VITE_STUDIO_MODE !== "remote" &&
+  ["127.0.0.1", "localhost"].includes(window.location.hostname);
 
 export default function App() {
   const [content, setContent] = useState<WebsiteContent>(() => structuredClone(defaultContent));
@@ -30,6 +39,7 @@ export default function App() {
   const [identity, setIdentity] = useState<GitHubIdentity>();
   const [contentSha, setContentSha] = useState("");
   const [publishing, setPublishing] = useState(false);
+  const [draftSavedAt, setDraftSavedAt] = useState("");
   const [message, setMessage] = useState("正在读取官网内容...");
   const hasChanges = JSON.stringify(content) !== savedContent;
 
@@ -48,6 +58,27 @@ export default function App() {
     window.addEventListener("beforeunload", warnBeforeLeaving);
     return () => window.removeEventListener("beforeunload", warnBeforeLeaving);
   }, [hasChanges]);
+
+  useEffect(() => {
+    if (isLocalStudio || studioState !== "ready" || !hasChanges || !contentSha) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      try {
+        const draft = saveStudioDraft({
+          baseContent: JSON.parse(savedContent) as WebsiteContent,
+          baseSha: contentSha,
+          content
+        });
+        setDraftSavedAt(draft.savedAt);
+      } catch (error) {
+        setMessage(errorMessage(error));
+      }
+    }, 500);
+
+    return () => window.clearTimeout(timer);
+  }, [content, contentSha, hasChanges, savedContent, studioState]);
 
   const initializeStudio = async () => {
     if (isLocalStudio) {
@@ -98,11 +129,31 @@ export default function App() {
     setMessage("正在验证 GitHub 账号并读取官网内容...");
     const [nextIdentity, snapshot] = await Promise.all([
       authenticateGitHub(token),
-      loadGitHubContent(token)
+      loadGitHubContent(token),
+      verifyGitHubWriteAccess(token)
     ]);
     setIdentity(nextIdentity);
+    const draft = readStudioDraft();
+    if (draft) {
+      const restoredContent = mergeWebsiteContent(
+        draft.baseContent,
+        draft.content,
+        snapshot.content
+      );
+      setContent(restoredContent);
+      setSavedContent(JSON.stringify(snapshot.content));
+      setContentSha(snapshot.sha);
+      setDraftSavedAt(draft.savedAt);
+      setSelectedIteration(0);
+      setSelectedMeditation(0);
+      setStudioState("ready");
+      setMessage(`已连接 GitHub · ${nextIdentity.login} · 已恢复浏览器草稿`);
+      return;
+    }
+
     applyContent(snapshot.content, snapshot.sha);
-    setMessage(`已连接 GitHub · ${nextIdentity.login}`);
+    setDraftSavedAt("");
+    setMessage(`已连接 GitHub · ${nextIdentity.login} · 已确认发布权限`);
   };
 
   const signIn = async (token: string) => {
@@ -114,7 +165,7 @@ export default function App() {
     clearSessionToken();
     setIdentity(undefined);
     setStudioState("signed-out");
-    setMessage("已退出，当前标签页中的凭证已经清除。");
+    setMessage("已退出，当前标签页中的凭证已经清除；未发布草稿仍保留在本机。");
   };
 
   const reloadContent = async () => {
@@ -126,6 +177,8 @@ export default function App() {
       if (isLocalStudio) {
         await loadLocalContent();
       } else {
+        clearStudioDraft();
+        setDraftSavedAt("");
         const token = readSessionToken();
         if (!token) {
           signOut();
@@ -133,6 +186,23 @@ export default function App() {
         }
         await loadRemoteSession(token);
       }
+    } catch (error) {
+      setMessage(errorMessage(error));
+    }
+  };
+
+  const saveDraft = () => {
+    if (isLocalStudio || !hasChanges || !contentSha) {
+      return;
+    }
+    try {
+      const draft = saveStudioDraft({
+        baseContent: JSON.parse(savedContent) as WebsiteContent,
+        baseSha: contentSha,
+        content
+      });
+      setDraftSavedAt(draft.savedAt);
+      setMessage("草稿已保存到当前浏览器；确认无误后可继续发布到官网。");
     } catch (error) {
       setMessage(errorMessage(error));
     }
@@ -162,10 +232,23 @@ export default function App() {
         if (!token || !contentSha) {
           throw new Error("登录状态已经失效，请重新登录。");
         }
-        const result = await publishGitHubContent({ content, sha: contentSha, token });
+        const result = await publishGitHubContentSafely({
+          baseContent: JSON.parse(savedContent) as WebsiteContent,
+          content,
+          sha: contentSha,
+          token
+        });
+        const mergedRemoteChanges = JSON.stringify(result.content) !== JSON.stringify(content);
+        setContent(result.content);
         setContentSha(result.sha);
-        setSavedContent(JSON.stringify(content));
-        setMessage("内容已提交，GitHub Pages 正在自动部署，通常几分钟内生效。");
+        setSavedContent(JSON.stringify(result.content));
+        clearStudioDraft();
+        setDraftSavedAt("");
+        setMessage(
+          mergedRemoteChanges
+            ? "已合并远程更新并提交，GitHub Pages 正在自动部署。"
+            : "内容已提交，GitHub Pages 正在自动部署，通常几分钟内生效。"
+        );
       }
     } catch (error) {
       setMessage(errorMessage(error));
@@ -207,9 +290,14 @@ export default function App() {
             重新载入
           </button>
           {!isLocalStudio ? (
-            <button type="button" onClick={signOut} disabled={publishing}>
-              退出
-            </button>
+            <>
+              <button type="button" onClick={saveDraft} disabled={!hasChanges || publishing}>
+                保存草稿
+              </button>
+              <button type="button" onClick={signOut} disabled={publishing}>
+                退出
+              </button>
+            </>
           ) : null}
           <button
             className="publish-button"
@@ -226,6 +314,7 @@ export default function App() {
         <span />
         <p>{message}</p>
         {hasChanges ? <strong>有未发布修改</strong> : null}
+        {hasChanges && draftSavedAt ? <small>浏览器草稿已保存</small> : null}
       </div>
 
       <nav className="studio-tabs" aria-label="内容分类">
@@ -314,7 +403,7 @@ function LoginScreen({
         <ol className="login-steps">
           <li><span>01</span>创建只授权本仓库的 Fine-grained Token</li>
           <li><span>02</span>Repository permissions 选择 Contents: Read and write</li>
-          <li><span>03</span>令牌只保留在当前标签页，退出或关闭即清除</li>
+          <li><span>03</span>令牌只保留在当前标签页，未发布草稿保存在当前浏览器</li>
         </ol>
       </section>
 

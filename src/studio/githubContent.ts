@@ -3,7 +3,7 @@ import type { WebsiteContent } from "../website/content";
 const DEFAULT_REPOSITORY = "tcitrhao/reality-splitter";
 const CONTENT_PATH = "content/website-content.json";
 const CONTENT_BRANCH = "main";
-const API_ROOT = "https://api.github.com";
+const DEFAULT_API_ROOT = "https://api.github.com";
 const TOKEN_STORAGE_KEY = "reality-splitter-studio-token";
 
 export const tokenSettingsUrl =
@@ -22,6 +22,7 @@ export interface GitHubContentSnapshot {
 
 export interface GitHubPublishResult {
   commitUrl?: string;
+  content: WebsiteContent;
   sha: string;
 }
 
@@ -43,6 +44,12 @@ interface GitHubUpdateResponse {
   content?: { sha?: string };
 }
 
+interface GitHubRepositoryResponse {
+  permissions?: {
+    push?: boolean;
+  };
+}
+
 export function readSessionToken(): string {
   return sessionStorage.getItem(TOKEN_STORAGE_KEY)?.trim() || "";
 }
@@ -62,6 +69,15 @@ export async function authenticateGitHub(token: string): Promise<GitHubIdentity>
     avatarUrl: user.avatar_url,
     profileUrl: user.html_url
   };
+}
+
+export async function verifyGitHubWriteAccess(token: string): Promise<void> {
+  const repository = await githubRequest<GitHubRepositoryResponse>(repositoryEndpoint(), token);
+  if (repository.permissions?.push !== true) {
+    throw new Error(
+      "当前凭证可以登录，但不能发布。请为 reality-splitter 仓库开启 Contents: Read and write。"
+    );
+  }
 }
 
 export async function loadGitHubContent(token: string): Promise<GitHubContentSnapshot> {
@@ -100,7 +116,59 @@ export async function publishGitHubContent(params: {
     throw new Error("内容已提交，但 GitHub 没有返回新的文件版本。");
   }
 
-  return { sha, commitUrl: result.commit?.html_url };
+  return { content: params.content, sha, commitUrl: result.commit?.html_url };
+}
+
+export async function publishGitHubContentSafely(params: {
+  baseContent: WebsiteContent;
+  content: WebsiteContent;
+  sha: string;
+  token: string;
+}): Promise<GitHubPublishResult> {
+  const latest = await loadGitHubContent(params.token);
+  const content = latest.sha === params.sha
+    ? params.content
+    : mergeWebsiteContent(params.baseContent, params.content, latest.content);
+
+  try {
+    return await publishGitHubContent({
+      content,
+      sha: latest.sha,
+      token: params.token
+    });
+  } catch (error) {
+    if (!(error instanceof GitHubRequestError) || error.status !== 409) {
+      throw error;
+    }
+
+    const refreshed = await loadGitHubContent(params.token);
+    return publishGitHubContent({
+      content: mergeWebsiteContent(latest.content, content, refreshed.content),
+      sha: refreshed.sha,
+      token: params.token
+    });
+  }
+}
+
+export function mergeWebsiteContent(
+  base: WebsiteContent,
+  local: WebsiteContent,
+  remote: WebsiteContent
+): WebsiteContent {
+  const merged = mergeValue(base, local, remote) as WebsiteContent;
+  merged.iterations = mergeKeyedItems(
+    base.iterations,
+    local.iterations,
+    remote.iterations,
+    (item) => item.version
+  );
+  merged.meditations = mergeKeyedItems(
+    base.meditations,
+    local.meditations,
+    remote.meditations,
+    (item) => item.index
+  );
+  return merged;
 }
 
 export function encodeUtf8Base64(value: string): string {
@@ -126,12 +194,79 @@ function contentEndpoint(): string {
   return `/repos/${repository}/contents/${CONTENT_PATH}`;
 }
 
+function repositoryEndpoint(): string {
+  const repository = import.meta.env?.VITE_GITHUB_REPOSITORY?.trim() || DEFAULT_REPOSITORY;
+  return `/repos/${repository}`;
+}
+
+function mergeKeyedItems<T extends object>(
+  base: T[],
+  local: T[],
+  remote: T[],
+  getKey: (item: T) => string
+): T[] {
+  const baseByKey = new Map(base.map((item) => [getKey(item), item]));
+  const localByKey = new Map(local.map((item) => [getKey(item), item]));
+  const remoteByKey = new Map(remote.map((item) => [getKey(item), item]));
+  const localAdditions = local.filter((item) => !baseByKey.has(getKey(item)));
+  const localRecoveries = local.filter((item) => {
+    const key = getKey(item);
+    const baseItem = baseByKey.get(key);
+    return Boolean(baseItem) && !remoteByKey.has(key) && !sameValue(item, baseItem);
+  });
+  const mergedRemote = remote.flatMap((remoteItem) => {
+    const key = getKey(remoteItem);
+    const baseItem = baseByKey.get(key);
+    const localItem = localByKey.get(key);
+
+    if (baseItem && !localItem) {
+      return [];
+    }
+    if (!localItem) {
+      return [remoteItem];
+    }
+    if (!baseItem) {
+      return [localItem];
+    }
+    return [mergeValue(baseItem, localItem, remoteItem) as T];
+  });
+  const remoteKeys = new Set(remoteByKey.keys());
+
+  return [
+    ...localAdditions.filter((item) => !remoteKeys.has(getKey(item))),
+    ...localRecoveries,
+    ...mergedRemote
+  ];
+}
+
+function mergeValue(base: unknown, local: unknown, remote: unknown): unknown {
+  if (sameValue(local, base)) {
+    return structuredClone(remote);
+  }
+  if (sameValue(remote, base) || !isRecord(base) || !isRecord(local) || !isRecord(remote)) {
+    return structuredClone(local);
+  }
+
+  const keys = new Set([...Object.keys(base), ...Object.keys(local), ...Object.keys(remote)]);
+  return Object.fromEntries(
+    Array.from(keys, (key) => [key, mergeValue(base[key], local[key], remote[key])])
+  );
+}
+
+function sameValue(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left) === JSON.stringify(right);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
 async function githubRequest<T>(
   path: string,
   token: string,
   init: RequestInit = {}
 ): Promise<T> {
-  const response = await fetch(`${API_ROOT}${path}`, {
+  const response = await fetch(`${apiRoot()}${path}`, {
     ...init,
     headers: {
       Accept: "application/vnd.github+json",
@@ -143,10 +278,26 @@ async function githubRequest<T>(
   });
 
   if (!response.ok) {
-    throw new Error(await describeGitHubError(response));
+    throw new GitHubRequestError(response.status, await describeGitHubError(response));
   }
 
   return (await response.json()) as T;
+}
+
+class GitHubRequestError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = "GitHubRequestError";
+    this.status = status;
+  }
+}
+
+function apiRoot(): string {
+  return (
+    import.meta.env?.VITE_GITHUB_API_ROOT?.trim() || DEFAULT_API_ROOT
+  ).replace(/\/$/, "");
 }
 
 async function describeGitHubError(response: Response): Promise<string> {
