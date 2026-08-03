@@ -401,6 +401,7 @@ button:disabled {
 
 .studio-editor-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
@@ -453,6 +454,24 @@ button:disabled {
 .studio-editor-actions__buttons button:disabled {
   cursor: not-allowed;
   opacity: 0.48;
+}
+
+.studio-editor-actions__status {
+  display: flex;
+  flex: 1 0 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(47, 106, 85, 0.14);
+}
+
+.studio-editor-actions__status a {
+  flex: 0 0 auto;
+  color: var(--accent-deep);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
 }
 
 .studio-field,

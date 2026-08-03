@@ -11,8 +11,7 @@ import {
   readSessionToken,
   storeSessionToken,
   tokenSettingsUrl,
-  type GitHubIdentity,
-  verifyGitHubWriteAccess
+  type GitHubIdentity
 } from "./githubContent";
 import {
   clearStudioDraft,
@@ -131,8 +130,7 @@ export default function App() {
     setMessage("正在验证 GitHub 账号并读取官网内容...");
     const [nextIdentity, snapshot] = await Promise.all([
       authenticateGitHub(token),
-      loadGitHubContent(token),
-      verifyGitHubWriteAccess(token)
+      loadGitHubContent(token)
     ]);
     setIdentity(nextIdentity);
     const draft = readStudioDraft();
@@ -155,7 +153,7 @@ export default function App() {
 
     applyContent(snapshot.content, snapshot.sha);
     setDraftEntries([]);
-    setMessage(`已连接 GitHub · ${nextIdentity.login} · 已确认发布权限`);
+    setMessage(`已连接 GitHub · ${nextIdentity.login} · 可以编辑，发布时会检查写入权限`);
   };
 
   const signIn = async (token: string) => {
@@ -353,7 +351,8 @@ export default function App() {
               canSaveDraft: !isLocalStudio && hasChanges && !publishing,
               canPublish: hasChanges && !publishing,
               publishing,
-              localMode: isLocalStudio
+              localMode: isLocalStudio,
+              message
             }}
           />
         ) : (
@@ -369,7 +368,8 @@ export default function App() {
               canSaveDraft: !isLocalStudio && hasChanges && !publishing,
               canPublish: hasChanges && !publishing,
               publishing,
-              localMode: isLocalStudio
+              localMode: isLocalStudio,
+              message
             }}
           />
         )}
@@ -650,6 +650,7 @@ interface StudioEditorActions {
   canPublish: boolean;
   publishing: boolean;
   localMode: boolean;
+  message: string;
 }
 
 function ContentEditorLayout({
@@ -738,6 +739,14 @@ function StudioEditorActionsBar({ actions }: { actions: StudioEditorActions }) {
                 ? "发布到官网"
                 : "已是最新"}
         </button>
+      </div>
+      <div className="studio-editor-actions__status" role="status" aria-live="polite">
+        <span>{actions.message}</span>
+        {actions.message.includes("Contents") ? (
+          <a href={tokenSettingsUrl} target="_blank" rel="noreferrer">
+            更新 GitHub Token ↗
+          </a>
+        ) : null}
       </div>
     </div>
   );

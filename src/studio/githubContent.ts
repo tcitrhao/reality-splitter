@@ -29,14 +29,10 @@ export interface GitHubPublishResult {
 export class GitHubWriteAccessError extends Error {
   constructor() {
     super(
-      "该凭证可以登录，但没有 reality-splitter 的写入权限。请将仓库权限中的 Contents 设置为 Read and write，然后用更新后的 Token 重新登录。"
+      "GitHub 拒绝了发布请求：当前 Token 没有 reality-splitter 的写入权限。请将仓库权限中的 Contents 设置为 Read and write，然后用更新后的 Token 重新发布。"
     );
     this.name = "GitHubWriteAccessError";
   }
-}
-
-export function isGitHubWriteAccessError(error: unknown): error is GitHubWriteAccessError {
-  return error instanceof GitHubWriteAccessError;
 }
 
 interface GitHubUserResponse {
@@ -55,12 +51,6 @@ interface GitHubFileResponse {
 interface GitHubUpdateResponse {
   commit?: { html_url?: string };
   content?: { sha?: string };
-}
-
-interface GitHubRepositoryResponse {
-  permissions?: {
-    push?: boolean;
-  };
 }
 
 export function readSessionToken(): string {
@@ -82,13 +72,6 @@ export async function authenticateGitHub(token: string): Promise<GitHubIdentity>
     avatarUrl: user.avatar_url,
     profileUrl: user.html_url
   };
-}
-
-export async function verifyGitHubWriteAccess(token: string): Promise<void> {
-  const repository = await githubRequest<GitHubRepositoryResponse>(repositoryEndpoint(), token);
-  if (repository.permissions?.push !== true) {
-    throw new GitHubWriteAccessError();
-  }
 }
 
 export async function loadGitHubContent(token: string): Promise<GitHubContentSnapshot> {
@@ -205,11 +188,6 @@ function contentEndpoint(): string {
   return `/repos/${repository}/contents/${CONTENT_PATH}`;
 }
 
-function repositoryEndpoint(): string {
-  const repository = import.meta.env?.VITE_GITHUB_REPOSITORY?.trim() || DEFAULT_REPOSITORY;
-  return `/repos/${repository}`;
-}
-
 function mergeKeyedItems<T extends object>(
   base: T[],
   local: T[],
@@ -289,6 +267,9 @@ async function githubRequest<T>(
   });
 
   if (!response.ok) {
+    if (response.status === 403 && init.method === "PUT" && path.includes("/contents/")) {
+      throw new GitHubWriteAccessError();
+    }
     throw new GitHubRequestError(response.status, await describeGitHubError(response));
   }
 

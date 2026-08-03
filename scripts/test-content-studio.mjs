@@ -5,8 +5,9 @@ import {
   encodeUtf8Base64,
   loadGitHubContent,
   mergeWebsiteContent,
+  publishGitHubContent,
   publishGitHubContentSafely,
-  verifyGitHubWriteAccess
+  GitHubWriteAccessError
 } from "../src/studio/githubContent.ts";
 import {
   clearStudioDraft,
@@ -77,6 +78,9 @@ globalThis.fetch = async (url, init = {}) => {
   }
 
   if (init.method === "PUT") {
+    if (!canWrite) {
+      return Response.json({ message: "Resource not accessible by personal access token" }, { status: 403 });
+    }
     if (rejectNextPutWithConflict) {
       rejectNextPutWithConflict = false;
       repositoryContent.iterations.unshift({
@@ -113,15 +117,6 @@ try {
 
   const identity = await authenticateGitHub("test-token");
   assert.equal(identity.login, "tcitrhao");
-  await verifyGitHubWriteAccess("test-token");
-  canWrite = false;
-  await assert.rejects(
-    () => verifyGitHubWriteAccess("read-only-token"),
-    (error) =>
-      error?.name === "GitHubWriteAccessError" &&
-      /Contents.*Read and write/.test(error.message)
-  );
-  canWrite = true;
 
   const snapshot = await loadGitHubContent("test-token");
   assert.equal(snapshot.sha, "sha-base");
@@ -161,6 +156,20 @@ try {
   const putRequest = requests.find((request) => request.init.method === "PUT");
   assert.ok(putRequest);
   assert.match(String(putRequest.init.headers.Authorization), /^Bearer test-token$/);
+
+  canWrite = false;
+  await assert.rejects(
+    () =>
+      publishGitHubContent({
+        content: localContent,
+        sha: repositorySha,
+        token: "read-only-token"
+      }),
+    (error) =>
+      error instanceof GitHubWriteAccessError &&
+      /Contents.*Read and write/.test(error.message)
+  );
+  canWrite = true;
 
   const savedDraft = saveStudioDraft({
     baseContent,
