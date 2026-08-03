@@ -16,27 +16,8 @@ assert.equal(snapshot.quick.loading, false, "opening a workspace must not run an
 
 const quickRequest = store.beginQuickRequest("split");
 assert.ok(quickRequest);
-const acceptedWhileQuickLoading = store.updateCurrentSelection({
-  text: "浏览时顺手选中的其他文字。",
-  url: "https://example.com/browsing"
-});
 snapshot = store.getSnapshot();
-assert.equal(
-  acceptedWhileQuickLoading,
-  false,
-  "selection changes must be ignored while the active workspace is loading"
-);
-assert.equal(
-  snapshot.quick.input?.text,
-  input.text,
-  "selection changes must not replace the input being analyzed"
-);
-assert.equal(snapshot.quick.loading, true, "selection changes must not stop loading");
-assert.equal(
-  snapshot.quick.requestId,
-  quickRequest.requestId,
-  "selection changes must not invalidate the active request"
-);
+assert.equal(snapshot.quick.loading, true);
 
 store.setWorkspaceMode("longform");
 const longformRequest = store.beginLongformRequest();
@@ -73,15 +54,6 @@ store.setWorkspaceMode("quick");
 snapshot = store.getSnapshot();
 assert.equal(snapshot.quick.response, quickResponse, "tab switching must preserve quick results");
 assert.equal(snapshot.longform.response, longformResponse, "tab switching must preserve longform results");
-
-store.setWorkspaceMode("longform");
-store.updateCurrentSelection({
-  text: "新的长文选择。",
-  url: "https://example.com/next"
-});
-snapshot = store.getSnapshot();
-assert.equal(snapshot.longform.response, null, "new longform input resets only longform output");
-assert.equal(snapshot.quick.response, quickResponse, "new longform input must not clear quick output");
 
 store.setWorkspaceMode("quick");
 const staleRequest = store.beginQuickRequest("split");

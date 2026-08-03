@@ -13,6 +13,8 @@ const listeners = {
 };
 const sentDrawerMessages = [];
 const createdMenus = [];
+const createdTabs = [];
+const injectedAssistantTasks = [];
 const storage = {};
 let sidePanelOpenCount = 0;
 
@@ -56,7 +58,20 @@ globalThis.chrome = {
     async openOptionsPage() {}
   },
   scripting: {
-    async executeScript() {
+    async executeScript(options) {
+      if (options.func && Array.isArray(options.args) && options.args.length === 3) {
+        injectedAssistantTasks.push(options);
+        return [
+          {
+            result: {
+              target: options.args[0],
+              filled: true,
+              submitted: true,
+              searchStatus: options.args[2] ? "automatic" : "not_requested"
+            }
+          }
+        ];
+      }
       return [
         {
           result: {
@@ -95,6 +110,17 @@ globalThis.chrome = {
     }
   },
   tabs: {
+    async create(options) {
+      createdTabs.push(options);
+      return { id: 88, status: "complete", ...options };
+    },
+    async get(tabId) {
+      return { id: tabId, status: "complete" };
+    },
+    onUpdated: {
+      addListener() {},
+      removeListener() {}
+    },
     async sendMessage(tabId, message) {
       sentDrawerMessages.push({ tabId, message });
       return {
@@ -174,8 +200,41 @@ assert.deepEqual(
 );
 assert.equal(sidePanelOpenCount, 0, "healthy entry delivery must not open the Side Panel fallback");
 
+const externalResponse = await dispatchRuntimeMessage({
+  type: "OPEN_EXTERNAL_ASSISTANT",
+  payload: {
+    target: "chatgpt",
+    prompt: "# Reality Splitter\n测试拆解内容",
+    requireWebSearch: true
+  }
+});
+assert.deepEqual(externalResponse, {
+  ok: true,
+  data: {
+    target: "chatgpt",
+    filled: true,
+    submitted: true,
+    searchStatus: "automatic"
+  }
+});
+assert.deepEqual(createdTabs, [{ url: "https://chatgpt.com/", active: true }]);
+assert.equal(injectedAssistantTasks.length, 1);
+assert.equal(injectedAssistantTasks[0].target.tabId, 88);
+assert.deepEqual(injectedAssistantTasks[0].args, [
+  "chatgpt",
+  "# Reality Splitter\n测试拆解内容",
+  true
+]);
+
 console.log("Packaged toolbar and context-menu entries verified");
 
 function nextTurn() {
   return new Promise((resolvePromise) => setTimeout(resolvePromise, 0));
+}
+
+function dispatchRuntimeMessage(message) {
+  return new Promise((resolvePromise) => {
+    const keepChannelOpen = listeners.runtimeMessage(message, {}, resolvePromise);
+    assert.equal(keepChannelOpen, true);
+  });
 }

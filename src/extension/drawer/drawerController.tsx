@@ -11,8 +11,6 @@ export const DRAWER_OPEN_CLASS = "reality-splitter-drawer-open";
 export interface DrawerController {
   open: (input: TweetInput, workspaceMode: WorkspaceMode) => void;
   close: () => void;
-  isOpen: () => boolean;
-  updateCurrentSelection: (input: TweetInput) => boolean;
   destroy: () => void;
   store: TabSessionStore;
 }
@@ -83,8 +81,6 @@ export function createDrawerController(showToast: (message: string) => void): Dr
   return {
     open,
     close,
-    isOpen: () => store.getSnapshot().open,
-    updateCurrentSelection: (input) => store.updateCurrentSelection(input),
     destroy() {
       document.documentElement.classList.remove(DRAWER_OPEN_CLASS);
       if (mounted) {

@@ -8,6 +8,7 @@ const sources = await readSources({
   contentScript: "src/content/contentScript.ts",
   drawerApp: "src/extension/drawer/DrawerApp.tsx",
   drawerController: "src/extension/drawer/drawerController.tsx",
+  externalAssistantPanel: "src/extension/drawer/ExternalAssistantPanel.tsx",
   tabSession: "src/application/session/tabSession.ts",
   productContract: "src/contracts/product.ts",
   xEntry: "src/extension/entries/xEntry.ts",
@@ -16,6 +17,10 @@ const sources = await readSources({
   aiClient: "src/shared/aiClient.ts",
   providerProfiles: "src/shared/providerProfiles.ts",
   modelProtocol: "src/infrastructure/models/openAICompatible.ts",
+  responseParsing: "src/infrastructure/models/responseParsing.ts",
+  externalAssistantTargets: "src/infrastructure/externalAssistants/targets.ts",
+  externalAssistantSend: "src/infrastructure/externalAssistants/oneClickSend.ts",
+  externalAssistantAutomation: "src/infrastructure/externalAssistants/pageAutomation.ts",
   zhipuSearch: "src/infrastructure/search/zhipuWebSearch.ts",
   zhipuSearchProtocol: "src/infrastructure/search/zhipuSearchProtocol.ts",
   sidePanel: "src/sidepanel/App.tsx",
@@ -24,7 +29,8 @@ const sources = await readSources({
   modelSettings: "src/shared/modelSettings.ts",
   zhipuSearchSettings: "src/shared/zhipuSearch.ts",
   storage: "src/shared/storage.ts",
-  messages: "src/shared/messages.ts"
+  messages: "src/shared/messages.ts",
+  portableAnalysis: "src/skills/portable-analysis/index.ts"
 });
 const contentBundle = await read("dist/contentScript.js");
 const serviceWorkerBundle = await read("dist/serviceWorker.js");
@@ -91,6 +97,28 @@ const checks = [
     "the current-page drawer duplicated shared React result or action components"
   ),
   check(
+    sources.drawerApp.includes("ExternalAssistantPanel") &&
+      sources.externalAssistantPanel.includes("buildPortableAnalysisPrompt") &&
+      sources.externalAssistantPanel.includes("navigator.clipboard.writeText") &&
+      sources.externalAssistantPanel.includes("requireWebSearch: workspaceMode === \"longform\"") &&
+      sources.messages.includes("OPEN_EXTERNAL_ASSISTANT") &&
+      sources.serviceWorker.includes("sendToExternalAssistant") &&
+      sources.externalAssistantSend.includes("chrome.scripting.executeScript") &&
+      sources.externalAssistantSend.includes("runExternalAssistantPageAutomation") &&
+      sources.externalAssistantAutomation.includes("findComposer") &&
+      sources.externalAssistantAutomation.includes("enableWebSearch") &&
+      sources.externalAssistantAutomation.includes("sendControl.click()") &&
+      sources.externalAssistantTargets.includes("https://chatgpt.com/") &&
+      sources.externalAssistantTargets.includes("https://chat.deepseek.com/") &&
+      sources.portableAnalysis.includes("不要输出 JSON"),
+    "portable Skill export or external assistant target boundaries are missing"
+  ),
+  check(
+    manifest.host_permissions?.includes("https://chatgpt.com/*") &&
+      manifest.host_permissions?.includes("https://chat.deepseek.com/*"),
+    "offline one-click assistant hosts are missing from the extension permissions"
+  ),
+  check(
     sources.drawerController.includes("createTabSessionStore") &&
       sources.drawerController.includes("attachShadow") &&
       sources.drawerController.includes('data-reality-splitter-surface", "drawer"'),
@@ -109,6 +137,13 @@ const checks = [
       !sources.serviceWorker.includes("autoRunMode") &&
       !sources.serviceWorker.includes("autoRunLongform"),
     "sending text to a workspace must never trigger model analysis automatically"
+  ),
+  check(
+    !sources.contentScript.includes("bindSelectionListeners") &&
+      !sources.contentScript.includes('addEventListener("mouseup"') &&
+      !sources.contentScript.includes('addEventListener("keyup"') &&
+      !sources.tabSession.includes("updateCurrentSelection"),
+    "passive text selection must not overwrite a workspace; only explicit entry actions may send text"
   ),
   check(
     sources.serviceWorker.includes('from "../skills/quick-analysis"') &&
@@ -140,8 +175,11 @@ const checks = [
   check(
     sources.modelProtocol.includes("isRetryableStatus") &&
       sources.modelProtocol.includes("DEEPSEEK_QUICK_MAX_OUTPUT_TOKENS") &&
+      sources.modelProtocol.includes("ZHIPU_LONGFORM_MAX_OUTPUT_TOKENS") &&
+      sources.modelProtocol.includes('providerProfile === "zhipu"') &&
+      sources.responseParsing.includes("extractBalancedJson") &&
       sources.aiClient.includes("attempt: 2"),
-    "model retry or DeepSeek output budget support is missing"
+    "model retry, structured output budget, or resilient JSON parsing support is missing"
   ),
   check(
     sources.drawerApp.includes("OPEN_MODEL_ADMIN") &&

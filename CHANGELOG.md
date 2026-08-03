@@ -2,6 +2,58 @@
 
 All notable product changes should be recorded here before a build is shared.
 
+## 0.6.0 - 2026-08-03
+
+### Added
+
+- Added offline one-click sending to ChatGPT and DeepSeek from both short-text and longform workspaces.
+- Added target-specific page adapters that locate the composer, fill the portable Reality Splitter Skill and submit it without storing the prompt.
+- Added longform web-search activation: DeepSeek uses its visible search control when available, while ChatGPT falls back to its automatic search behavior.
+
+### Privacy
+
+- The source text is sent to a third-party assistant only after the user clicks its explicit one-click button.
+- The automation does not read conversation history and does not persist exported prompts in extension storage.
+- Kept copy-only export as a stable fallback when the target page, login state or controls cannot be automated.
+
+### Verification
+
+- Added packaged message-contract checks for prompt transfer, longform search intent and page-script injection.
+- Added build guards for the two target permissions and one-click adapter boundaries.
+
+## 0.5.0 - 2026-08-03
+
+### Added
+
+- Added a portable Reality Splitter Skill that turns short-text and longform methods into human-readable Markdown prompts.
+- Added an external AI panel with ChatGPT, DeepSeek and copy-only actions.
+- Added a short-text method selector so external analysis can run split, de-escalation, alternatives or experiment workflows.
+
+### Privacy
+
+- Kept source text and generated prompts inside the current page; the background receives only the selected target name.
+- Required users to paste and send explicitly rather than injecting into or submitting third-party chat pages.
+
+### Verification
+
+- Added portable prompt, injection-boundary, external-target and packaged tab-opening regressions.
+
+## 0.4.2 - 2026-08-01
+
+### Changed
+
+- Stopped passive page selections from automatically replacing short-text or longform input; text now enters a workspace only through paste or an explicit toolbar, post-button, or context-menu action.
+- Enabled Zhipu JSON object responses for model analysis and raised its longform output budget to reduce truncated evidence results.
+
+### Fixed
+
+- Made longform JSON parsing tolerate fenced output, thinking wrappers, double encoding, full-width punctuation, trailing commas, and raw line breaks without accepting truncated outer objects.
+- Reported model length truncation separately from malformed JSON when the provider exposes a `length` finish reason.
+
+### Verification
+
+- Added response parsing regressions, Zhipu request-body assertions, and a build guard that prevents passive selection listeners from returning.
+
 ## 0.4.1 - 2026-07-31
 
 ### Changed

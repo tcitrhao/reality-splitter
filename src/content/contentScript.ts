@@ -11,7 +11,7 @@ import {
 } from "../shared/messages";
 import type { TweetInput, WorkspaceMode } from "../shared/types";
 import { injectPageStyles } from "./pageStyles";
-import { detectPlatform, getFallbackSelectionText } from "./platformExtractor";
+import { detectPlatform } from "./platformExtractor";
 import { showPageToast } from "./toast";
 
 type ContentRuntimeMessageListener = Parameters<
@@ -51,16 +51,15 @@ window.__realitySplitterCleanup = () => {
 
 function bootPageEntry(): () => void {
   injectPageStyles();
-  const cleanupSelection = bindSelectionListeners();
   const platform = detectPlatform();
 
   if (platform === "weibo") {
     enforceWeiboButtonRemoval();
-    return cleanupSelection;
+    return () => {};
   }
 
   if (platform !== "twitter") {
-    return cleanupSelection;
+    return () => {};
   }
 
   const cleanupXEntry = startXEntry({
@@ -69,10 +68,7 @@ function bootPageEntry(): () => void {
     showToast: showPageToast
   });
 
-  return () => {
-    cleanupSelection();
-    cleanupXEntry();
-  };
+  return cleanupXEntry;
 }
 
 function bindRuntimeMessages(): () => void {
@@ -126,36 +122,6 @@ function cleanupPreviousRuntime() {
       // The previous listener may belong to an invalidated extension context.
     }
   }
-}
-
-function bindSelectionListeners(): () => void {
-  let lastSelection = "";
-  const updateSelection = () => {
-    window.setTimeout(() => {
-      const text = getFallbackSelectionText();
-      if (!text || text === lastSelection) {
-        return;
-      }
-
-      if (drawer.isOpen()) {
-        const accepted = drawer.updateCurrentSelection({
-          text,
-          url: window.location.href
-        });
-        if (accepted) {
-          lastSelection = text;
-        }
-      }
-    }, 0);
-  };
-
-  document.addEventListener("mouseup", updateSelection, true);
-  document.addEventListener("keyup", updateSelection, true);
-
-  return () => {
-    document.removeEventListener("mouseup", updateSelection, true);
-    document.removeEventListener("keyup", updateSelection, true);
-  };
 }
 
 function openDrawer(input: TweetInput, workspaceMode: WorkspaceMode) {

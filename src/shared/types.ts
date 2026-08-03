@@ -1,6 +1,20 @@
 export type AnalysisMode = "split" | "deescalate" | "alternatives" | "experiment" | "longform";
 export type QuickAnalysisMode = Exclude<AnalysisMode, "longform">;
 export type WorkspaceMode = "quick" | "longform";
+export type ExternalAssistantTarget = "chatgpt" | "deepseek";
+export type ExternalAssistantSearchStatus =
+  | "enabled"
+  | "automatic"
+  | "not_requested"
+  | "unavailable";
+
+export interface ExternalAssistantLaunchResult {
+  target: ExternalAssistantTarget;
+  filled: boolean;
+  submitted: boolean;
+  searchStatus: ExternalAssistantSearchStatus;
+  reason?: "composer_not_found" | "prompt_not_filled" | "send_not_found";
+}
 export type AIProvider = "openai" | "openai-compatible";
 export type InputProfile = "generic" | "market" | "rumor" | "wealth";
 export type ZhipuSearchEngine =

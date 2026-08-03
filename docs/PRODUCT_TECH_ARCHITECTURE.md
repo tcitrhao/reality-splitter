@@ -1,6 +1,6 @@
 # Reality Splitter 产品与技术架构
 
-> 版本：0.3.1
+> 版本：0.6.0
 > 状态：V0 稳定化完成，开始进入 V1 质量建设
 > 原则：先让一个信息处理工作流稳定，再增加新能力。
 
@@ -42,6 +42,7 @@ Reality Splitter 不是通用 Agent，也不是事实裁判。
 8. X 可以注入帖子按钮；微博和普通网页永不注入帖子按钮。
 9. 模型配置只在独立后台管理。
 10. 没有外部证据时，文本分析不能包装成事实核查。
+11. 外部 AI 只在用户点击目标按钮后接收文本；自动化失败必须保留复制粘贴兜底。
 ```
 
 ## 3. 产品与技术协同图
@@ -72,6 +73,7 @@ flowchart TD
         D1["Quick Analysis Skill"]
         D2["Longform Check Skill"]
         D3["任务边界与结果校验"]
+        D4["Portable Analysis Skill"]
     end
 
     subgraph RUNTIME["模型运行时"]
@@ -87,6 +89,7 @@ flowchart TD
         F3["超时 / 重试 / Token 预算"]
         F4["Kimi Tool Search / Zhipu Web Search"]
         F5["API 权限"]
+        F6["ChatGPT / DeepSeek 页面适配器"]
     end
 
     subgraph QUALITY["质量层"]
@@ -103,6 +106,8 @@ flowchart TD
     B1 --> B3
     B2 --> C2
     B3 --> C3
+    B2 --> D4
+    B3 --> D4
     C1 --> C2
     C1 --> C3
     C4 --> C2
@@ -120,6 +125,7 @@ flowchart TD
     F1 --> F3
     E1 --> F4
     E1 --> F5
+    D4 --> F6
     E4 --> B4
     G1 --> ENTRY
     G2 --> C1
@@ -136,6 +142,7 @@ flowchart TD
 专业分析方法变化 → skills
 模型协议变化 → infrastructure/models
 搜索工具变化 → infrastructure/search
+外部 AI 页面变化 → infrastructure/externalAssistants
 共享数据合同变化 → contracts / shared/types
 ```
 
@@ -159,6 +166,22 @@ flowchart TD
 ```
 
 打开工作区时不会触发模型请求。
+
+### 4.3 一键发送到外部 AI
+
+```text
+用户点击 ChatGPT 或 DeepSeek
+→ Drawer 生成 Portable Analysis Markdown Prompt
+→ Prompt 同时复制到剪贴板作为兜底
+→ Service Worker 打开目标新对话
+→ 页面适配器等待输入框
+→ 长文模式尝试开启联网搜索
+→ 适配器填入并验证 Prompt
+→ 找到发送按钮后提交
+→ 找不到控件或用户未登录时停止，不读取历史对话
+```
+
+这是一个明确的用户触发动作，不属于页面后台自动化。Prompt 只经过当前抽屉、一次运行时消息和目标页面，不进入 `chrome.storage`。
 
 ### 4.2 长文与短文并行
 
@@ -200,8 +223,10 @@ src/
 │   └── drawer/                    React 页面抽屉
 ├── skills/
 │   ├── quick-analysis/            短文任务合同、运行与校验
-│   └── longform-check/            长文任务合同、运行与校验
+│   ├── longform-check/            长文任务合同、运行与校验
+│   └── portable-analysis/         可携带 Markdown 拆解方法
 ├── infrastructure/
+│   ├── externalAssistants/        ChatGPT / DeepSeek 页面适配器
 │   ├── models/                    输入、协议、解析
 │   └── search/                    Kimi 与智谱搜索适配器
 ├── background/                    消息编排，不承载产品规则

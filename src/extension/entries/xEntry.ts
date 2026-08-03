@@ -124,7 +124,7 @@ function injectButton(
     const input = extractPostInputFromRoot(postTarget);
 
     if (!input?.text) {
-      dependencies.showToast("当前没有检测到推文文本，可以手动选中文字后再试。");
+      dependencies.showToast("当前没有检测到推文文本，可以复制后粘贴，或通过右键菜单发送。");
       return;
     }
 

@@ -406,8 +406,8 @@ export function buildLongformPrompt(params: {
   const retryHint =
     attempt === 2
       ? [
-          "上一次输出过于空泛或分类不清。",
-          "这一次请尽量把作者声称的事实和作者表达的观点分开，不要留空。"
+          "上一次输出没有满足完整、严格 JSON 的要求，或者分类不清。",
+          "这一次只返回一个完整 JSON 对象，并尽量把作者声称的事实和作者表达的观点分开，不要留空。"
         ].join("\n")
       : "";
 

@@ -10,6 +10,7 @@ const KIMI_LONGFORM_REQUEST_TIMEOUT_MS = 180000;
 const QUICK_MAX_OUTPUT_TOKENS = 2048;
 const DEEPSEEK_QUICK_MAX_OUTPUT_TOKENS = 4096;
 const LONGFORM_MAX_OUTPUT_TOKENS = 4096;
+const ZHIPU_LONGFORM_MAX_OUTPUT_TOKENS = 8192;
 
 export interface ToolCall {
   id: string;
@@ -179,6 +180,10 @@ function buildRequestBody(
         type: "disabled"
       };
     }
+  } else if (providerProfile === "zhipu") {
+    requestBody.response_format = {
+      type: "json_object"
+    };
   } else {
     requestBody.messages = [
       {
@@ -203,7 +208,9 @@ function resolveMaxOutputTokens(
   providerProfile: ProviderProfile
 ): number {
   if (mode === "longform") {
-    return LONGFORM_MAX_OUTPUT_TOKENS;
+    return providerProfile === "zhipu"
+      ? ZHIPU_LONGFORM_MAX_OUTPUT_TOKENS
+      : LONGFORM_MAX_OUTPUT_TOKENS;
   }
 
   return providerProfile === "deepseek"

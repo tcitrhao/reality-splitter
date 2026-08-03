@@ -107,6 +107,8 @@ await writeFile(
     "The extension can be installed without the Chrome Web Store.",
     "Cloud model analysis still requires network access and your own API configuration.",
     "A local OpenAI-compatible model service can use a localhost Base URL.",
+    "One-click ChatGPT or DeepSeek sending requires you to be signed in on the target site.",
+    "The extension accesses those pages only after you click the matching send button.",
     ""
   ].join("\n"),
   "utf8"

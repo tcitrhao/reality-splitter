@@ -136,7 +136,7 @@ export default function App() {
 
   const handleRun = async (mode: QuickAnalysisMode) => {
     if (!currentInput?.text) {
-      setQuickError("还没有可分析的文本，请先选中一段内容。");
+      setQuickError("还没有可分析的文本，请粘贴内容，或通过右键菜单发送选中文字。");
       return;
     }
 

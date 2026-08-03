@@ -1,5 +1,7 @@
 import type {
   AIResponse,
+  ExternalAssistantLaunchResult,
+  ExternalAssistantTarget,
   LongformCheckInput,
   ModelConnectionTestResult,
   ModelRuntimeSettings,
@@ -15,6 +17,7 @@ export const MESSAGE_TYPES = {
   RUN_INLINE_ANALYSIS: "RUN_INLINE_ANALYSIS",
   RUN_INLINE_LONGFORM_CHECK: "RUN_INLINE_LONGFORM_CHECK",
   OPEN_MODEL_ADMIN: "OPEN_MODEL_ADMIN",
+  OPEN_EXTERNAL_ASSISTANT: "OPEN_EXTERNAL_ASSISTANT",
   TEST_MODEL_CONNECTION: "TEST_MODEL_CONNECTION"
 } as const;
 
@@ -56,6 +59,15 @@ export interface OpenModelAdminMessage {
   type: typeof MESSAGE_TYPES.OPEN_MODEL_ADMIN;
 }
 
+export interface OpenExternalAssistantMessage {
+  type: typeof MESSAGE_TYPES.OPEN_EXTERNAL_ASSISTANT;
+  payload: {
+    target: ExternalAssistantTarget;
+    prompt: string;
+    requireWebSearch: boolean;
+  };
+}
+
 export interface TestModelConnectionMessage {
   type: typeof MESSAGE_TYPES.TEST_MODEL_CONNECTION;
   payload: {
@@ -71,6 +83,7 @@ export type RuntimeMessage =
   | RunInlineAnalysisMessage
   | RunInlineLongformCheckMessage
   | OpenModelAdminMessage
+  | OpenExternalAssistantMessage
   | TestModelConnectionMessage;
 
 export interface RuntimeResponse<T = unknown> {
@@ -81,3 +94,4 @@ export interface RuntimeResponse<T = unknown> {
 
 export type AnalysisResponse = RuntimeResponse<AIResponse>;
 export type ModelConnectionTestResponse = RuntimeResponse<ModelConnectionTestResult>;
+export type ExternalAssistantResponse = RuntimeResponse<ExternalAssistantLaunchResult>;

@@ -48,7 +48,6 @@ export interface TabSessionStore {
   open: (input: TweetInput, workspaceMode: WorkspaceMode) => void;
   close: () => void;
   setWorkspaceMode: (workspaceMode: WorkspaceMode) => void;
-  updateCurrentSelection: (input: TweetInput) => boolean;
   updateQuickText: (text: string) => void;
   updateLongformText: (text: string) => void;
   beginQuickRequest: (mode: QuickAnalysisMode) => PendingQuickRequest | null;
@@ -159,24 +158,6 @@ export function createTabSessionStore(currentUrl: () => string): TabSessionStore
         longform
       });
     },
-    updateCurrentSelection(input) {
-      if (!snapshot.open) {
-        return false;
-      }
-
-      const activeWorkspace =
-        snapshot.workspaceMode === "longform" ? snapshot.longform : snapshot.quick;
-      if (activeWorkspace.loading) {
-        return false;
-      }
-
-      publish(
-        snapshot.workspaceMode === "longform"
-          ? { ...snapshot, longform: updateLongformInput(input) }
-          : { ...snapshot, quick: updateQuickInput(input) }
-      );
-      return true;
-    },
     updateQuickText(text) {
       const nextInput = {
         ...(snapshot.quick.input ?? { url: currentUrl() }),
@@ -220,7 +201,7 @@ export function createTabSessionStore(currentUrl: () => string): TabSessionStore
           ...snapshot,
           quick: {
             ...snapshot.quick,
-            error: "还没有可分析的文本，请先选中一段内容。"
+            error: "还没有可分析的文本，请粘贴内容，或通过右键菜单发送选中文字。"
           }
         });
         return null;

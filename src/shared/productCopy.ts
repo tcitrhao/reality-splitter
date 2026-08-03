@@ -17,8 +17,8 @@ export const PRODUCT_COPY = {
   },
   input: {
     quickTitle: "当前短文文本",
-    quickPlaceholder: "选中文字，或把复制的内容粘贴到这里。",
-    quickEmpty: "还没有可分析的文本。请先选中文字、使用右键菜单，或直接粘贴内容。",
+    quickPlaceholder: "把复制的内容粘贴到这里，或通过右键菜单发送选中文字。",
+    quickEmpty: "还没有可分析的文本。请直接粘贴内容，或通过右键菜单发送选中文字。",
     longformTitle: "待核查长文",
     longformPlaceholder: "把想捋一捋的长文贴进来。"
   },
@@ -28,11 +28,21 @@ export const PRODUCT_COPY = {
     { mode: "alternatives", label: "找替代解释" },
     { mode: "experiment", label: "转成小实验" }
   ] satisfies Array<{ mode: QuickAnalysisMode; label: string }>,
+  externalAssistants: {
+    title: "用其他 AI 拆解",
+    description: "一键打开新对话、填入拆解方法并发送；当前版本优先用于离线安装测试。",
+    badge: "实验功能",
+    methodLabel: "拆解方式",
+    copy: "仅复制指令",
+    copied: "拆解指令已复制，可以粘贴到任意 AI 对话中。",
+    copyFailed: "浏览器没有允许复制。可以刷新页面后重试。",
+    privacy: "点击一键发送即代表你同意把当前文本提交给目标平台；插件不会读取对话历史或保存这次 Prompt。"
+  },
   status: {
     loadingTitle: "分析中",
     loadingBody: "正在拆解文本，稍等一下。",
     errorTitle: "这次没有成功",
-    emptyQuickResult: "选中文本后，点击上方任一操作，这里会显示结构化结果。",
+    emptyQuickResult: "粘贴或通过右键发送文本后，点击上方任一操作，这里会显示结构化结果。",
     emptyLongformResult: "贴入长文并点击“开始长文核查”后，这里会显示事实 / 观点结果。"
   },
   results: {

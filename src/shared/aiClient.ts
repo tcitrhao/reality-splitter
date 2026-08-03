@@ -71,7 +71,7 @@ export async function runAnalysis<M extends QuickAnalysisMode>(
   const normalizedText = preparedInput.text;
 
   if (!normalizedText) {
-    throw new UserVisibleError("还没有可分析的文本，请先选中一段内容。");
+    throw new UserVisibleError("还没有可分析的文本，请粘贴内容，或通过右键菜单发送选中文字。");
   }
 
   const allSettings = await getSettings();
@@ -278,6 +278,7 @@ export async function testModelConnection(
   const payload = (await safeReadJson(response)) as
     | {
         choices?: Array<{
+          finish_reason?: string;
           message?: {
             content?: string | Array<{ type?: string; text?: string }>;
           };
@@ -432,7 +433,8 @@ async function runModelAttempt<M extends QuickAnalysisMode>(params: {
     });
   }
 
-  const rawContent = normalizeModelContent(payload?.choices?.[0]?.message?.content);
+  const choice = payload?.choices?.[0];
+  const rawContent = normalizeModelContent(choice?.message?.content);
 
   if (!rawContent) {
     if (params.attempt === 1) {
@@ -805,6 +807,7 @@ async function runLongformAttempt(params: {
   const payload = (await safeReadJson(response)) as
     | {
         choices?: Array<{
+          finish_reason?: string;
           message?: {
             content?: string | Array<{ type?: string; text?: string }>;
           };
@@ -819,7 +822,8 @@ async function runLongformAttempt(params: {
     });
   }
 
-  const rawContent = normalizeModelContent(payload?.choices?.[0]?.message?.content);
+  const choice = payload?.choices?.[0];
+  const rawContent = normalizeModelContent(choice?.message?.content);
   if (!rawContent) {
     if (params.attempt === 1) {
       return runLongformAttempt({
@@ -838,6 +842,10 @@ async function runLongformAttempt(params: {
         ...params,
         attempt: 2
       });
+    }
+
+    if (choice?.finish_reason === "length") {
+      throw new UserVisibleError("模型的长文核查输出达到长度上限，内容被截断了。请缩短原文后再试。");
     }
 
     throw new UserVisibleError("模型返回的长文核查内容不是可解析的 JSON。");
@@ -1048,6 +1056,10 @@ async function runKimiLongformAttemptWithWebSearch(
           ...params,
           attempt: 2
         });
+      }
+
+      if (choice?.finish_reason === "length") {
+        throw new UserVisibleError("Kimi 的长文核查输出达到长度上限，内容被截断了。请缩短原文后再试。");
       }
 
       throw new UserVisibleError("Kimi 返回的长文核查内容不是可解析的 JSON。");

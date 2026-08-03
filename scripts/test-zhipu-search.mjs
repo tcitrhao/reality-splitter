@@ -126,6 +126,7 @@ assert.equal(restricted.facts[1].sourceUrl, "");
 const originalFetch = globalThis.fetch;
 const originalChrome = globalThis.chrome;
 const searchRequestBodies = [];
+const chatRequestBodies = [];
 let searchSequence = 0;
 
 globalThis.chrome = {
@@ -172,6 +173,7 @@ globalThis.fetch = async (url, init = {}) => {
   }
 
   if (String(url).endsWith("/chat/completions")) {
+    chatRequestBodies.push(JSON.parse(String(init.body)));
     return Response.json({
       choices: [
         {
@@ -248,6 +250,9 @@ try {
       .every((body) => body.search_engine === "search_pro_quark"),
     "the saved longform profile should control every Zhipu search request"
   );
+  const longformChatRequest = chatRequestBodies.at(-1);
+  assert.deepEqual(longformChatRequest.response_format, { type: "json_object" });
+  assert.equal(longformChatRequest.max_tokens, 8192);
 } finally {
   globalThis.fetch = originalFetch;
   globalThis.chrome = originalChrome;

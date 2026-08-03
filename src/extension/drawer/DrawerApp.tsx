@@ -4,6 +4,7 @@ import { MESSAGE_TYPES, type AnalysisResponse, type RuntimeResponse } from "../.
 import { PRODUCT_COPY } from "../../shared/productCopy";
 import { ActionButtons } from "../../sidepanel/components/ActionButtons";
 import { AnalysisPanel } from "../../sidepanel/components/AnalysisPanel";
+import { ExternalAssistantPanel } from "./ExternalAssistantPanel";
 
 interface DrawerAppProps {
   store: TabSessionStore;
@@ -182,6 +183,13 @@ export function DrawerApp({ store, onClose, onOpenModelAdmin }: DrawerAppProps) 
           />
         </section>
       )}
+
+      <ExternalAssistantPanel
+        workspaceMode={session.workspaceMode}
+        text={isLongform ? longform.input.articleText : quick.input?.text || ""}
+        sourceUrl={isLongform ? longform.sourceUrl : quick.input?.url}
+        preferredQuickMode={quick.activeMode ?? undefined}
+      />
 
       {loading ? (
         <section className="status-card" aria-live="polite">
