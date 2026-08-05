@@ -1,7 +1,8 @@
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import siteIconUrl from "../../public/icons/icon.svg?url";
-import { websiteContent as content } from "./content";
+import { websiteContent as content, type MeditationFormat } from "./content";
 
 type PageKey = "product" | "iterations" | "meditations" | "about" | "privacy";
 
@@ -206,49 +207,162 @@ function MeditationsPage() {
   const selectedMeditation = content.meditations.find(
     (item) => item.index === selectedIndex && item.body.trim()
   );
+  const [formatFilter, setFormatFilter] = useState<"all" | MeditationFormat>("all");
+  const [tagFilter, setTagFilter] = useState("all");
 
   if (selectedMeditation) {
     return <MeditationArticle meditation={selectedMeditation} />;
   }
+
+  const tags = Array.from(new Set(content.meditations.flatMap((item) => item.tags ?? [])));
+  const visibleItems = content.meditations.filter((item) => {
+    const matchesFormat = formatFilter === "all" || meditationFormat(item) === formatFilter;
+    const matchesTag = tagFilter === "all" || item.tags?.includes(tagFilter);
+    return matchesFormat && matchesTag;
+  });
+  const shortItems = visibleItems.filter((item) => meditationFormat(item) === "short");
+  const longItems = visibleItems.filter((item) => meditationFormat(item) === "long");
 
   return (
     <div className="standalone-page">
       <PageHero title={page.title} description={page.description} />
 
       <section className="page-content" aria-label="AI 沉思录文章">
-        <div className="meditation-list meditation-list--page">
-          {content.meditations.map((item) => {
-            const entry = (
-              <>
-                <span className="meditation-index">{item.index}</span>
-                <div>
-                  <h2>{item.title}</h2>
-                  <p>{item.excerpt}</p>
-                </div>
-                <span className="meditation-status">{item.status}</span>
-              </>
-            );
-
-            return (
-              <article key={`${item.index}-${item.title}`}>
-                {item.body.trim() ? (
-                  <a
-                    className="meditation-entry"
-                    href={`${pageLinks.meditations}?article=${encodeURIComponent(item.index)}`}
-                  >
-                    {entry}
-                  </a>
-                ) : (
-                  <div className="meditation-entry">{entry}</div>
-                )}
-              </article>
-            );
-          })}
+        <div className="meditation-controls" aria-label="筛选内容">
+          <div className="meditation-format-tabs">
+            {[
+              ["all", "全部"],
+              ["short", "短内容"],
+              ["long", "长内容"]
+            ].map(([value, label]) => (
+              <button
+                type="button"
+                key={value}
+                className={formatFilter === value ? "is-active" : ""}
+                onClick={() => setFormatFilter(value as "all" | MeditationFormat)}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+          {tags.length ? (
+            <div className="meditation-tag-filters">
+              <button
+                type="button"
+                className={tagFilter === "all" ? "is-active" : ""}
+                onClick={() => setTagFilter("all")}
+              >
+                全部标签
+              </button>
+              {tags.map((tag) => (
+                <button
+                  type="button"
+                  key={tag}
+                  className={tagFilter === tag ? "is-active" : ""}
+                  onClick={() => setTagFilter(tag)}
+                >
+                  {tag}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
+
+        {shortItems.length ? (
+          <section className="meditation-section meditation-section--short">
+            <header className="meditation-section__heading">
+              <span>SHORT NOTES</span>
+              <p>先记下一刻的判断，不急着把它写成结论。</p>
+            </header>
+            <div className="meditation-short-feed">
+              {shortItems.map((item) => (
+                <ShortMeditationEntry key={`${item.index}-${item.title}`} item={item} />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {longItems.length ? (
+          <section className="meditation-section meditation-section--long">
+            <header className="meditation-section__heading">
+              <span>LONG READS</span>
+              <p>把一个问题展开，允许它暂时没有最后答案。</p>
+            </header>
+            <div className="meditation-list meditation-list--page">
+              {longItems.map((item) => (
+                <LongMeditationEntry key={`${item.index}-${item.title}`} item={item} />
+              ))}
+            </div>
+          </section>
+        ) : null}
+
+        {!visibleItems.length ? (
+          <div className="meditation-empty">还没有符合条件的内容。</div>
+        ) : null}
 
         <p className="archive-note">{page.archiveNote}</p>
       </section>
     </div>
+  );
+}
+
+function meditationFormat(item: { format?: MeditationFormat; body: string }): MeditationFormat {
+  return item.format ?? (item.body.trim().length > 600 ? "long" : "short");
+}
+
+function MeditationTags({ tags = [] }: { tags?: string[] }) {
+  return tags.length ? (
+    <div className="meditation-tags">
+      {tags.map((tag) => <span key={tag}>#{tag}</span>)}
+    </div>
+  ) : null;
+}
+
+function ShortMeditationEntry({ item }: { item: (typeof content.meditations)[number] }) {
+  const body = item.body.trim() || item.excerpt;
+  return (
+    <article className="meditation-short-entry">
+      <div className="meditation-short-entry__meta">
+        <span>{item.publishedAt || item.index}</span>
+        <span>{item.status}</span>
+        <MeditationTags tags={item.tags} />
+      </div>
+      <div className="meditation-short-entry__body">
+        <ReactMarkdown remarkPlugins={[remarkGfm]}>{body}</ReactMarkdown>
+      </div>
+    </article>
+  );
+}
+
+function LongMeditationEntry({ item }: { item: (typeof content.meditations)[number] }) {
+  const entry = (
+    <>
+      <span className="meditation-index">{item.index}</span>
+      <div>
+        <div className="meditation-entry__meta">
+          <span>长内容</span>
+          <span>{item.publishedAt || "持续记录"}</span>
+        </div>
+        <h2>{item.title}</h2>
+        <p>{item.excerpt}</p>
+        <MeditationTags tags={item.tags} />
+      </div>
+    </>
+  );
+
+  return (
+    <article>
+      {item.body.trim() ? (
+        <a
+          className="meditation-entry"
+          href={`${pageLinks.meditations}?article=${encodeURIComponent(item.index)}`}
+        >
+          {entry}
+        </a>
+      ) : (
+        <div className="meditation-entry">{entry}</div>
+      )}
+    </article>
   );
 }
 
@@ -265,10 +379,12 @@ function MeditationArticle({
       <header>
         <div className="article-meta">
           <span>{meditation.index}</span>
-          <span>{meditation.status}</span>
+          <span>长内容</span>
+          <span>{meditation.publishedAt || "持续记录"}</span>
         </div>
         <h1>{meditation.title}</h1>
         <p>{meditation.excerpt}</p>
+        <MeditationTags tags={meditation.tags} />
       </header>
       <div className="markdown-body">
         <ReactMarkdown

@@ -490,6 +490,7 @@ button:disabled {
 
 .studio-field input,
 .studio-field textarea,
+.studio-field select,
 .markdown-grid textarea,
 .login-card input {
   width: 100%;
@@ -502,9 +503,20 @@ button:disabled {
 }
 
 .studio-field input,
+.studio-field select,
 .login-card input {
   min-height: 44px;
   padding: 0 12px;
+}
+
+.studio-field select {
+  appearance: none;
+  padding-right: 34px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position: calc(100% - 16px) 19px, calc(100% - 11px) 19px;
+  background-repeat: no-repeat;
+  background-size: 5px 5px, 5px 5px;
 }
 
 .studio-field textarea,
@@ -524,6 +536,7 @@ button:disabled {
 
 .studio-field input:focus,
 .studio-field textarea:focus,
+.studio-field select:focus,
 .markdown-grid textarea:focus,
 .login-card input:focus {
   border-color: var(--accent);

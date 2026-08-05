@@ -1,5 +1,7 @@
 import rawContent from "../../content/website-content.json";
 
+export type MeditationFormat = "short" | "long";
+
 export interface WebsiteContent {
   site: {
     brand: string;
@@ -61,6 +63,9 @@ export interface WebsiteContent {
     excerpt: string;
     body: string;
     status: string;
+    format?: MeditationFormat;
+    tags?: string[];
+    publishedAt?: string;
   }>;
   aboutPage: {
     title: string;

@@ -569,9 +569,9 @@ function MeditationsEditor({
   const updatePage = (field: keyof WebsiteContent["meditationsPage"], value: string) => {
     onChange({ ...content, meditationsPage: { ...content.meditationsPage, [field]: value } });
   };
-  const updateItem = (field: keyof Meditation, value: string) => {
+  const updateItem = (field: keyof Meditation, value: string | string[]) => {
     const meditations = content.meditations.map((entry, index) =>
-      index === selectedIndex ? { ...entry, [field]: value } : entry
+      index === selectedIndex ? ({ ...entry, [field]: value } as Meditation) : entry
     );
     onChange({ ...content, meditations });
   };
@@ -584,7 +584,10 @@ function MeditationsEditor({
       title: "新的 AI 沉思",
       excerpt: "用一句话说明这篇文章关心的问题。",
       body: "# 从这里开始\n\n使用 Markdown 写下完整正文。",
-      status: "写作中"
+      status: "写作中",
+      format: "short",
+      tags: [],
+      publishedAt: new Date().toISOString().slice(0, 10)
     };
     onChange({ ...content, meditations: [next, ...content.meditations] });
     onSelect(0);
@@ -625,8 +628,35 @@ function MeditationsEditor({
             <Field label="编号" value={item.index} onChange={(value) => updateItem("index", value)} />
             <Field label="状态" value={item.status} onChange={(value) => updateItem("status", value)} />
           </div>
+          <div className="field-grid field-grid--two">
+            <label className="studio-field">
+              <span>内容形态</span>
+              <select
+                value={item.format ?? (item.body.trim().length > 600 ? "long" : "short")}
+                onChange={(event) => updateItem("format", event.target.value)}
+              >
+                <option value="short">短内容 · 像一条随笔</option>
+                <option value="long">长内容 · 像一篇文章</option>
+              </select>
+            </label>
+            <Field
+              label="日期"
+              value={item.publishedAt ?? ""}
+              onChange={(value) => updateItem("publishedAt", value)}
+            />
+          </div>
           <Field label="标题" value={item.title} onChange={(value) => updateItem("title", value)} />
           <Field multiline rows={3} label="摘要" value={item.excerpt} onChange={(value) => updateItem("excerpt", value)} />
+          <Field
+            label="标签（用逗号分隔）"
+            value={(item.tags ?? []).join("、")}
+            onChange={(value) =>
+              updateItem(
+                "tags",
+                value.split(/[，,、]/).map((tag) => tag.trim()).filter(Boolean)
+              )
+            }
+          />
           <MarkdownField label="Markdown 正文" value={item.body} onChange={(value) => updateItem("body", value)} rows={24} />
         </section>
       ) : <EmptyEditor onAdd={addItem} label="新增第一篇沉思" />}
