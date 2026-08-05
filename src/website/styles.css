@@ -332,8 +332,33 @@ ul {
 }
 
 .reading-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  gap: 72px;
+  align-items: center;
   padding: 72px 0 80px;
   border-bottom: 1px solid var(--line);
+}
+
+.reading-section,
+.standalone-page .page-hero {
+  text-align: center;
+}
+
+.reading-section__copy {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  text-align: center;
+}
+
+.reading-section__visual {
+  display: grid;
+  grid-column: 1;
+  grid-row: 1;
+  gap: 12px;
+  align-self: center;
+  min-width: 0;
 }
 
 .page-hero {
@@ -343,6 +368,8 @@ ul {
 
 .page-hero h1 {
   max-width: var(--reading-width);
+  margin-right: auto;
+  margin-left: auto;
   margin-bottom: 18px;
   font-family: var(--serif);
   font-size: clamp(2rem, 3.8vw, 2.9rem);
@@ -353,6 +380,8 @@ ul {
 
 .page-hero__description {
   max-width: 600px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .page-hero__description p {
@@ -369,7 +398,15 @@ ul {
 
 .section-title {
   max-width: var(--reading-width);
-  margin: 0 0 44px;
+  margin: 0 auto 44px;
+}
+
+.reading-section__copy .section-title {
+  width: 100%;
+  max-width: 390px;
+  margin: 0 auto;
+  justify-self: center;
+  text-align: center;
 }
 
 .section-title h2 {
@@ -384,6 +421,8 @@ ul {
 
 .section-description {
   max-width: 600px;
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .section-description p {
@@ -394,18 +433,21 @@ ul {
 
 .product-example {
   display: grid;
-  grid-template-columns: 0.86fr 1.14fr;
-  width: min(100%, var(--content-width));
+  grid-template-columns: 0.78fr 1.22fr;
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  text-align: left;
   overflow: hidden;
   border: 1px solid rgba(31, 73, 60, 0.13);
-  border-radius: 22px;
+  border-radius: 17px;
   background: rgba(255, 254, 248, 0.86);
   box-shadow: 0 24px 60px rgba(39, 60, 50, 0.07);
 }
 
 .source-text,
 .split-result {
-  padding: 28px 26px 30px;
+  padding: 20px 20px 22px;
 }
 
 .source-text {
@@ -418,17 +460,17 @@ ul {
 }
 
 .source-text p {
-  margin: 28px 0 0;
+  margin: 17px 0 0;
   font-family: var(--serif);
-  font-size: 1.35rem;
-  line-height: 1.5;
+  font-size: 1.16rem;
+  line-height: 1.45;
 }
 
 .split-result ul {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  margin: 24px 0 0;
+  gap: 9px;
+  margin: 16px 0 0;
   padding: 0;
   list-style: none;
   color: var(--muted);
@@ -436,31 +478,42 @@ ul {
   line-height: 1.65;
 }
 
+.split-result li {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
 .split-result strong {
-  display: inline-block;
-  min-width: 64px;
+  display: block;
+  min-width: 0;
   color: var(--accent-deep);
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .step-list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 12px;
-  width: min(100%, var(--content-width));
-  margin: 44px 0 0;
+  width: 100%;
+  margin: 0;
+  margin-right: auto;
+  margin-left: auto;
+  text-align: center;
 }
 
 .step-list article {
-  min-height: 160px;
-  padding: 22px;
+  min-height: 118px;
+  padding: 16px 14px;
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: 14px;
   background: rgba(255, 254, 248, 0.54);
 }
 
 .step-list article:not(:first-child) {
-  padding-left: 22px;
+  padding-left: 14px;
 }
 
 .step-list span {
@@ -470,9 +523,10 @@ ul {
 }
 
 .step-list h3 {
-  margin: 24px 0 8px;
+  margin: 13px 0 6px;
   font-family: var(--serif);
   font-size: 1.35rem;
+  white-space: nowrap;
 }
 
 @keyframes hero-reveal {
@@ -508,13 +562,15 @@ ul {
 .step-list p {
   margin-bottom: 0;
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.7;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .iteration-list,
 .meditation-list {
   width: min(100%, var(--content-width));
+  margin-right: auto;
+  margin-left: auto;
   border-top: 1px solid var(--text);
 }
 
@@ -715,6 +771,140 @@ ul {
   color: var(--muted);
 }
 
+.meditation-index {
+  display: flex;
+  flex-wrap: wrap;
+  width: min(100%, var(--content-width));
+  gap: 8px 16px;
+  margin: 0 auto 38px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.meditation-index button {
+  position: relative;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 11px;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.meditation-index button:hover,
+.meditation-index button.is-active {
+  color: var(--accent-deep);
+}
+
+.meditation-index button.is-active::after {
+  position: absolute;
+  right: 0;
+  bottom: -6px;
+  left: 0;
+  height: 1px;
+  background: var(--accent);
+  content: "";
+}
+
+.meditation-stream {
+  width: min(100%, var(--reading-width));
+  margin-right: auto;
+  margin-left: auto;
+  border-top: 1px solid var(--text);
+}
+
+.meditation-stream-entry {
+  border-bottom: 1px solid var(--line);
+}
+
+.meditation-stream-entry__link {
+  display: grid;
+  grid-template-columns: var(--meta-column) 1fr;
+  gap: 28px;
+  align-items: start;
+  padding: 34px 0;
+}
+
+.meditation-stream-entry--short {
+  display: grid;
+  grid-template-columns: var(--meta-column) 1fr;
+  gap: 28px;
+  padding: 28px 0;
+}
+
+.meditation-stream-entry__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: start;
+  gap: 8px 12px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
+.meditation-stream-entry--short .meditation-stream-entry__meta {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  font-size: 11px;
+}
+
+.meditation-stream-entry__meta--inline {
+  margin-bottom: 10px;
+}
+
+.meditation-stream-entry__index {
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+}
+
+.meditation-stream-entry__body {
+  max-width: 620px;
+  color: var(--text);
+  font-family: var(--serif);
+  font-size: 1.12rem;
+  line-height: 1.8;
+}
+
+.meditation-stream-entry__body p {
+  margin: 0;
+}
+
+.meditation-stream-entry--long h2 {
+  margin-bottom: 10px;
+  font-family: var(--serif);
+  font-size: 1.32rem;
+  font-weight: 600;
+  line-height: 1.35;
+  transition: color 160ms ease;
+}
+
+.meditation-stream-entry--long p {
+  max-width: 620px;
+  margin-bottom: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.75;
+}
+
+a.meditation-stream-entry__link:hover h2 {
+  color: var(--accent);
+}
+
+.meditation-stream-entry .meditation-tags {
+  margin-top: 12px;
+}
+
+.meditation-stream-entry--short .meditation-tags {
+  margin-top: 0;
+}
+
 .meditation-entry {
   display: grid;
   grid-template-columns: var(--meta-column) 1fr 80px;
@@ -759,6 +949,8 @@ a.meditation-entry:hover h2 {
   width: min(100%, var(--content-width));
   gap: 28px;
   margin: 44px 0 0;
+  margin-right: auto;
+  margin-left: auto;
   padding: 22px 0;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -780,19 +972,24 @@ a.meditation-entry:hover h2 {
 .archive-note {
   width: min(100%, var(--content-width));
   margin: 32px 0 0;
+  margin-right: auto;
+  margin-left: auto;
   line-height: 1.75;
 }
 
 .meditation-article {
   max-width: var(--reading-width);
+  margin-right: auto;
+  margin-left: auto;
   padding: 64px 0 104px;
 }
 
 .article-back {
-  display: inline-block;
+  display: block;
   margin-bottom: 64px;
   color: var(--muted);
   font-size: 13px;
+  text-align: center;
 }
 
 .article-back:hover {
@@ -802,10 +999,12 @@ a.meditation-entry:hover h2 {
 .meditation-article header {
   padding-bottom: 36px;
   border-bottom: 1px solid var(--line);
+  text-align: center;
 }
 
 .article-meta {
   display: flex;
+  justify-content: center;
   gap: 16px;
   margin-bottom: 18px;
   color: var(--muted);
@@ -823,6 +1022,9 @@ a.meditation-entry:hover h2 {
 }
 
 .meditation-article header > p {
+  max-width: 600px;
+  margin-right: auto;
+  margin-left: auto;
   margin-bottom: 0;
   color: var(--muted);
   font-size: 16px;
@@ -835,6 +1037,7 @@ a.meditation-entry:hover h2 {
   font-family: var(--serif);
   font-size: 17px;
   line-height: 1.9;
+  text-align: left;
 }
 
 .markdown-body h1,
@@ -953,8 +1156,19 @@ a.meditation-entry:hover h2 {
   padding-bottom: 120px;
 }
 
+.about-page-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
 .about-copy {
   max-width: var(--reading-width);
+  width: min(100%, var(--reading-width));
+  margin-right: auto;
+  margin-left: auto;
+  text-align: center;
 }
 
 .about-copy p {
@@ -965,17 +1179,23 @@ a.meditation-entry:hover h2 {
 }
 
 .project-principles {
-  width: min(100%, var(--content-width));
+  width: min(100%, 540px);
   margin: 44px 0 0;
+  margin-right: auto;
+  margin-left: auto;
+  transform: translateX(18px);
   border-top: 1px solid var(--text);
+  text-align: center;
 }
 
 .project-principles div {
   display: grid;
-  grid-template-columns: var(--meta-column) 1fr;
-  gap: 28px;
+  grid-template-columns: 92px minmax(0, 400px);
+  justify-content: center;
+  gap: 24px;
   padding: 22px 0;
   border-bottom: 1px solid var(--line);
+  text-align: left;
 }
 
 .project-principles dt {
@@ -987,16 +1207,20 @@ a.meditation-entry:hover h2 {
   margin: 0;
   color: var(--muted);
   line-height: 1.7;
+  text-align: left;
 }
 
 .legal-links {
   display: flex;
   flex-wrap: wrap;
   gap: 22px;
-  width: min(100%, var(--content-width));
+  width: min(100%, var(--reading-width));
   margin-top: 36px;
+  margin-right: auto;
+  margin-left: auto;
   color: var(--muted);
   font-size: 13px;
+  justify-content: center;
 }
 
 .legal-links a {
@@ -1011,6 +1235,8 @@ a.meditation-entry:hover h2 {
 
 .privacy-content {
   max-width: var(--reading-width);
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .privacy-updated {
@@ -1110,7 +1336,25 @@ a.meditation-entry:hover h2 {
   }
 
   .reading-section {
+    grid-template-columns: 1fr;
     padding: 56px 0 64px;
+  }
+
+  .reading-section__copy .section-title {
+    grid-column: auto;
+    max-width: var(--reading-width);
+    margin: 0 0 42px;
+  }
+
+  .reading-section__copy {
+    grid-column: auto;
+    grid-row: auto;
+    order: -1;
+  }
+
+  .reading-section__visual {
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .offline-install {
@@ -1142,6 +1386,8 @@ a.meditation-entry:hover h2 {
 
   .product-example {
     grid-template-columns: 1fr;
+    grid-column: auto;
+    grid-row: auto;
   }
 
   .source-text {
@@ -1155,6 +1401,7 @@ a.meditation-entry:hover h2 {
 
   .step-list {
     grid-template-columns: 1fr;
+    margin-top: 0;
   }
 
   .step-list article,
@@ -1191,6 +1438,20 @@ a.meditation-entry:hover h2 {
     gap: 12px;
   }
 
+  .meditation-stream-entry__link,
+  .meditation-stream-entry--short {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .meditation-stream-entry__link {
+    padding: 28px 0;
+  }
+
+  .meditation-stream-entry--short {
+    padding: 24px 0;
+  }
+
   .meditation-status {
     grid-column: 2;
     justify-self: start;
@@ -1200,10 +1461,19 @@ a.meditation-entry:hover h2 {
     margin-bottom: 48px;
   }
 
-  .continuation-note,
-  .project-principles div {
+  .continuation-note {
     grid-template-columns: 84px 1fr;
     gap: 18px;
+  }
+
+  .project-principles div {
+    grid-template-columns: 84px 1fr;
+    justify-content: stretch;
+    gap: 18px;
+  }
+
+  .project-principles {
+    transform: none;
   }
 
   .site-footer {

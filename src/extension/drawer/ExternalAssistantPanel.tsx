@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { EXTERNAL_ASSISTANT_TARGETS } from "../../infrastructure/externalAssistants/targets";
-import { buildPortableAnalysisPrompt } from "../../skills/portable-analysis";
+import {
+  buildPortableAnalysisPrompt,
+  type PortableQuickMode
+} from "../../skills/portable-analysis";
 import {
   MESSAGE_TYPES,
   type ExternalAssistantResponse,
@@ -22,6 +25,11 @@ interface ExternalAssistantPanelProps {
 
 type ExportAction = ExternalAssistantTarget | "copy";
 
+const EXTERNAL_QUICK_METHODS: Array<{ mode: PortableQuickMode; label: string }> = [
+  ...PRODUCT_COPY.actions,
+  { mode: "comprehensive", label: "综合拆解" }
+];
+
 interface Feedback {
   tone: "success" | "error";
   message: string;
@@ -33,7 +41,7 @@ export function ExternalAssistantPanel({
   sourceUrl,
   preferredQuickMode
 }: ExternalAssistantPanelProps) {
-  const [quickMode, setQuickMode] = useState<QuickAnalysisMode>(
+  const [quickMode, setQuickMode] = useState<PortableQuickMode>(
     preferredQuickMode ?? "split"
   );
   const [busyAction, setBusyAction] = useState<ExportAction | null>(null);
@@ -150,9 +158,9 @@ export function ExternalAssistantPanel({
           <select
             value={quickMode}
             disabled={Boolean(busyAction)}
-            onChange={(event) => setQuickMode(event.target.value as QuickAnalysisMode)}
+            onChange={(event) => setQuickMode(event.target.value as PortableQuickMode)}
           >
-            {PRODUCT_COPY.actions.map((action) => (
+            {EXTERNAL_QUICK_METHODS.map((action) => (
               <option key={action.mode} value={action.mode}>
                 {action.label}
               </option>

@@ -108,6 +108,8 @@ const checks = [
       sources.externalAssistantAutomation.includes("findComposer") &&
       sources.externalAssistantAutomation.includes("enableWebSearch") &&
       sources.externalAssistantAutomation.includes("sendControl.click()") &&
+      sources.externalAssistantPanel.includes('mode: "comprehensive"') &&
+      sources.portableAnalysis.includes("模块四：转成小实验") &&
       sources.externalAssistantTargets.includes("https://chatgpt.com/") &&
       sources.externalAssistantTargets.includes("https://chat.deepseek.com/") &&
       sources.portableAnalysis.includes("不要输出 JSON"),

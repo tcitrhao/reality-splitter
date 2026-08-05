@@ -2,6 +2,30 @@
 
 All notable product changes should be recorded here before a build is shared.
 
+## 0.6.2 - 2026-08-06
+
+### Changed
+
+- Reworked the public website into a more spacious editorial layout.
+- Made the homepage reading section a balanced two-column composition: a wider example-and-steps visual on the left, and the centered judgment statement on the right.
+- Refined the About page principles into a narrower, visually centered title-and-description group.
+- Improved the meditation archive and article presentation for long-form writing, including reading-time metadata.
+
+### Verification
+
+- TypeScript checks, extension build, website build and local browser visual review pass.
+
+## 0.6.1 - 2026-08-04
+
+### Added
+
+- Added a `综合拆解` method to one-click external AI sending.
+- The comprehensive portable Skill combines attention triage, information structure, de-escalation with alternative explanations, and a low-cost experiment in one response.
+
+### Verification
+
+- Added prompt regressions covering all four comprehensive analysis modules.
+
 ## 0.6.0 - 2026-08-03
 
 ### Added

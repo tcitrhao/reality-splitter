@@ -55,7 +55,6 @@ export interface WebsiteContent {
   meditationsPage: {
     title: string;
     description: string;
-    archiveNote: string;
   };
   meditations: Array<{
     index: string;
@@ -66,6 +65,7 @@ export interface WebsiteContent {
     format?: MeditationFormat;
     tags?: string[];
     publishedAt?: string;
+    readTime?: string;
   }>;
   aboutPage: {
     title: string;

@@ -587,7 +587,8 @@ function MeditationsEditor({
       status: "写作中",
       format: "short",
       tags: [],
-      publishedAt: new Date().toISOString().slice(0, 10)
+      publishedAt: new Date().toISOString().slice(0, 10),
+      readTime: "1 min read"
     };
     onChange({ ...content, meditations: [next, ...content.meditations] });
     onSelect(0);
@@ -619,7 +620,6 @@ function MeditationsEditor({
       <PageSettings title="沉思录设置">
         <Field label="页面标题" value={content.meditationsPage.title} onChange={(value) => updatePage("title", value)} />
         <Field label="页面说明" value={content.meditationsPage.description} onChange={(value) => updatePage("description", value)} />
-        <Field label="列表尾注" value={content.meditationsPage.archiveNote} onChange={(value) => updatePage("archiveNote", value)} />
       </PageSettings>
       {item ? (
         <section className="entry-canvas">
@@ -645,6 +645,11 @@ function MeditationsEditor({
               onChange={(value) => updateItem("publishedAt", value)}
             />
           </div>
+          <Field
+            label="阅读时间"
+            value={item.readTime ?? ""}
+            onChange={(value) => updateItem("readTime", value)}
+          />
           <Field label="标题" value={item.title} onChange={(value) => updateItem("title", value)} />
           <Field multiline rows={3} label="摘要" value={item.excerpt} onChange={(value) => updateItem("excerpt", value)} />
           <Field

@@ -1,15 +1,16 @@
 import type { QuickAnalysisMode, WorkspaceMode } from "../../shared/types";
 
 export const PORTABLE_SKILL_VERSION = "1.0";
+export type PortableQuickMode = QuickAnalysisMode | "comprehensive";
 
 export interface PortableAnalysisInput {
   workspaceMode: WorkspaceMode;
   text: string;
   sourceUrl?: string;
-  quickMode?: QuickAnalysisMode;
+  quickMode?: PortableQuickMode;
 }
 
-const QUICK_TASKS: Record<QuickAnalysisMode, string[]> = {
+const QUICK_TASKS: Record<PortableQuickMode, string[]> = {
   split: [
     "先做注意力分诊：建议跳过、扫读、核查、保存或延迟判断，并说明理由。",
     "区分可观察事实、作者观点、推断和预测，不要把它们混写。",
@@ -30,6 +31,14 @@ const QUICK_TASKS: Record<QuickAnalysisMode, string[]> = {
     "把原文中的关键判断变成一个低成本、低风险的小实验。",
     "给出 3 到 5 个步骤、完成时限、停止条件和要观察的现实反馈。",
     "用小步验证替代冲动转发、重仓或一次性 all-in。"
+  ],
+  comprehensive: [
+    "请在同一份回答中完整执行下面四个模块，不要省略任何一个模块，并使用清晰的 Markdown 二级标题分隔。",
+    "模块一：注意力分诊。判断建议跳过、扫读、核查、保存或延迟判断，并说明理由。",
+    "模块二：信息结构拆解。区分可观察事实、作者观点、推断和预测，识别情绪刺激、传播钩子、模糊权威、时间压迫、数字诱导和行动号召。",
+    "模块三：降低刺激与替代解释。先把原文改写成更中性的版本，再给出 3 到 5 个可能的替代解释，并说明每个解释仍缺少什么信息。",
+    "模块四：转成小实验。给出一个低成本、低风险的验证方案，包括步骤、时限、停止条件和要观察的现实反馈。",
+    "最后单独总结：当前证据强弱、最重要的不确定性，以及用户下一步最值得做的一件小事。"
   ]
 };
 
