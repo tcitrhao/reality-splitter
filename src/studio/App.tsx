@@ -538,7 +538,6 @@ function IterationsEditor({
       <PageSettings title="迭代页设置">
         <Field label="页面标题" value={content.iterationsPage.title} onChange={(value) => updatePage("title", value)} />
         <Field label="页面说明" value={content.iterationsPage.description} onChange={(value) => updatePage("description", value)} />
-        <Field label="下一步" value={content.iterationsPage.nextText} onChange={(value) => updatePage("nextText", value)} />
       </PageSettings>
       {item ? (
         <section className="entry-canvas">

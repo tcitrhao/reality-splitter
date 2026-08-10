@@ -42,8 +42,6 @@ export interface WebsiteContent {
     title: string;
     description: string;
     learningLabel: string;
-    nextLabel: string;
-    nextText: string;
   };
   iterations: Array<{
     state: string;

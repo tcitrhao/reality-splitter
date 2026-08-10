@@ -113,7 +113,6 @@ function ProductPage() {
         <ol className="offline-install__steps">
           {product.offlineInstall.steps.map((step) => (
             <li key={step.number}>
-              <span>{step.number}</span>
               <div>
                 <strong>{step.title}</strong>
                 <p>{step.body.replace("{offlinePackageName}", offlinePackageName)}</p>
@@ -148,7 +147,6 @@ function ProductPage() {
           <div className="step-list">
             {product.steps.map((step) => (
               <article key={step.number}>
-                <span>{step.number}</span>
                 <h3>{step.title}</h3>
                 <p>{step.body}</p>
               </article>
@@ -195,11 +193,6 @@ function IterationsPage() {
             </article>
           ))}
         </div>
-
-        <aside className="continuation-note">
-          <span>{page.nextLabel}</span>
-          <p>{page.nextText}</p>
-        </aside>
       </section>
     </div>
   );
@@ -249,12 +242,11 @@ function meditationFormat(item: { format?: MeditationFormat; body: string }): Me
 function LongMeditationEntry({ item }: { item: (typeof content.meditations)[number] }) {
   const entry = (
     <>
-      <span className="meditation-stream-entry__index">{item.index}</span>
+      <div className="meditation-stream-entry__meta">
+        <span>{item.publishedAt || "持续记录"}</span>
+        <span>{item.readTime || "阅读时间待定"}</span>
+      </div>
       <div>
-        <div className="meditation-stream-entry__meta meditation-stream-entry__meta--inline">
-          <span>{item.publishedAt || "持续记录"}</span>
-          <span>{item.readTime || "阅读时间待定"}</span>
-        </div>
         <h2>{item.title}</h2>
         <p>{item.excerpt}</p>
       </div>
@@ -289,7 +281,6 @@ function MeditationArticle({
       </a>
       <header>
         <div className="article-meta">
-          <span>{meditation.index}</span>
           <span>{meditation.readTime || "阅读时间待定"}</span>
           <span>{meditation.publishedAt || "持续记录"}</span>
         </div>

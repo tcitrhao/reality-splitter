@@ -7,12 +7,20 @@
   --muted: #69736e;
   --faint: #9ca59f;
   --line: #d8ddd7;
+  --line-strong: rgba(31, 41, 37, 0.16);
   --accent: #2b6754;
   --accent-deep: #1f493c;
   --accent-soft: #dfece5;
   --content-width: 820px;
+  --editorial-width: 800px;
+  --editorial-meta: 104px;
   --reading-width: 680px;
   --meta-column: 112px;
+  --type-display: clamp(2.25rem, 4vw, 3.15rem);
+  --type-entry: clamp(1.44rem, 2.05vw, 1.72rem);
+  --type-body: 0.925rem;
+  --type-meta: 0.675rem;
+  --leading-body: 1.78;
   --serif: "Songti SC", "STSong", "Noto Serif CJK SC", serif;
   --sans: "Avenir Next", "PingFang SC", "Hiragino Sans GB", sans-serif;
   --mono: "SFMono-Regular", "Cascadia Code", "Liberation Mono", monospace;
@@ -34,6 +42,8 @@ html {
 body {
   margin: 0;
   min-width: 320px;
+  -webkit-font-smoothing: antialiased;
+  font-kerning: normal;
   background:
     radial-gradient(circle at 8% 0%, rgba(79, 131, 106, 0.12), transparent 27rem),
     radial-gradient(circle at 95% 6%, rgba(194, 122, 66, 0.08), transparent 22rem),
@@ -71,7 +81,7 @@ ul {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  min-height: 78px;
+  min-height: 74px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -294,16 +304,9 @@ ul {
 
 .offline-install__steps li {
   display: grid;
-  grid-template-columns: 44px 1fr;
-  gap: 14px;
+  grid-template-columns: 1fr;
   padding: 18px 0;
   border-bottom: 1px solid var(--line);
-}
-
-.offline-install__steps li > span {
-  color: var(--faint);
-  font-family: var(--mono);
-  font-size: 10px;
 }
 
 .offline-install__steps strong {
@@ -362,7 +365,7 @@ ul {
 }
 
 .page-hero {
-  padding: 72px 0 52px;
+  padding: 66px 0 42px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -370,12 +373,13 @@ ul {
   max-width: var(--reading-width);
   margin-right: auto;
   margin-left: auto;
-  margin-bottom: 18px;
+  margin-bottom: 16px;
   font-family: var(--serif);
-  font-size: clamp(2rem, 3.8vw, 2.9rem);
-  font-weight: 600;
-  letter-spacing: -0.055em;
-  line-height: 1.08;
+  font-size: var(--type-display);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1.06;
+  text-wrap: balance;
 }
 
 .page-hero__description {
@@ -387,12 +391,13 @@ ul {
 .page-hero__description p {
   margin-bottom: 0;
   color: var(--muted);
-  font-size: 15px;
-  line-height: 1.8;
+  font-size: 14px;
+  letter-spacing: 0.015em;
+  line-height: 1.75;
 }
 
 .page-content {
-  padding: 56px 0 88px;
+  padding: 50px 0 84px;
   border-bottom: 1px solid var(--line);
 }
 
@@ -505,6 +510,9 @@ ul {
 }
 
 .step-list article {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   min-height: 118px;
   padding: 16px 14px;
   border: 1px solid var(--line);
@@ -516,14 +524,8 @@ ul {
   padding-left: 14px;
 }
 
-.step-list span {
-  color: var(--faint);
-  font-family: var(--mono);
-  font-size: 11px;
-}
-
 .step-list h3 {
-  margin: 13px 0 6px;
+  margin: 0 0 8px;
   font-family: var(--serif);
   font-size: 1.35rem;
   white-space: nowrap;
@@ -581,6 +583,46 @@ ul {
   border-bottom: 1px solid var(--line);
 }
 
+.iteration-list--page {
+  width: min(100%, var(--editorial-width));
+}
+
+.iteration-list--page article {
+  grid-template-columns: var(--editorial-meta) minmax(0, 1fr);
+  gap: 42px;
+  padding: 36px 0 40px;
+}
+
+.iteration-list--page article:first-child {
+  padding-top: 0;
+}
+
+.iteration-list--page article:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.iteration-list--page .iteration-meta {
+  padding-top: 6px;
+}
+
+.iteration-list--page .iteration-meta span,
+.iteration-list--page .iteration-meta strong {
+  font-family: var(--mono);
+  font-size: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.09em;
+}
+
+.iteration-list--page .iteration-meta span {
+  color: var(--accent);
+}
+
+.iteration-list--page .iteration-meta strong {
+  color: var(--muted);
+  font-weight: 500;
+}
+
 .iteration-meta {
   display: flex;
   flex-direction: column;
@@ -602,13 +644,28 @@ ul {
   font-weight: 600;
 }
 
+.iteration-list--page h2 {
+  margin-bottom: 12px;
+  font-size: var(--type-entry);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.28;
+  text-wrap: balance;
+}
+
+.iteration-list--page .iteration-markdown,
+.iteration-list--page .iteration-learning {
+  max-width: 640px;
+}
+
 .iteration-list p,
 .meditation-list p {
   max-width: 620px;
   margin-bottom: 0;
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.75;
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
 }
 
 .iteration-markdown > :first-child,
@@ -633,8 +690,8 @@ ul {
   max-width: 620px;
   padding-left: 1.25rem;
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.75;
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
 }
 
 .meditation-list article {
@@ -689,7 +746,7 @@ ul {
   gap: 24px;
   margin-bottom: 16px;
   padding-bottom: 12px;
-  border-bottom: 1px solid var(--text);
+  border-bottom: 1px solid var(--line-strong);
 }
 
 .meditation-section__heading span {
@@ -706,7 +763,7 @@ ul {
 }
 
 .meditation-short-feed {
-  border-top: 1px solid var(--text);
+  border-top: 0;
 }
 
 .meditation-short-entry {
@@ -766,7 +823,7 @@ ul {
 .meditation-empty {
   width: min(100%, var(--content-width));
   padding: 32px 0;
-  border-top: 1px solid var(--text);
+  border-top: 1px solid var(--line-strong);
   color: var(--muted);
 }
 
@@ -809,10 +866,9 @@ ul {
 }
 
 .meditation-stream {
-  width: min(100%, var(--reading-width));
+  width: min(100%, var(--editorial-width));
   margin-right: auto;
   margin-left: auto;
-  border-top: 1px solid var(--text);
 }
 
 .meditation-stream-entry {
@@ -821,28 +877,41 @@ ul {
 
 .meditation-stream-entry__link {
   display: grid;
-  grid-template-columns: var(--meta-column) 1fr;
-  gap: 28px;
+  grid-template-columns: var(--editorial-meta) minmax(0, 1fr);
+  gap: 42px;
   align-items: start;
-  padding: 34px 0;
+  padding: 32px 0 35px;
+}
+
+.meditation-stream-entry:first-child .meditation-stream-entry__link {
+  padding-top: 0;
+}
+
+.meditation-stream-entry:last-child {
+  border-bottom: 0;
+}
+
+.meditation-stream-entry:last-child .meditation-stream-entry__link {
+  padding-bottom: 0;
 }
 
 .meditation-stream-entry--short {
   display: grid;
-  grid-template-columns: var(--meta-column) 1fr;
-  gap: 28px;
+  grid-template-columns: var(--editorial-meta) minmax(0, 1fr);
+  gap: 40px;
   padding: 28px 0;
 }
 
 .meditation-stream-entry__meta {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   align-content: start;
-  gap: 8px 12px;
+  gap: 8px;
   color: var(--muted);
   font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.04em;
+  font-size: var(--type-meta);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.09em;
+  line-height: 1.55;
 }
 
 .meditation-stream-entry--short .meditation-stream-entry__meta {
@@ -850,17 +919,6 @@ ul {
   align-content: start;
   gap: 9px;
   font-size: 11px;
-}
-
-.meditation-stream-entry__meta--inline {
-  margin-bottom: 10px;
-}
-
-.meditation-stream-entry__index {
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 11px;
-  letter-spacing: 0.06em;
 }
 
 .meditation-stream-entry__body {
@@ -876,11 +934,13 @@ ul {
 }
 
 .meditation-stream-entry--long h2 {
-  margin-bottom: 10px;
+  margin-bottom: 9px;
   font-family: var(--serif);
-  font-size: 1.32rem;
-  font-weight: 600;
-  line-height: 1.35;
+  font-size: var(--type-entry);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 1.28;
+  text-wrap: balance;
   transition: color 160ms ease;
 }
 
@@ -888,8 +948,9 @@ ul {
   max-width: 620px;
   margin-bottom: 0;
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.75;
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
+  text-wrap: pretty;
 }
 
 a.meditation-stream-entry__link:hover h2 {
@@ -927,53 +988,22 @@ a.meditation-entry:hover h2 {
 }
 
 .iteration-learning {
-  margin-top: 18px;
-  padding-left: 14px;
-  border-left: 1px solid var(--accent);
+  margin-top: 22px;
+  padding: 1px 0 1px 17px;
+  border-left: 1px solid rgba(43, 103, 84, 0.56);
   color: var(--muted);
-  font-size: 14px;
-  line-height: 1.75;
+  font-size: var(--type-body);
+  line-height: var(--leading-body);
 }
 
 .iteration-learning strong {
   display: block;
   margin-bottom: 3px;
   color: var(--text);
+  font-family: var(--serif);
+  font-size: 0.975rem;
+  letter-spacing: 0.02em;
   font-weight: 500;
-}
-
-.continuation-note {
-  display: grid;
-  grid-template-columns: var(--meta-column) 1fr;
-  width: min(100%, var(--content-width));
-  gap: 28px;
-  margin: 44px 0 0;
-  margin-right: auto;
-  margin-left: auto;
-  padding: 22px 0;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
-}
-
-.continuation-note span,
-.archive-note {
-  color: var(--muted);
-  font-family: var(--mono);
-  font-size: 11px;
-}
-
-.continuation-note p {
-  max-width: 580px;
-  margin: 0;
-  line-height: 1.75;
-}
-
-.archive-note {
-  width: min(100%, var(--content-width));
-  margin: 32px 0 0;
-  margin-right: auto;
-  margin-left: auto;
-  line-height: 1.75;
 }
 
 .meditation-article {
@@ -1163,49 +1193,58 @@ a.meditation-entry:hover h2 {
 }
 
 .about-copy {
-  max-width: var(--reading-width);
-  width: min(100%, var(--reading-width));
+  max-width: 660px;
+  width: min(100%, var(--editorial-width));
   margin-right: auto;
   margin-left: auto;
   text-align: center;
 }
 
 .about-copy p {
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   font-family: var(--serif);
-  font-size: 1.1rem;
-  line-height: 1.85;
+  font-size: clamp(1.05rem, 1.55vw, 1.16rem);
+  letter-spacing: -0.012em;
+  line-height: 1.9;
+  text-wrap: pretty;
 }
 
 .project-principles {
-  width: min(100%, 540px);
-  margin: 44px 0 0;
+  width: min(100%, var(--editorial-width));
+  margin: 38px 0 0;
   margin-right: auto;
   margin-left: auto;
-  transform: translateX(18px);
-  border-top: 1px solid var(--text);
+  transform: translateX(56px);
+  border-top: 1px solid var(--line-strong);
   text-align: center;
 }
 
 .project-principles div {
   display: grid;
-  grid-template-columns: 92px minmax(0, 400px);
-  justify-content: center;
+  grid-template-columns: 96px minmax(0, 1fr);
+  width: min(100%, 580px);
+  margin-right: auto;
+  margin-left: auto;
+  align-items: baseline;
+  justify-content: start;
   gap: 24px;
-  padding: 22px 0;
+  padding: 20px 0;
   border-bottom: 1px solid var(--line);
   text-align: left;
 }
 
 .project-principles dt {
   font-family: var(--serif);
-  font-weight: 600;
+  font-size: 1.02rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
 .project-principles dd {
   margin: 0;
   color: var(--muted);
-  line-height: 1.7;
+  font-size: 0.925rem;
+  line-height: 1.72;
   text-align: left;
 }
 
@@ -1214,7 +1253,7 @@ a.meditation-entry:hover h2 {
   flex-wrap: wrap;
   gap: 22px;
   width: min(100%, var(--reading-width));
-  margin-top: 36px;
+  margin-top: 30px;
   margin-right: auto;
   margin-left: auto;
   color: var(--muted);
@@ -1278,7 +1317,7 @@ a.meditation-entry:hover h2 {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 94px;
+  min-height: 84px;
   color: var(--muted);
   font-size: 12px;
 }
@@ -1372,11 +1411,11 @@ a.meditation-entry:hover h2 {
   }
 
   .page-hero {
-    padding: 60px 0 48px;
+    padding: 52px 0 38px;
   }
 
   .page-content {
-    padding: 44px 0 68px;
+    padding: 40px 0 64px;
   }
 
   .section-title {
@@ -1419,6 +1458,24 @@ a.meditation-entry:hover h2 {
     gap: 18px;
   }
 
+  .iteration-list--page article {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 18px;
+    padding: 27px 0 30px;
+  }
+
+  .iteration-list--page article:first-child {
+    padding-top: 0;
+  }
+
+  .iteration-list--page article:last-child {
+    padding-bottom: 0;
+  }
+
+  .iteration-list--page .iteration-meta {
+    padding-top: 4px;
+  }
+
   .meditation-entry {
     grid-template-columns: 32px 1fr;
     gap: 16px;
@@ -1444,7 +1501,15 @@ a.meditation-entry:hover h2 {
   }
 
   .meditation-stream-entry__link {
-    padding: 28px 0;
+    padding: 27px 0 30px;
+  }
+
+  .meditation-stream-entry:first-child .meditation-stream-entry__link {
+    padding-top: 0;
+  }
+
+  .meditation-stream-entry:last-child .meditation-stream-entry__link {
+    padding-bottom: 0;
   }
 
   .meditation-stream-entry--short {
@@ -1458,11 +1523,6 @@ a.meditation-entry:hover h2 {
 
   .article-back {
     margin-bottom: 48px;
-  }
-
-  .continuation-note {
-    grid-template-columns: 84px 1fr;
-    gap: 18px;
   }
 
   .project-principles div {
