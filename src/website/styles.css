@@ -571,7 +571,6 @@ ul {
   width: min(100%, var(--content-width));
   margin-right: auto;
   margin-left: auto;
-  border-top: 1px solid var(--text);
 }
 
 .iteration-list article {
