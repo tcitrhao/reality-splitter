@@ -2,6 +2,23 @@
 
 All notable product changes should be recorded here before a build is shared.
 
+## 0.7.0 - 2026-08-10
+
+### Changed
+
+- Replaced the four competing short-text entry actions with one `综合拆解` flow.
+- Rebuilt comprehensive analysis as four focused model calls: analysis, alternative explanations, de-escalation and a low-cost experiment.
+- Passed each structured result into the next step explicitly instead of relying on provider-side conversation memory.
+- Rendered every completed step immediately while the remaining analysis continues.
+- Added repeatable follow-up actions that generate a fresh perspective without replacing the primary result.
+- Made `综合拆解` the default method when sending short text to an external AI assistant.
+
+### Verification
+
+- Added session regressions for preserving the primary result while follow-up analysis runs.
+- Added pipeline regressions for step order, explicit context transfer and the focused split schema.
+- Added a build contract for the comprehensive entry and repeatable perspective flow.
+
 ## 0.6.2 - 2026-08-06
 
 ### Changed

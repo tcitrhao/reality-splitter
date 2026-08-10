@@ -65,7 +65,12 @@ const MAX_KIMI_TOOL_ROUNDS = 4;
 
 export async function runAnalysis<M extends QuickAnalysisMode>(
   mode: M,
-  input: TweetInput
+  input: TweetInput,
+  options: {
+    freshPerspective?: boolean;
+    focusedSplit?: boolean;
+    analysisContext?: string;
+  } = {}
 ): Promise<AIResponse<M>> {
   const preparedInput = prepareInputText(input.text);
   const normalizedText = preparedInput.text;
@@ -108,6 +113,9 @@ export async function runAnalysis<M extends QuickAnalysisMode>(
     apiKey: settings.apiKey,
     providerProfile,
     inputProfile,
+    freshPerspective: options.freshPerspective,
+    focusedSplit: options.focusedSplit,
+    analysisContext: options.analysisContext,
     attempt: 1
   });
   const enrichedResult = enrichAnalysisResult({
@@ -334,6 +342,9 @@ async function runModelAttempt<M extends QuickAnalysisMode>(params: {
   apiKey: string;
   providerProfile: ProviderProfile;
   inputProfile: "generic" | "market" | "rumor" | "wealth";
+  freshPerspective?: boolean;
+  focusedSplit?: boolean;
+  analysisContext?: string;
   attempt: 1 | 2;
   temperatureOverride?: number;
 }): Promise<AnalysisResultMap[M]> {
@@ -341,7 +352,10 @@ async function runModelAttempt<M extends QuickAnalysisMode>(params: {
     attempt: params.attempt,
     providerProfile: params.providerProfile,
     inputProfile: params.inputProfile,
-    inputWasCompressed: params.inputWasCompressed
+    inputWasCompressed: params.inputWasCompressed,
+    freshPerspective: params.freshPerspective,
+    focusedSplit: params.focusedSplit,
+    analysisContext: params.analysisContext
   });
 
   let response: Response;

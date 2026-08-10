@@ -9,10 +9,16 @@ import type {
 export interface QuickWorkspaceSession {
   input: TweetInput | null;
   response: AIResponse | null;
+  comprehensiveResponses: Partial<Record<QuickAnalysisMode, AIResponse>>;
   error: string;
   loading: boolean;
   activeMode: QuickAnalysisMode | null;
   requestId: number;
+  followUpResponse: AIResponse | null;
+  followUpError: string;
+  followUpLoading: boolean;
+  followUpMode: QuickAnalysisMode | null;
+  followUpRequestId: number;
 }
 
 export interface LongformWorkspaceSession {
@@ -55,6 +61,18 @@ export interface TabSessionStore {
     requestId: number,
     result: { response?: AIResponse; error?: string }
   ) => void;
+  setQuickRequestStep: (requestId: number, mode: QuickAnalysisMode) => void;
+  resolveQuickRequestStep: (
+    requestId: number,
+    mode: QuickAnalysisMode,
+    response: AIResponse
+  ) => void;
+  finishQuickRequest: (requestId: number, error?: string) => void;
+  beginQuickFollowUpRequest: (mode: QuickAnalysisMode) => PendingQuickRequest | null;
+  resolveQuickFollowUpRequest: (
+    requestId: number,
+    result: { response?: AIResponse; error?: string }
+  ) => void;
   beginLongformRequest: () => PendingLongformRequest | null;
   resolveLongformRequest: (
     requestId: number,
@@ -90,7 +108,8 @@ export function createTabSessionStore(currentUrl: () => string): TabSessionStore
     return {
       ...createQuickWorkspace(),
       input: normalizeTweetInput(input),
-      requestId: snapshot.quick.requestId + 1
+      requestId: snapshot.quick.requestId + 1,
+      followUpRequestId: snapshot.quick.followUpRequestId + 1
     };
   };
 
@@ -171,10 +190,16 @@ export function createTabSessionStore(currentUrl: () => string): TabSessionStore
           ...snapshot.quick,
           input: nextInput,
           response: null,
+          comprehensiveResponses: {},
           error: "",
           activeMode: null,
           requestId: snapshot.quick.requestId + 1,
-          loading: false
+          loading: false,
+          followUpResponse: null,
+          followUpError: "",
+          followUpLoading: false,
+          followUpMode: null,
+          followUpRequestId: snapshot.quick.followUpRequestId + 1
         }
       });
     },
@@ -216,7 +241,14 @@ export function createTabSessionStore(currentUrl: () => string): TabSessionStore
           loading: true,
           error: "",
           activeMode: mode,
-          requestId
+          response: null,
+          comprehensiveResponses: {},
+          requestId,
+          followUpResponse: null,
+          followUpError: "",
+          followUpLoading: false,
+          followUpMode: null,
+          followUpRequestId: snapshot.quick.followUpRequestId + 1
         }
       });
 
@@ -238,6 +270,97 @@ export function createTabSessionStore(currentUrl: () => string): TabSessionStore
           loading: false,
           response: result.response ?? snapshot.quick.response,
           error: result.error ?? ""
+        }
+      });
+    },
+    setQuickRequestStep(requestId, mode) {
+      if (requestId !== snapshot.quick.requestId) {
+        return;
+      }
+
+      publish({
+        ...snapshot,
+        quick: {
+          ...snapshot.quick,
+          activeMode: mode
+        }
+      });
+    },
+    resolveQuickRequestStep(requestId, mode, response) {
+      if (requestId !== snapshot.quick.requestId) {
+        return;
+      }
+
+      publish({
+        ...snapshot,
+        quick: {
+          ...snapshot.quick,
+          response: mode === "split" ? response : snapshot.quick.response,
+          comprehensiveResponses: {
+            ...snapshot.quick.comprehensiveResponses,
+            [mode]: response
+          }
+        }
+      });
+    },
+    finishQuickRequest(requestId, error = "") {
+      if (requestId !== snapshot.quick.requestId) {
+        return;
+      }
+
+      publish({
+        ...snapshot,
+        quick: {
+          ...snapshot.quick,
+          loading: false,
+          error
+        }
+      });
+    },
+    beginQuickFollowUpRequest(mode) {
+      const input = snapshot.quick.input;
+      if (!input?.text.trim() || !snapshot.quick.response) {
+        publish({
+          ...snapshot,
+          quick: {
+            ...snapshot.quick,
+            followUpError: "请先完成一次综合拆解，再继续换视角。"
+          }
+        });
+        return null;
+      }
+
+      const requestId = snapshot.quick.followUpRequestId + 1;
+      publish({
+        ...snapshot,
+        workspaceMode: "quick",
+        quick: {
+          ...snapshot.quick,
+          followUpLoading: true,
+          followUpError: "",
+          followUpMode: mode,
+          followUpRequestId: requestId
+        }
+      });
+
+      return {
+        requestId,
+        mode,
+        input: { ...input }
+      };
+    },
+    resolveQuickFollowUpRequest(requestId, result) {
+      if (requestId !== snapshot.quick.followUpRequestId) {
+        return;
+      }
+
+      publish({
+        ...snapshot,
+        quick: {
+          ...snapshot.quick,
+          followUpLoading: false,
+          followUpResponse: result.response ?? snapshot.quick.followUpResponse,
+          followUpError: result.error ?? ""
         }
       });
     },
@@ -296,10 +419,16 @@ function createQuickWorkspace(): QuickWorkspaceSession {
   return {
     input: null,
     response: null,
+    comprehensiveResponses: {},
     error: "",
     loading: false,
     activeMode: null,
-    requestId: 0
+    requestId: 0,
+    followUpResponse: null,
+    followUpError: "",
+    followUpLoading: false,
+    followUpMode: null,
+    followUpRequestId: 0
   };
 }
 

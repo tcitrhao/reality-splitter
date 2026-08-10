@@ -7,6 +7,7 @@ const manifest = await readJson("dist/manifest.json");
 const sources = await readSources({
   contentScript: "src/content/contentScript.ts",
   drawerApp: "src/extension/drawer/DrawerApp.tsx",
+  actionButtons: "src/sidepanel/components/ActionButtons.tsx",
   drawerController: "src/extension/drawer/drawerController.tsx",
   externalAssistantPanel: "src/extension/drawer/ExternalAssistantPanel.tsx",
   tabSession: "src/application/session/tabSession.ts",
@@ -30,7 +31,10 @@ const sources = await readSources({
   zhipuSearchSettings: "src/shared/zhipuSearch.ts",
   storage: "src/shared/storage.ts",
   messages: "src/shared/messages.ts",
-  portableAnalysis: "src/skills/portable-analysis/index.ts"
+  productCopy: "src/shared/productCopy.ts",
+  prompts: "src/shared/prompts.ts",
+  portableAnalysis: "src/skills/portable-analysis/index.ts",
+  quickPipeline: "src/skills/quick-analysis/pipeline.ts"
 });
 const contentBundle = await read("dist/contentScript.js");
 const serviceWorkerBundle = await read("dist/serviceWorker.js");
@@ -95,6 +99,25 @@ const checks = [
     sources.drawerApp.includes('from "../../sidepanel/components/AnalysisPanel"') &&
       sources.drawerApp.includes('from "../../sidepanel/components/ActionButtons"'),
     "the current-page drawer duplicated shared React result or action components"
+  ),
+  check(
+    sources.productCopy.includes('primaryAction: "开始综合拆解"') &&
+      sources.actionButtons.includes('variant = "primary"') &&
+      sources.drawerApp.includes("beginQuickFollowUpRequest") &&
+      sources.drawerApp.includes("runComprehensiveAnalysisPipeline") &&
+      sources.drawerApp.includes("followUpResponse") &&
+      sources.messages.includes("freshPerspective?: boolean") &&
+      sources.messages.includes("analysisContext?: string") &&
+      sources.serviceWorker.includes("freshPerspective") &&
+      sources.aiClient.includes("freshPerspective: params.freshPerspective") &&
+      sources.prompts.includes("请换一个分析角度") &&
+      sources.quickPipeline.includes('"split"') &&
+      sources.quickPipeline.indexOf('"alternatives"') <
+        sources.quickPipeline.indexOf('"deescalate"') &&
+      sources.quickPipeline.indexOf('"deescalate"') <
+        sources.quickPipeline.indexOf('"experiment"') &&
+      sources.quickPipeline.includes("buildPipelineContext"),
+    "the comprehensive quick flow or repeatable follow-up perspectives are missing"
   ),
   check(
     sources.drawerApp.includes("ExternalAssistantPanel") &&

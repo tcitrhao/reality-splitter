@@ -37,10 +37,34 @@ const quickResponse = {
     }
   }
 };
-store.resolveQuickRequest(quickRequest.requestId, { response: quickResponse });
+store.setQuickRequestStep(quickRequest.requestId, "split");
+store.resolveQuickRequestStep(quickRequest.requestId, "split", quickResponse);
 snapshot = store.getSnapshot();
 assert.equal(snapshot.quick.response, quickResponse);
+assert.equal(snapshot.quick.comprehensiveResponses.split, quickResponse);
 assert.equal(snapshot.longform.loading, true);
+
+store.setQuickRequestStep(quickRequest.requestId, "alternatives");
+assert.equal(store.getSnapshot().quick.activeMode, "alternatives");
+store.finishQuickRequest(quickRequest.requestId);
+assert.equal(store.getSnapshot().quick.loading, false);
+
+const followUpRequest = store.beginQuickFollowUpRequest("alternatives");
+assert.ok(followUpRequest);
+snapshot = store.getSnapshot();
+assert.equal(snapshot.quick.response, quickResponse, "follow-up work must preserve the comprehensive result");
+assert.equal(snapshot.quick.followUpLoading, true);
+
+const followUpResponse = {
+  mode: "alternatives",
+  result: {
+    alternatives: [{ explanation: "另一种可能", whyPossible: "原文信息有限。" }]
+  }
+};
+store.resolveQuickFollowUpRequest(followUpRequest.requestId, { response: followUpResponse });
+snapshot = store.getSnapshot();
+assert.equal(snapshot.quick.response, quickResponse);
+assert.equal(snapshot.quick.followUpResponse, followUpResponse);
 
 const longformResponse = {
   mode: "longform",
@@ -59,11 +83,28 @@ store.setWorkspaceMode("quick");
 const staleRequest = store.beginQuickRequest("split");
 assert.ok(staleRequest);
 store.updateQuickText("用户已经修改了输入。");
-store.resolveQuickRequest(staleRequest.requestId, { response: quickResponse });
+store.resolveQuickRequestStep(staleRequest.requestId, "split", quickResponse);
 snapshot = store.getSnapshot();
 assert.equal(snapshot.quick.response, null, "stale model responses must not overwrite edited input");
+assert.deepEqual(snapshot.quick.comprehensiveResponses, {});
+assert.equal(snapshot.quick.followUpResponse, null, "editing input must clear follow-up perspectives");
 
 const otherTab = createTabSessionStore(() => "https://other.example.com");
 assert.equal(otherTab.getSnapshot().quick.input, null, "each content script owns an isolated tab session");
+
+const partialStore = createTabSessionStore(() => "https://partial.example.com");
+partialStore.open(input, "quick");
+const partialRequest = partialStore.beginQuickRequest("split");
+assert.ok(partialRequest);
+partialStore.resolveQuickRequestStep(partialRequest.requestId, "split", quickResponse);
+partialStore.finishQuickRequest(partialRequest.requestId, "第二步失败");
+const partialSnapshot = partialStore.getSnapshot();
+assert.equal(partialSnapshot.quick.loading, false);
+assert.equal(partialSnapshot.quick.error, "第二步失败");
+assert.equal(
+  partialSnapshot.quick.comprehensiveResponses.split,
+  quickResponse,
+  "completed pipeline steps must survive a later failure"
+);
 
 console.log("TabSession contract verified");

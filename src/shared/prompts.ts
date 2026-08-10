@@ -12,6 +12,9 @@ interface BuildPromptOptions {
   providerProfile?: ProviderProfile;
   inputProfile?: InputProfile;
   inputWasCompressed?: boolean;
+  freshPerspective?: boolean;
+  focusedSplit?: boolean;
+  analysisContext?: string;
 }
 
 const baseSystemPrompt = [
@@ -111,6 +114,30 @@ const splitSchema = {
     neutralRewrite: { type: "string" },
     lowCostVerification: stringArraySchema()
   }
+};
+
+const focusedSplitSchema = {
+  ...splitSchema,
+  required: splitSchema.required.filter(
+    (field) =>
+      ![
+        "alternativeExplanations",
+        "cognitiveRiskNote",
+        "neutralRewrite",
+        "lowCostVerification"
+      ].includes(field)
+  ),
+  properties: Object.fromEntries(
+    Object.entries(splitSchema.properties).filter(
+      ([field]) =>
+        ![
+          "alternativeExplanations",
+          "cognitiveRiskNote",
+          "neutralRewrite",
+          "lowCostVerification"
+        ].includes(field)
+    )
+  )
 };
 
 const deescalateSchema = {
@@ -269,6 +296,22 @@ export function buildPrompt(
       ].join("\n")
     : "";
 
+  const freshPerspectiveHint = options.freshPerspective
+    ? [
+        "这是用户主动发起的再次分析。",
+        "请换一个分析角度，避免只给最常见、最表面的第一反应。",
+        "优先补充容易被忽略的假设、边界或现实反馈，但仍然只能基于原文。"
+      ].join("\n")
+    : "";
+
+  const analysisContextHint = options.analysisContext?.trim()
+    ? [
+        "下面是本次工作流前序步骤的结构化结果，仅作为补充分析材料。",
+        "不要照抄它；请在它的基础上完成当前步骤，并保持与原文一致。",
+        options.analysisContext.trim().slice(0, 9000)
+      ].join("\n")
+    : "";
+
   const systemPrompt =
     providerProfile === "deepseek"
       ? [
@@ -284,7 +327,12 @@ export function buildPrompt(
     split: {
       system: systemPrompt,
       user: [
-        "请把下面这段社交媒体内容做认知分层拆解。",
+        options.focusedSplit
+          ? "请只完成综合工作流的第一步：拆清这段社交媒体内容的事实、观点、推断、预测、刺激机制和来源风险。"
+          : "请把下面这段社交媒体内容做一次完整的综合拆解。",
+        options.focusedSplit
+          ? "不要在这一步生成替代解释、中性改写或小实验，后续步骤会分别深入处理。"
+          : "请按这条思考路径完成：先拆清事实、观点、推断和思维风险；再给替代解释；然后降低刺激；最后转成低成本小实验。",
         "要求：输出简洁、低刺激、不过度推断；如果没有足够信息，请明确写出不确定。",
         "先给 attentionTriage：recommendedAction 只能是 skip、skim、verify、save、delay 之一；attentionCost 只能是 low、medium、high；reason 用一句话解释为什么；nextStep 给一个最小下一步。",
         "分诊标准：信息和用户目标弱相关、证据弱且刺激强时倾向 skip；信息普通但可扫读时用 skim；含重大事实/传闻/投资/职业风险时倾向 verify；确有长期学习价值时用 save；情绪很强或诱导立刻行动时用 delay。",
@@ -292,25 +340,33 @@ export function buildPrompt(
         "propagationLabels 请优先从这 6 个标签里选择 1 到 4 个最贴切的：职业恐慌、财富 FOMO、身份攀比、模糊权威、精确数字诱导、时间压迫。",
         "如果原文出现传闻、模糊来源、未具名主体、具体比例、时间节点、高影响结论、极端战绩、牛人标签、收益截图暗示，请把它们识别到 emotionalTriggers、anxietyThemes、viralityHooks、manipulationSignals 或 sourceReliabilityIssues 中，而不是简单写“没有明显刺激”。",
         "证据强度只允许 strong、medium、weak、unclear 四选一。",
-        "neutralRewrite 必须给出一个更中性的重写版本。",
+        options.focusedSplit
+          ? "重点指出原文容易诱发的思维误区，但只把它们落到观点、推断、刺激线索和来源风险中。"
+          : "cognitiveRiskNote 要指出最值得防范的思维误区；neutralRewrite 必须给出一个更中性的重写版本。",
+        options.focusedSplit
+          ? ""
+          : "lowCostVerification 要组成一个可以立即开始的小实验：写清要核对什么、先做哪一步，以及什么反馈会改变当前判断。",
         retryHint,
         providerHint,
         marketHint,
         rumorHint,
         wealthHint,
         compressionHint,
+        freshPerspectiveHint,
+        analysisContextHint,
         "待分析文本：",
         trimmed
       ]
         .filter(Boolean)
         .join("\n\n"),
-      jsonSchema: splitSchema
+      jsonSchema: options.focusedSplit ? focusedSplitSchema : splitSchema
     },
     deescalate: {
       system: systemPrompt,
       user: [
         "请把下面这段内容改写成更中性、低刺激的版本。",
         "要求：不改变核心意思，不扩展结论，保留不确定性，并指出被削弱的刺激性表达。",
+        "如果提供了前序拆解与替代解释，请利用它们打破唯一叙事，但不要把替代解释写成新事实。",
         "如果原文通过传闻、模糊来源、具体比例、时间节点、极端成功案例或财富 FOMO 制造焦虑，removedStimulusPatterns 里要明确指出。",
         "neutralRewrite 不能为空；removedStimulusPatterns 和 uncertaintyNotes 尽量各给 1 到 3 条。",
         retryHint,
@@ -319,6 +375,8 @@ export function buildPrompt(
         rumorHint,
         wealthHint,
         compressionHint,
+        freshPerspectiveHint,
+        analysisContextHint,
         "待分析文本：",
         trimmed
       ]
@@ -331,6 +389,7 @@ export function buildPrompt(
       user: [
         "请基于下面内容给出 3 到 5 个替代解释。",
         "要求：不要强行反驳原文，只提供其他可能性，帮助用户回到多个假设。",
+        "如果提供了前序拆解，请优先针对其中最关键的推断、预测和证据缺口生成替代解释。",
         "每个 alternatives 项都必须包含 explanation 和 whyPossible。",
         "如果原文是市场总结、情绪表达或结论性语句，可以从样本偏差、信息不足、时间窗口、表达风格、未提及变量等角度给出替代解释。",
         "如果原文像传闻，请优先给出：误传、转述失真、内部讨论被当成正式决定、比例被夸大、对象被模糊化等替代解释。",
@@ -341,6 +400,8 @@ export function buildPrompt(
         rumorHint,
         wealthHint,
         compressionHint,
+        freshPerspectiveHint,
+        analysisContextHint,
         "待分析文本：",
         trimmed
       ]
@@ -353,6 +414,7 @@ export function buildPrompt(
       user: [
         "请把下面内容转成一个低成本验证小实验。",
         "要求：强调现实反馈、低风险、小步验证，避免鼓励 100% all-in。",
+        "如果提供了前序结果，请选择最关键的原主张与替代解释，设计一个能区分它们的现实反馈。",
         "suggestedExperiment 不能为空；steps 尽量给 3 到 5 步；timeLimit 和 allInReplacement 也必须填写。",
         "如果原文是市场判断或情绪判断，小实验优先围绕：查 3 个独立来源、找反例、缩小仓位、延迟决策、记录验证条件。",
         "如果原文像传闻，小实验优先围绕：找原始出处、确认是否有正式文件、区分转述和公告、延迟转发。",
@@ -363,6 +425,8 @@ export function buildPrompt(
         rumorHint,
         wealthHint,
         compressionHint,
+        freshPerspectiveHint,
+        analysisContextHint,
         "待分析文本：",
         trimmed
       ]

@@ -26,8 +26,8 @@ interface ExternalAssistantPanelProps {
 type ExportAction = ExternalAssistantTarget | "copy";
 
 const EXTERNAL_QUICK_METHODS: Array<{ mode: PortableQuickMode; label: string }> = [
-  ...PRODUCT_COPY.actions,
-  { mode: "comprehensive", label: "综合拆解" }
+  { mode: "comprehensive", label: "综合拆解" },
+  ...PRODUCT_COPY.actions
 ];
 
 interface Feedback {
@@ -42,7 +42,7 @@ export function ExternalAssistantPanel({
   preferredQuickMode
 }: ExternalAssistantPanelProps) {
   const [quickMode, setQuickMode] = useState<PortableQuickMode>(
-    preferredQuickMode ?? "split"
+    preferredQuickMode ?? "comprehensive"
   );
   const [busyAction, setBusyAction] = useState<ExportAction | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);

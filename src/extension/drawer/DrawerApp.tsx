@@ -3,7 +3,14 @@ import type { TabSessionStore } from "../../application/session/tabSession";
 import { MESSAGE_TYPES, type AnalysisResponse, type RuntimeResponse } from "../../shared/messages";
 import { PRODUCT_COPY } from "../../shared/productCopy";
 import { ActionButtons } from "../../sidepanel/components/ActionButtons";
-import { AnalysisPanel } from "../../sidepanel/components/AnalysisPanel";
+import {
+  AnalysisPanel,
+  ComprehensiveAnalysisPanel
+} from "../../sidepanel/components/AnalysisPanel";
+import {
+  buildPipelineContext,
+  runComprehensiveAnalysisPipeline
+} from "../../skills/quick-analysis/pipeline";
 import { ExternalAssistantPanel } from "./ExternalAssistantPanel";
 
 interface DrawerAppProps {
@@ -28,22 +35,78 @@ export function DrawerApp({ store, onClose, onOpenModelAdmin }: DrawerAppProps) 
     }
 
     try {
+      await runComprehensiveAnalysisPipeline({
+        onStepStart: (stepMode) => {
+          store.setQuickRequestStep(pending.requestId, stepMode);
+        },
+        onStepComplete: (stepMode, response) => {
+          store.resolveQuickRequestStep(pending.requestId, stepMode, response);
+        },
+        execute: async (stepMode, analysisContext) => {
+          if (store.getSnapshot().quick.requestId !== pending.requestId) {
+            throw new Error("ANALYSIS_CANCELLED");
+          }
+
+          const result = (await chrome.runtime.sendMessage({
+            type: MESSAGE_TYPES.RUN_INLINE_ANALYSIS,
+            payload: {
+              mode: stepMode,
+              input: pending.input,
+              focusedSplit: stepMode === "split",
+              analysisContext
+            }
+          })) as AnalysisResponse;
+
+          if (!result.ok || !result.data) {
+            throw new Error(result.error || "这一步分析失败了，可以稍后再试。");
+          }
+
+          return result.data;
+        }
+      });
+      store.finishQuickRequest(pending.requestId);
+    } catch (error) {
+      if (store.getSnapshot().quick.requestId !== pending.requestId) {
+        return;
+      }
+
+      store.finishQuickRequest(
+        pending.requestId,
+        error instanceof Error && error.message !== "ANALYSIS_CANCELLED"
+          ? error.message
+          : "扩展暂时没有响应，可以刷新页面后再试。"
+      );
+    }
+  };
+
+  const runQuickFollowUp = async (
+    mode: Parameters<typeof store.beginQuickFollowUpRequest>[0]
+  ) => {
+    const pending = store.beginQuickFollowUpRequest(mode);
+    if (!pending) {
+      return;
+    }
+
+    try {
       const result = (await chrome.runtime.sendMessage({
         type: MESSAGE_TYPES.RUN_INLINE_ANALYSIS,
         payload: {
           mode: pending.mode,
-          input: pending.input
+          input: pending.input,
+          freshPerspective: true,
+          focusedSplit: pending.mode === "split",
+          analysisContext: buildPipelineContext(quick.comprehensiveResponses)
         }
       })) as AnalysisResponse;
 
-      store.resolveQuickRequest(
+      store.resolveQuickFollowUpRequest(
         pending.requestId,
         result.ok && result.data
           ? { response: result.data }
-          : { error: result.error || "这次分析失败了，可以稍后再试。" }
+          : { error: result.error || "这次换视角失败了，可以稍后再试。" }
       );
     } catch {
-      store.resolveQuickRequest(pending.requestId, {
+      store.resolveQuickFollowUpRequest(pending.requestId, {
         error: "扩展暂时没有响应，可以刷新页面后再试。"
       });
     }
@@ -184,17 +247,18 @@ export function DrawerApp({ store, onClose, onOpenModelAdmin }: DrawerAppProps) 
         </section>
       )}
 
-      <ExternalAssistantPanel
-        workspaceMode={session.workspaceMode}
-        text={isLongform ? longform.input.articleText : quick.input?.text || ""}
-        sourceUrl={isLongform ? longform.sourceUrl : quick.input?.url}
-        preferredQuickMode={quick.activeMode ?? undefined}
-      />
-
       {loading ? (
         <section className="status-card" aria-live="polite">
-          <h2>{PRODUCT_COPY.status.loadingTitle}</h2>
-          <p>{PRODUCT_COPY.status.loadingBody}</p>
+          <h2>
+            {isLongform
+              ? PRODUCT_COPY.status.loadingTitle
+              : PRODUCT_COPY.quickFlow.stepLabels[quick.activeMode ?? "split"]}
+          </h2>
+          <p>
+            {isLongform
+              ? PRODUCT_COPY.status.loadingBody
+              : PRODUCT_COPY.quickFlow.progressBody}
+          </p>
         </section>
       ) : null}
 
@@ -205,9 +269,53 @@ export function DrawerApp({ store, onClose, onOpenModelAdmin }: DrawerAppProps) 
         </section>
       ) : null}
 
-      <AnalysisPanel
-        response={response}
-        activeMode={isLongform ? "longform" : quick.activeMode}
+      {isLongform ? (
+        <AnalysisPanel response={response} activeMode="longform" />
+      ) : (
+        <ComprehensiveAnalysisPanel
+          responses={quick.comprehensiveResponses}
+          activeMode={quick.activeMode}
+          loading={quick.loading}
+        />
+      )}
+
+      {!isLongform && quick.response && !quick.loading ? (
+        <div className="follow-up-flow">
+          <ActionButtons
+            variant="follow-up"
+            activeMode={quick.followUpMode}
+            disabled={quick.loading}
+            loading={quick.followUpLoading}
+            onRun={(mode) => void runQuickFollowUp(mode)}
+          />
+          {quick.followUpLoading ? (
+            <section className="status-card" aria-live="polite">
+              <h2>正在换个视角</h2>
+              <p>主结果会保留，新的补充结果稍后显示在这里。</p>
+            </section>
+          ) : null}
+          {quick.followUpError ? (
+            <section className="error-banner" role="alert">
+              <strong>{PRODUCT_COPY.status.errorTitle}</strong>
+              <p>{quick.followUpError}</p>
+            </section>
+          ) : null}
+          {quick.followUpResponse ? (
+            <section className="follow-up-result" aria-label="补充视角">
+              <p className="follow-up-result__label">补充视角</p>
+              <AnalysisPanel
+                response={quick.followUpResponse}
+                activeMode={quick.followUpMode}
+              />
+            </section>
+          ) : null}
+        </div>
+      ) : null}
+
+      <ExternalAssistantPanel
+        workspaceMode={session.workspaceMode}
+        text={isLongform ? longform.input.articleText : quick.input?.text || ""}
+        sourceUrl={isLongform ? longform.sourceUrl : quick.input?.url}
       />
     </div>
   );

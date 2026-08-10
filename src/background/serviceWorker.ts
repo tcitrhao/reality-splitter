@@ -142,7 +142,11 @@ async function handleStoredQuickAnalysis(
     };
   }
 
-  return runQuickSkill(message.payload.mode, input);
+  return runQuickSkill(message.payload.mode, input, {
+    freshPerspective: message.payload.freshPerspective,
+    focusedSplit: message.payload.focusedSplit,
+    analysisContext: message.payload.analysisContext
+  });
 }
 
 async function runInlineQuickSkill(
@@ -155,15 +159,28 @@ async function runInlineQuickSkill(
     };
   }
 
-  return runQuickSkill(message.payload.mode, message.payload.input);
+  return runQuickSkill(
+    message.payload.mode,
+    message.payload.input,
+    {
+      freshPerspective: message.payload.freshPerspective,
+      focusedSplit: message.payload.focusedSplit,
+      analysisContext: message.payload.analysisContext
+    }
+  );
 }
 
 async function runQuickSkill(
   mode: RunInlineAnalysisMessage["payload"]["mode"],
-  input: RunInlineAnalysisMessage["payload"]["input"]
+  input: RunInlineAnalysisMessage["payload"]["input"],
+  options: {
+    freshPerspective?: boolean;
+    focusedSplit?: boolean;
+    analysisContext?: string;
+  } = {}
 ): Promise<RuntimeResponse<AIResponse>> {
   try {
-    const result = await runQuickAnalysisSkill(mode, input);
+    const result = await runQuickAnalysisSkill(mode, input, options);
     await setUiError(null);
     return {
       ok: true,

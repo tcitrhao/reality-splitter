@@ -34,6 +34,9 @@ export interface RunAnalysisMessage {
   type: typeof MESSAGE_TYPES.RUN_ANALYSIS;
   payload: {
     mode: QuickAnalysisMode;
+    freshPerspective?: boolean;
+    focusedSplit?: boolean;
+    analysisContext?: string;
   };
 }
 
@@ -47,6 +50,9 @@ export interface RunInlineAnalysisMessage {
   payload: {
     mode: QuickAnalysisMode;
     input: TweetInput;
+    freshPerspective?: boolean;
+    focusedSplit?: boolean;
+    analysisContext?: string;
   };
 }
 

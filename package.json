@@ -1,6 +1,6 @@
 {
   "name": "reality-splitter",
-  "version": "0.6.2",
+  "version": "0.7.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,12 +11,13 @@
     "test:architecture": "node --experimental-strip-types scripts/test-tab-session.mjs",
     "test:model-settings": "node --experimental-strip-types scripts/test-model-settings.mjs",
     "test:portable-analysis": "node --experimental-strip-types --import ./scripts/register-ts-extension-loader.mjs scripts/test-portable-analysis.mjs",
+    "test:comprehensive-pipeline": "node --experimental-strip-types --import ./scripts/register-ts-extension-loader.mjs scripts/test-comprehensive-pipeline.mjs",
     "test:external-assistants": "node --experimental-strip-types --import ./scripts/register-ts-extension-loader.mjs scripts/test-external-assistant-automation.mjs",
     "test:response-parsing": "node --experimental-strip-types --import ./scripts/register-ts-extension-loader.mjs scripts/test-response-parsing.mjs",
     "test:zhipu-search": "node --experimental-strip-types --import ./scripts/register-ts-extension-loader.mjs scripts/test-zhipu-search.mjs",
     "test:chrome": "node scripts/test-real-chrome-extension.mjs",
     "test:entries": "node scripts/test-extension-entries.mjs",
-    "build": "npm run sync:version && tsc --noEmit && npm run test:architecture && npm run test:model-settings && npm run test:portable-analysis && npm run test:response-parsing && npm run test:zhipu-search && vite build && vite build --config vite.content.config.ts && npm run test:entries && npm run verify:build",
+    "build": "npm run sync:version && tsc --noEmit && npm run test:architecture && npm run test:model-settings && npm run test:portable-analysis && npm run test:comprehensive-pipeline && npm run test:response-parsing && npm run test:zhipu-search && vite build && vite build --config vite.content.config.ts && npm run test:entries && npm run verify:build",
     "build:site": "vite build --config vite.website.config.ts",
     "package:extension": "npm run build && node scripts/package-extension.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4173",

@@ -182,7 +182,8 @@ a {
 .status-card,
 .result-card,
 .error-banner,
-.external-assistant-panel {
+.external-assistant-panel,
+.follow-up-panel {
   padding: 16px;
   border: 1px solid var(--line);
   border-radius: 20px;
@@ -371,6 +372,54 @@ a {
   font-weight: 700;
 }
 
+.quick-primary-button {
+  margin-top: 0;
+}
+
+.follow-up-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.follow-up-panel {
+  box-shadow: none;
+}
+
+.follow-up-panel__header h2,
+.follow-up-panel__header p,
+.follow-up-result__label {
+  margin: 0;
+}
+
+.follow-up-panel__header h2 {
+  font-size: 14px;
+}
+
+.follow-up-panel__header p {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.action-grid--follow-up {
+  margin-top: 12px;
+}
+
+.follow-up-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.follow-up-result__label {
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
 .primary-button {
   width: 100%;
   margin-top: 10px;
@@ -405,6 +454,45 @@ a {
   display: flex;
   flex-direction: column;
   gap: 12px;
+}
+
+.comprehensive-path {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.comprehensive-path span {
+  padding: 7px 5px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  text-align: center;
+}
+
+.comprehensive-path span.is-active {
+  background: #24483b;
+  color: #f8f5ec;
+}
+
+.comprehensive-path span.is-complete {
+  color: var(--accent);
+  font-weight: 750;
+}
+
+.comprehensive-stage {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.comprehensive-stage__label {
+  margin: 0;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
 }
 
 .web-search-status {
@@ -514,6 +602,10 @@ a {
 
   .action-grid {
     grid-template-columns: 1fr;
+  }
+
+  .comprehensive-path {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .external-assistant-actions {

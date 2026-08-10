@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { AnalysisPanel } from "./components/AnalysisPanel";
+import { AnalysisPanel, ComprehensiveAnalysisPanel } from "./components/AnalysisPanel";
 import { ActionButtons } from "./components/ActionButtons";
 import { LongformWorkspace } from "./components/LongformWorkspace";
 import { SettingsPanel } from "./components/SettingsPanel";
@@ -25,18 +25,28 @@ import type {
 } from "../shared/types";
 import type { WorkspaceMode } from "../shared/types";
 import { PRODUCT_COPY } from "../shared/productCopy";
+import {
+  buildPipelineContext,
+  runComprehensiveAnalysisPipeline,
+  type ComprehensiveAnalysisResponses
+} from "../skills/quick-analysis/pipeline";
 
 export default function App() {
   const [settings, setSettings] = useState<StoredSettings>(createDefaultSettings);
   const [currentInput, setCurrentInputState] = useState<TweetInput | null>(null);
   const [uiError, setUiErrorState] = useState<string | null>(null);
   const [quickResponse, setQuickResponse] = useState<AIResponse | null>(null);
+  const [quickResponses, setQuickResponses] = useState<ComprehensiveAnalysisResponses>({});
+  const [quickFollowUpResponse, setQuickFollowUpResponse] = useState<AIResponse | null>(null);
   const [longformResponse, setLongformResponse] = useState<AIResponse | null>(null);
   const [quickLoading, setQuickLoading] = useState(false);
+  const [quickFollowUpLoading, setQuickFollowUpLoading] = useState(false);
   const [longformLoading, setLongformLoading] = useState(false);
   const [quickActiveMode, setQuickActiveMode] = useState<QuickAnalysisMode | null>(null);
+  const [quickFollowUpMode, setQuickFollowUpMode] = useState<QuickAnalysisMode | null>(null);
   const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode>(DEFAULT_WORKSPACE_MODE);
   const [quickError, setQuickError] = useState("");
+  const [quickFollowUpError, setQuickFollowUpError] = useState("");
   const [longformError, setLongformError] = useState("");
   const [longformInput, setLongformInput] = useState<LongformCheckInput>({
     articleText: "",
@@ -65,8 +75,12 @@ export default function App() {
       if (changes[STORAGE_KEYS.currentInput]) {
         setCurrentInputState((changes[STORAGE_KEYS.currentInput].newValue as TweetInput | null) ?? null);
         setQuickResponse(null);
+        setQuickResponses({});
+        setQuickFollowUpResponse(null);
         setQuickError("");
+        setQuickFollowUpError("");
         setQuickActiveMode(null);
+        setQuickFollowUpMode(null);
       }
 
       if (changes[STORAGE_KEYS.workspaceMode]) {
@@ -143,24 +157,83 @@ export default function App() {
     setQuickLoading(true);
     setQuickActiveMode(mode);
     setQuickError("");
+    setQuickResponse(null);
+    setQuickResponses({});
+    setQuickFollowUpResponse(null);
+    setQuickFollowUpError("");
+    setQuickFollowUpMode(null);
+
+    try {
+      await runComprehensiveAnalysisPipeline({
+        onStepStart: setQuickActiveMode,
+        onStepComplete: (stepMode, stepResponse) => {
+          setQuickResponses((current) => ({
+            ...current,
+            [stepMode]: stepResponse
+          }));
+          if (stepMode === "split") {
+            setQuickResponse(stepResponse);
+          }
+        },
+        execute: async (stepMode, analysisContext) => {
+          const result = (await chrome.runtime.sendMessage({
+            type: MESSAGE_TYPES.RUN_ANALYSIS,
+            payload: {
+              mode: stepMode,
+              focusedSplit: stepMode === "split",
+              analysisContext
+            }
+          })) as AnalysisResponse;
+
+          if (!result.ok || !result.data) {
+            throw new Error(result.error || "这一步分析失败了，可以稍后再试。");
+          }
+
+          return result.data;
+        }
+      });
+      setUiErrorState(null);
+    } catch (error) {
+      setQuickError(
+        error instanceof Error ? error.message : "这次分析失败了，可以稍后再试。"
+      );
+    } finally {
+      setQuickLoading(false);
+    }
+  };
+
+  const handleRunFollowUp = async (mode: QuickAnalysisMode) => {
+    if (!currentInput?.text || !quickResponse) {
+      setQuickFollowUpError("请先完成一次综合拆解，再继续换视角。");
+      return;
+    }
+
+    setQuickFollowUpLoading(true);
+    setQuickFollowUpMode(mode);
+    setQuickFollowUpError("");
 
     try {
       const result = (await chrome.runtime.sendMessage({
         type: MESSAGE_TYPES.RUN_ANALYSIS,
-        payload: { mode }
+        payload: {
+          mode,
+          freshPerspective: true,
+          focusedSplit: mode === "split",
+          analysisContext: buildPipelineContext(quickResponses)
+        }
       })) as AnalysisResponse;
 
       if (!result.ok || !result.data) {
-        setQuickError(result.error || "这次分析失败了，可以稍后再试。");
+        setQuickFollowUpError(result.error || "这次换视角失败了，可以稍后再试。");
         return;
       }
 
-      setQuickResponse(result.data);
+      setQuickFollowUpResponse(result.data);
       setUiErrorState(null);
     } catch {
-      setQuickError("这次分析失败了，可以稍后再试。");
+      setQuickFollowUpError("这次换视角失败了，可以稍后再试。");
     } finally {
-      setQuickLoading(false);
+      setQuickFollowUpLoading(false);
     }
   };
 
@@ -273,14 +346,56 @@ export default function App() {
         />
       )}
 
+      {workspaceMode === "quick" && quickLoading ? (
+        <section className="status-card" aria-live="polite">
+          <h2>{PRODUCT_COPY.quickFlow.stepLabels[quickActiveMode ?? "split"]}</h2>
+          <p>{PRODUCT_COPY.quickFlow.progressBody}</p>
+        </section>
+      ) : null}
+
       {visibleError ? <div className="error-banner">{visibleError}</div> : null}
 
       <section ref={resultAnchorRef}>
-        <AnalysisPanel
-          response={response}
-          activeMode={workspaceMode === "longform" ? "longform" : quickActiveMode}
-        />
+        {workspaceMode === "longform" ? (
+          <AnalysisPanel response={response} activeMode="longform" />
+        ) : (
+          <ComprehensiveAnalysisPanel
+            responses={quickResponses}
+            activeMode={quickActiveMode}
+            loading={quickLoading}
+          />
+        )}
       </section>
+
+      {workspaceMode === "quick" && quickResponse && !quickLoading ? (
+        <div className="follow-up-flow">
+          <ActionButtons
+            variant="follow-up"
+            activeMode={quickFollowUpMode}
+            disabled={quickLoading}
+            loading={quickFollowUpLoading}
+            onRun={handleRunFollowUp}
+          />
+          {quickFollowUpLoading ? (
+            <section className="status-card" aria-live="polite">
+              <h2>正在换个视角</h2>
+              <p>主结果会保留，新的补充结果稍后显示在这里。</p>
+            </section>
+          ) : null}
+          {quickFollowUpError ? (
+            <div className="error-banner" role="alert">{quickFollowUpError}</div>
+          ) : null}
+          {quickFollowUpResponse ? (
+            <section className="follow-up-result" aria-label="补充视角">
+              <p className="follow-up-result__label">补充视角</p>
+              <AnalysisPanel
+                response={quickFollowUpResponse}
+                activeMode={quickFollowUpMode}
+              />
+            </section>
+          ) : null}
+        </div>
+      ) : null}
 
       <SettingsPanel settings={settings} />
     </main>

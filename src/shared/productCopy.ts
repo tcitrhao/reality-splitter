@@ -28,6 +28,25 @@ export const PRODUCT_COPY = {
     { mode: "alternatives", label: "找替代解释" },
     { mode: "experiment", label: "转成小实验" }
   ] satisfies Array<{ mode: QuickAnalysisMode; label: string }>,
+  quickFlow: {
+    primaryAction: "开始综合拆解",
+    primaryLoading: "综合拆解中...",
+    progressBody: "四个步骤会依次完成，已经生成的结果会立即保留。",
+    stepLabels: {
+      split: "第 1 / 4 步：拆解现实层次",
+      alternatives: "第 2 / 4 步：寻找替代解释",
+      deescalate: "第 3 / 4 步：降低表达刺激",
+      experiment: "第 4 / 4 步：生成小实验"
+    } satisfies Record<QuickAnalysisMode, string>,
+    followUpTitle: "换个视角继续拆",
+    followUpDescription: "主结果会保留。选择一个方向重新生成，不满意可以继续换。",
+    followUpActions: [
+      { mode: "split", label: "再次拆解" },
+      { mode: "alternatives", label: "换一组替代解释" },
+      { mode: "deescalate", label: "再次降低刺激" },
+      { mode: "experiment", label: "重做小实验" }
+    ] satisfies Array<{ mode: QuickAnalysisMode; label: string }>
+  },
   externalAssistants: {
     title: "用其他 AI 拆解",
     description: "一键打开新对话、填入拆解方法并发送；当前版本优先用于离线安装测试。",
@@ -42,7 +61,7 @@ export const PRODUCT_COPY = {
     loadingTitle: "分析中",
     loadingBody: "正在拆解文本，稍等一下。",
     errorTitle: "这次没有成功",
-    emptyQuickResult: "粘贴或通过右键发送文本后，点击上方任一操作，这里会显示结构化结果。",
+    emptyQuickResult: "粘贴或通过右键发送文本后，开始综合拆解，这里会显示完整结果。",
     emptyLongformResult: "贴入长文并点击“开始长文核查”后，这里会显示事实 / 观点结果。"
   },
   results: {
@@ -66,6 +85,8 @@ export const PRODUCT_COPY = {
     evidenceStrength: "证据强度",
     slowingSupport: "降速辅助",
     alternatives: "替代解释",
+    deescalate: "降低刺激",
+    smallExperiment: "转成小实验",
     cognitiveRisk: "认知风险提醒",
     neutralRewrite: "更中性的改写",
     verification: "低成本验证建议",

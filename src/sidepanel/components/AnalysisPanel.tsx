@@ -7,6 +7,10 @@ import type {
   SplitAnalysisResult
 } from "../../shared/types";
 import { PRODUCT_COPY } from "../../shared/productCopy";
+import {
+  COMPREHENSIVE_ANALYSIS_STEPS,
+  type ComprehensiveAnalysisResponses
+} from "../../skills/quick-analysis/pipeline";
 import { getZhipuSearchEngineLabel } from "../../shared/zhipuSearch.ts";
 import { ResultCard } from "./ResultCard";
 
@@ -42,6 +46,64 @@ export function AnalysisPanel({ response, activeMode }: AnalysisPanelProps) {
     default:
       return null;
   }
+}
+
+interface ComprehensiveAnalysisPanelProps {
+  responses: ComprehensiveAnalysisResponses;
+  activeMode: AIResponse["mode"] | null;
+  loading: boolean;
+}
+
+const COMPREHENSIVE_STAGE_LABELS = {
+  split: "拆解",
+  alternatives: "替代解释",
+  deescalate: "降低刺激",
+  experiment: "小实验"
+} as const;
+
+export function ComprehensiveAnalysisPanel({
+  responses,
+  activeMode,
+  loading
+}: ComprehensiveAnalysisPanelProps) {
+  const hasResponse = COMPREHENSIVE_ANALYSIS_STEPS.some((mode) => responses[mode]);
+
+  if (!hasResponse && !loading) {
+    return <AnalysisPanel response={null} activeMode="split" />;
+  }
+
+  return (
+    <div className="stack comprehensive-results">
+      <div className="comprehensive-path" aria-label="综合拆解路径">
+        {COMPREHENSIVE_ANALYSIS_STEPS.map((mode, index) => (
+          <span
+            key={mode}
+            className={`${responses[mode] ? "is-complete" : ""} ${
+              loading && activeMode === mode ? "is-active" : ""
+            }`}
+          >
+            {index + 1}. {COMPREHENSIVE_STAGE_LABELS[mode]}
+          </span>
+        ))}
+      </div>
+
+      {COMPREHENSIVE_ANALYSIS_STEPS.map((mode, index) => {
+        const response = responses[mode];
+        if (!response) {
+          return null;
+        }
+
+        return (
+          <section key={mode} className="comprehensive-stage">
+            <p className="comprehensive-stage__label">
+              {index + 1}. {COMPREHENSIVE_STAGE_LABELS[mode]}
+            </p>
+            <AnalysisPanel response={response} activeMode={mode} />
+          </section>
+        );
+      })}
+    </div>
+  );
 }
 
 function SplitView({ result }: { result: SplitAnalysisResult }) {
@@ -115,16 +177,6 @@ function SplitView({ result }: { result: SplitAnalysisResult }) {
         <StringList items={safeResult.callsToAction} emptyText="没有明显行动号召。" />
         <SectionLabel title={PRODUCT_COPY.results.evidenceStrength} />
         <p>{mapEvidenceStrength(safeResult.evidenceStrength)}</p>
-      </ResultCard>
-      <ResultCard title={PRODUCT_COPY.results.slowingSupport}>
-        <SectionLabel title={PRODUCT_COPY.results.alternatives} />
-        <StringList items={safeResult.alternativeExplanations} emptyText="暂无更合适的替代解释。" />
-        <SectionLabel title={PRODUCT_COPY.results.cognitiveRisk} />
-        <p>{safeResult.cognitiveRiskNote || "这次没有返回额外提醒。"}</p>
-        <SectionLabel title={PRODUCT_COPY.results.neutralRewrite} />
-        <p>{safeResult.neutralRewrite || "这次没有返回改写内容。"}</p>
-        <SectionLabel title={PRODUCT_COPY.results.verification} />
-        <StringList items={safeResult.lowCostVerification} emptyText="暂无验证建议。" />
       </ResultCard>
     </div>
   );
