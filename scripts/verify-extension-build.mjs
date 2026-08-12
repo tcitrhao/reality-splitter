@@ -124,6 +124,7 @@ const checks = [
       sources.externalAssistantPanel.includes("buildPortableAnalysisPrompt") &&
       sources.externalAssistantPanel.includes("navigator.clipboard.writeText") &&
       sources.externalAssistantPanel.includes("requireWebSearch: workspaceMode === \"longform\"") &&
+      sources.externalAssistantPanel.includes("EXTERNAL_ASSISTANT_GROUPS") &&
       sources.messages.includes("OPEN_EXTERNAL_ASSISTANT") &&
       sources.serviceWorker.includes("sendToExternalAssistant") &&
       sources.externalAssistantSend.includes("chrome.scripting.executeScript") &&
@@ -135,13 +136,44 @@ const checks = [
       sources.portableAnalysis.includes("模块四：转成小实验") &&
       sources.externalAssistantTargets.includes("https://chatgpt.com/") &&
       sources.externalAssistantTargets.includes("https://chat.deepseek.com/") &&
+      sources.externalAssistantTargets.includes("https://claude.ai/new") &&
+      sources.externalAssistantTargets.includes("https://gemini.google.com/app") &&
+      sources.externalAssistantTargets.includes("https://grok.com/") &&
+      sources.externalAssistantTargets.includes("https://www.perplexity.ai/") &&
+      sources.externalAssistantTargets.includes("https://copilot.microsoft.com/") &&
+      sources.externalAssistantTargets.includes("https://www.meta.ai/") &&
+      sources.externalAssistantTargets.includes("https://poe.com/") &&
+      sources.externalAssistantTargets.includes("https://www.doubao.com/chat/") &&
+      sources.externalAssistantTargets.includes("https://www.kimi.com/") &&
+      sources.externalAssistantTargets.includes("https://www.qianwen.com/") &&
+      sources.externalAssistantTargets.includes("https://yuanbao.tencent.com/") &&
+      sources.externalAssistantTargets.includes("https://wenxin.baidu.com/") &&
+      sources.externalAssistantTargets.includes("https://chatglm.cn/") &&
+      sources.externalAssistantTargets.includes("https://www.n.cn/") &&
+      sources.externalAssistantPanel.includes("一键发送到") &&
       sources.portableAnalysis.includes("不要输出 JSON"),
     "portable Skill export or external assistant target boundaries are missing"
   ),
   check(
-    manifest.host_permissions?.includes("https://chatgpt.com/*") &&
-      manifest.host_permissions?.includes("https://chat.deepseek.com/*"),
-    "offline one-click assistant hosts are missing from the extension permissions"
+    [
+      "https://chatgpt.com/*",
+      "https://claude.ai/*",
+      "https://gemini.google.com/*",
+      "https://grok.com/*",
+      "https://www.perplexity.ai/*",
+      "https://copilot.microsoft.com/*",
+      "https://www.meta.ai/*",
+      "https://poe.com/*",
+      "https://chat.deepseek.com/*",
+      "https://www.doubao.com/*",
+      "https://www.kimi.com/*",
+      "https://www.qianwen.com/*",
+      "https://yuanbao.tencent.com/*",
+      "https://wenxin.baidu.com/*",
+      "https://chatglm.cn/*",
+      "https://www.n.cn/*"
+    ].every((pattern) => manifest.host_permissions?.includes(pattern)),
+    "external assistant permissions do not cover all 16 one-click targets"
   ),
   check(
     sources.drawerController.includes("createTabSessionStore") &&

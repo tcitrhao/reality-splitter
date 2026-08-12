@@ -26,10 +26,17 @@ export interface WebsiteContent {
     iterationsLinkLabel: string;
     sectionTitle: string;
     sectionDescription: string;
-    sourceLabel: string;
-    sourceText: string;
-    resultLabel: string;
-    results: Array<{ label: string; text: string }>;
+    modes: Array<{
+      title: string;
+      meta: string;
+      body: string;
+      example: {
+        inputLabel: string;
+        input: string;
+        outputLabel: string;
+        results: Array<{ label: string; text: string }>;
+      };
+    }>;
     steps: Array<{ number: string; title: string; body: string }>;
     offlineInstall: {
       title: string;

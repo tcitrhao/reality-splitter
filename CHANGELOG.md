@@ -2,6 +2,25 @@
 
 All notable product changes should be recorded here before a build is shared.
 
+## 0.8.0 - 2026-08-12
+
+### Added
+
+- Expanded portable Skill export to eight representative Chinese assistants and eight US assistants.
+- Added Doubao, Qianwen, DeepSeek, Tencent Yuanbao, Kimi, Wenxin, Zhipu Qingyan and Nano AI under the China group.
+- Added ChatGPT, Gemini, Claude, Grok, Microsoft Copilot, Perplexity, Meta AI and Poe under the US group.
+
+### Changed
+
+- Replaced the growing row of target buttons with one grouped target selector and one primary action.
+- Unified every target under the same `一键发送到` action and shared page-automation fallback.
+- Restricted page access to the 16 named assistant domains and retained copy-only export as a fallback.
+
+### Verification
+
+- Added target grouping, official URL and permission-boundary regressions.
+- Expanded the shared page-adapter regression across all 16 target identifiers.
+
 ## 0.7.0 - 2026-08-10
 
 ### Changed

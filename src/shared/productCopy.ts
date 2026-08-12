@@ -48,14 +48,15 @@ export const PRODUCT_COPY = {
     ] satisfies Array<{ mode: QuickAnalysisMode; label: string }>
   },
   externalAssistants: {
-    title: "用其他 AI 拆解",
-    description: "一键打开新对话、填入拆解方法并发送；当前版本优先用于离线安装测试。",
-    badge: "实验功能",
+    title: "发送到其他 AI",
+    description: "选择目标 AI，一键打开新对话、填入拆解指令并发送。",
+    badge: "16 个平台",
     methodLabel: "拆解方式",
+    targetLabel: "目标 AI",
     copy: "仅复制指令",
     copied: "拆解指令已复制，可以粘贴到任意 AI 对话中。",
     copyFailed: "浏览器没有允许复制。可以刷新页面后重试。",
-    privacy: "点击一键发送即代表你同意把当前文本提交给目标平台；插件不会读取对话历史或保存这次 Prompt。"
+    privacy: "只有点击后才会向目标平台发送当前指令；插件不会读取对话历史，也不会保存这次 Prompt。"
   },
   status: {
     loadingTitle: "分析中",

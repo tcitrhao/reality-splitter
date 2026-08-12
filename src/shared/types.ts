@@ -1,7 +1,23 @@
 export type AnalysisMode = "split" | "deescalate" | "alternatives" | "experiment" | "longform";
 export type QuickAnalysisMode = Exclude<AnalysisMode, "longform">;
 export type WorkspaceMode = "quick" | "longform";
-export type ExternalAssistantTarget = "chatgpt" | "deepseek";
+export type ExternalAssistantTarget =
+  | "chatgpt"
+  | "claude"
+  | "gemini"
+  | "grok"
+  | "perplexity"
+  | "copilot"
+  | "meta"
+  | "poe"
+  | "deepseek"
+  | "doubao"
+  | "kimi"
+  | "qianwen"
+  | "yuanbao"
+  | "wenxin"
+  | "zhipu"
+  | "nami";
 export type ExternalAssistantSearchStatus =
   | "enabled"
   | "automatic"
@@ -13,7 +29,10 @@ export interface ExternalAssistantLaunchResult {
   filled: boolean;
   submitted: boolean;
   searchStatus: ExternalAssistantSearchStatus;
-  reason?: "composer_not_found" | "prompt_not_filled" | "send_not_found";
+  reason?:
+    | "composer_not_found"
+    | "prompt_not_filled"
+    | "send_not_found";
 }
 export type AIProvider = "openai" | "openai-compatible";
 export type InputProfile = "generic" | "market" | "rumor" | "wealth";

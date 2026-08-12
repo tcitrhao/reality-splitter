@@ -1,5 +1,8 @@
 import { useEffect, useState } from "react";
-import { EXTERNAL_ASSISTANT_TARGETS } from "../../infrastructure/externalAssistants/targets";
+import {
+  EXTERNAL_ASSISTANT_GROUPS,
+  EXTERNAL_ASSISTANT_TARGETS
+} from "../../infrastructure/externalAssistants/targets";
 import {
   buildPortableAnalysisPrompt,
   type PortableQuickMode
@@ -44,9 +47,12 @@ export function ExternalAssistantPanel({
   const [quickMode, setQuickMode] = useState<PortableQuickMode>(
     preferredQuickMode ?? "comprehensive"
   );
+  const [selectedTarget, setSelectedTarget] =
+    useState<ExternalAssistantTarget>("chatgpt");
   const [busyAction, setBusyAction] = useState<ExportAction | null>(null);
   const [feedback, setFeedback] = useState<Feedback | null>(null);
   const hasText = Boolean(text.trim());
+  const selectedTargetConfig = EXTERNAL_ASSISTANT_TARGETS[selectedTarget];
 
   useEffect(() => {
     if (preferredQuickMode) {
@@ -56,7 +62,7 @@ export function ExternalAssistantPanel({
 
   useEffect(() => {
     setFeedback(null);
-  }, [workspaceMode, text, quickMode]);
+  }, [workspaceMode, text, quickMode, selectedTarget]);
 
   const exportTo = async (action: ExportAction) => {
     if (!hasText || busyAction) {
@@ -169,22 +175,37 @@ export function ExternalAssistantPanel({
         </label>
       ) : null}
 
+      <label className="external-assistant-method">
+        <span>{PRODUCT_COPY.externalAssistants.targetLabel}</span>
+        <select
+          value={selectedTarget}
+          disabled={Boolean(busyAction)}
+          onChange={(event) =>
+            setSelectedTarget(event.target.value as ExternalAssistantTarget)
+          }
+        >
+          {EXTERNAL_ASSISTANT_GROUPS.map((group) => (
+            <optgroup key={group.id} label={group.label}>
+              {group.targets.map((target) => (
+                <option key={target} value={target}>
+                  {EXTERNAL_ASSISTANT_TARGETS[target].label}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </label>
+
       <div className="external-assistant-actions">
         <button
           type="button"
           className="external-assistant-button"
           disabled={!hasText || Boolean(busyAction)}
-          onClick={() => void exportTo("chatgpt")}
+          onClick={() => void exportTo(selectedTarget)}
         >
-          {busyAction === "chatgpt" ? "正在发送..." : "一键发送 ChatGPT"}
-        </button>
-        <button
-          type="button"
-          className="external-assistant-button"
-          disabled={!hasText || Boolean(busyAction)}
-          onClick={() => void exportTo("deepseek")}
-        >
-          {busyAction === "deepseek" ? "正在发送..." : "一键发送 DeepSeek"}
+          {busyAction === selectedTarget
+            ? "正在发送..."
+            : `一键发送到 ${selectedTargetConfig.label}`}
         </button>
         <button
           type="button"

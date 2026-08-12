@@ -5,13 +5,14 @@ import { createServer } from "node:http";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { runExternalAssistantPageAutomation } from "../src/infrastructure/externalAssistants/pageAutomation.ts";
+import { EXTERNAL_ASSISTANT_TARGETS } from "../src/infrastructure/externalAssistants/targets.ts";
 
 const chromeBinary =
   process.env.CHROME_BINARY ||
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const profileDirectory = await mkdtemp(join(tmpdir(), "reality-splitter-assistant-"));
 const server = createServer((request, response) => {
-  const target = request.url?.includes("deepseek") ? "deepseek" : "chatgpt";
+  const target = new URL(request.url || "/chatgpt", "http://127.0.0.1").pathname.slice(1);
   response.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
   response.end(buildFixture(target));
 });
@@ -40,7 +41,7 @@ try {
   const debugPort = await waitForDevToolsPort(profileDirectory);
   const prompt = "# Reality Splitter\n请核查这段测试文本。";
 
-  for (const target of ["chatgpt", "deepseek"]) {
+  for (const target of Object.keys(EXTERNAL_ASSISTANT_TARGETS)) {
     const pageUrl = `http://127.0.0.1:${address.port}/${target}`;
     const pageTarget = await createPageTarget(debugPort, pageUrl);
     const client = await createCdpClient(pageTarget.webSocketDebuggerUrl);
@@ -76,7 +77,7 @@ try {
     }
   }
 
-  console.log("ChatGPT and DeepSeek one-click page adapters verified in Chrome");
+  console.log("All 16 one-click assistant target identifiers verified in Chrome");
 } finally {
   if (chromeProcess && chromeProcess.exitCode === null) {
     chromeProcess.kill("SIGTERM");

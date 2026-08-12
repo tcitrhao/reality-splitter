@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import {
+  EXTERNAL_ASSISTANT_GROUPS,
   EXTERNAL_ASSISTANT_TARGETS,
   getExternalAssistantUrl,
   isExternalAssistantTarget
@@ -8,6 +9,7 @@ import {
   PORTABLE_SKILL_VERSION,
   buildPortableAnalysisPrompt
 } from "../src/skills/portable-analysis/index.ts";
+import { sendToExternalAssistant } from "../src/infrastructure/externalAssistants/oneClickSend.ts";
 
 const quickExpectations = {
   split: "注意力分诊",
@@ -68,13 +70,73 @@ assert.throws(
 
 assert.equal(getExternalAssistantUrl("chatgpt"), "https://chatgpt.com/");
 assert.equal(getExternalAssistantUrl("deepseek"), "https://chat.deepseek.com/");
+assert.equal(getExternalAssistantUrl("claude"), "https://claude.ai/new");
+assert.equal(getExternalAssistantUrl("doubao"), "https://www.doubao.com/chat/");
 assert.equal(getExternalAssistantUrl("unknown"), null);
 assert.equal(isExternalAssistantTarget("chatgpt"), true);
+assert.equal(isExternalAssistantTarget("yuanbao"), true);
 assert.equal(isExternalAssistantTarget("unknown"), false);
 assert.equal(EXTERNAL_ASSISTANT_TARGETS.chatgpt.label, "ChatGPT");
 assert.equal(
   EXTERNAL_ASSISTANT_TARGETS.deepseek.originPattern,
   "https://chat.deepseek.com/*"
 );
+assert.equal(EXTERNAL_ASSISTANT_GROUPS.length, 2);
+assert.deepEqual(
+  EXTERNAL_ASSISTANT_GROUPS.map((group) => [group.id, group.targets.length]),
+  [["china", 8], ["us", 8]]
+);
+assert.equal(
+  Object.values(EXTERNAL_ASSISTANT_TARGETS).length,
+  16
+);
+assert.equal(new Set(EXTERNAL_ASSISTANT_GROUPS.flatMap((group) => group.targets)).size, 16);
+assert.equal(
+  Object.values(EXTERNAL_ASSISTANT_TARGETS).every(
+    (target) => target.originPattern.startsWith("https://")
+  ),
+  true
+);
+
+const openedTargets = [];
+const injectedTargets = [];
+globalThis.chrome = {
+  tabs: {
+    create: async ({ url }) => {
+      openedTargets.push(url);
+      return { id: openedTargets.length, status: "complete" };
+    }
+  },
+  scripting: {
+    executeScript: async ({ args }) => {
+      injectedTargets.push(args[0]);
+      return [
+        {
+          result: {
+            target: args[0],
+            filled: true,
+            submitted: true,
+            searchStatus: "not_requested"
+          }
+        }
+      ];
+    }
+  }
+};
+
+for (const target of Object.keys(EXTERNAL_ASSISTANT_TARGETS)) {
+  const result = await sendToExternalAssistant({
+    target,
+    prompt: "请拆解这段内容。",
+    requireWebSearch: false
+  });
+  assert.equal(result.target, target);
+  assert.equal(result.submitted, true);
+}
+assert.deepEqual(
+  openedTargets,
+  Object.values(EXTERNAL_ASSISTANT_TARGETS).map((target) => target.url)
+);
+assert.deepEqual(injectedTargets, Object.keys(EXTERNAL_ASSISTANT_TARGETS));
 
 console.log("Portable analysis prompts and external targets verified");

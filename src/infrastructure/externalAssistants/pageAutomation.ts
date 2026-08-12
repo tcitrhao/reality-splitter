@@ -48,21 +48,35 @@ export async function runExternalAssistantPageAutomation(
   };
 
   const findComposer = (): HTMLElement | null => {
-    const selectors =
-      target === "chatgpt"
-        ? [
-            "#prompt-textarea",
-            "textarea[data-testid*='prompt']",
-            "textarea[placeholder]",
-            "[contenteditable='true'][data-virtualkeyboard]",
-            "[contenteditable='true'][role='textbox']"
-          ]
-        : [
-            "textarea[placeholder]",
-            "textarea",
-            "[contenteditable='true'][role='textbox']",
-            "[contenteditable='true']"
-          ];
+    const targetSelectors: Partial<Record<ExternalAssistantTarget, string[]>> = {
+      chatgpt: ["#prompt-textarea", "textarea[data-testid*='prompt']"],
+      claude: [
+        "[contenteditable='true'].ProseMirror",
+        "[contenteditable='true'][data-placeholder]"
+      ],
+      gemini: [
+        "rich-textarea [contenteditable='true']",
+        ".ql-editor[contenteditable='true']"
+      ],
+      copilot: ["textarea#userInput", "textarea[data-testid*='chat-input']"],
+      meta: ["[contenteditable='true'][role='textbox']"],
+      poe: ["textarea[placeholder*='Talk']", "textarea[placeholder*='Message']"],
+      doubao: ["textarea[data-testid*='chat']", "[contenteditable='true'].ProseMirror"],
+      kimi: ["[contenteditable='true'].ProseMirror", "textarea[placeholder]"],
+      qianwen: ["textarea[placeholder]", "[contenteditable='true'].ProseMirror"],
+      yuanbao: ["textarea[placeholder]", "[contenteditable='true'][role='textbox']"],
+      wenxin: ["textarea[placeholder]", "[contenteditable='true'][role='textbox']"],
+      zhipu: ["textarea[placeholder]", "[contenteditable='true'].ProseMirror"],
+      nami: ["textarea[placeholder]", "[contenteditable='true'][role='textbox']"]
+    };
+    const selectors = [
+      ...(targetSelectors[target] ?? []),
+      "textarea[placeholder]",
+      "textarea",
+      "[contenteditable='true'][role='textbox']",
+      "[contenteditable='true'][data-virtualkeyboard]",
+      "[contenteditable='true']"
+    ];
 
     for (const selector of selectors) {
       const candidates = Array.from(document.querySelectorAll(selector));
@@ -224,11 +238,15 @@ export async function runExternalAssistantPageAutomation(
   ): HTMLElement | null => {
     const selectors = [
       "button[data-testid='send-button']",
+      "button[data-testid*='send']",
       "button[type='submit']",
       "button[aria-label*='Send']",
       "button[aria-label*='send']",
       "button[aria-label*='发送']",
-      "[role='button'][aria-label*='发送']"
+      "button[aria-label*='提交']",
+      "button[title*='发送']",
+      "[role='button'][aria-label*='发送']",
+      "[role='button'][aria-label*='Send']"
     ];
 
     for (const selector of selectors) {
@@ -244,9 +262,18 @@ export async function runExternalAssistantPageAutomation(
       }
     }
 
-    const form = composer.closest("form");
-    const submit = form?.querySelector("button:not([disabled])");
-    return submit instanceof HTMLElement && isVisible(submit) ? submit : null;
+    const controls = Array.from(surface.querySelectorAll("button, [role='button']"));
+    const labelledSendControl = controls.find((candidate) => {
+      if (
+        !isVisible(candidate) ||
+        candidate.getAttribute("aria-disabled") === "true" ||
+        candidate.hasAttribute("disabled")
+      ) {
+        return false;
+      }
+      return /(^|\s)(send|submit|发送|提交)(\s|$)/i.test(normalizedLabel(candidate));
+    });
+    return labelledSendControl instanceof HTMLElement ? labelledSendControl : null;
   };
 
   const composer = await waitFor(findComposer, 20_000);

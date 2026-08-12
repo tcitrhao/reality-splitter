@@ -104,6 +104,55 @@ function ProductPage() {
         </div>
       </section>
 
+      <section className="reading-section" id="how-it-works">
+        <div className="reading-section__copy">
+          <SectionTitle
+            title={product.sectionTitle}
+            description={product.sectionDescription}
+          />
+        </div>
+
+        <div className="mode-showcase" aria-label="两种分析模式示例">
+          {product.modes.map((mode) => (
+            <article className="mode-card" key={mode.title}>
+              <header className="mode-card__header">
+                <div className="mode-card__title-row">
+                  <h3>{mode.title}</h3>
+                  <span>{mode.meta}</span>
+                </div>
+                <p>{mode.body}</p>
+              </header>
+
+              <div className="mode-card__input">
+                <span>{mode.example.inputLabel}</span>
+                <p>{mode.example.input}</p>
+              </div>
+
+              <div className="mode-card__output">
+                <span>{mode.example.outputLabel}</span>
+                <ul>
+                  {mode.example.results.map((result) => (
+                    <li key={result.label}>
+                      <strong>{result.label}</strong>
+                      <span>{result.text}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <div className="step-list">
+          {product.steps.map((step) => (
+            <article key={step.number}>
+              <h3>{step.title}</h3>
+              <p>{step.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="offline-install" id="offline-install">
         <div className="offline-install__intro">
           <h2>{product.offlineInstall.title}</h2>
@@ -123,64 +172,46 @@ function ProductPage() {
 
         <p className="offline-install__note">{product.offlineInstall.networkNote}</p>
       </section>
-
-      <section className="reading-section" id="how-it-works">
-        <div className="reading-section__visual">
-          <div className="product-example">
-            <div className="source-text">
-              <span>{product.sourceLabel}</span>
-              <p>{product.sourceText}</p>
-            </div>
-            <div className="split-result">
-              <span>{product.resultLabel}</span>
-              <ul>
-                {product.results.map((result) => (
-                  <li key={result.label}>
-                    <strong>{result.label}</strong>
-                    <span>{result.text}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          <div className="step-list">
-            {product.steps.map((step) => (
-              <article key={step.number}>
-                <h3>{step.title}</h3>
-                <p>{step.body}</p>
-              </article>
-            ))}
-          </div>
-        </div>
-
-        <div className="reading-section__copy">
-          <SectionTitle
-            title={product.sectionTitle}
-            description={product.sectionDescription}
-          />
-        </div>
-      </section>
     </>
   );
 }
 
 function IterationsPage() {
   const page = content.iterationsPage;
+  const [titleLead, ...titleRest] = page.title.split("，");
 
   return (
-    <div className="standalone-page">
-      <PageHero title={page.title} description={page.description} />
+    <div className="standalone-page standalone-page--iterations">
+      <header className="iterations-hero">
+        <div className="iterations-hero__spacer" aria-hidden="true" />
+        <div className="iterations-hero__copy">
+          <span>更新日志</span>
+          <h1>
+            {titleLead}
+            {titleRest.length ? (
+              <>
+                ，<br />
+                {titleRest.join("，")}
+              </>
+            ) : null}
+          </h1>
+          <p>{page.description}</p>
+        </div>
+      </header>
 
       <section className="page-content" aria-label="产品迭代记录">
         <div className="iteration-list iteration-list--page">
-          {content.iterations.map((item) => (
-            <article key={`${item.version}-${item.title}`}>
+          {content.iterations.map((item, index) => (
+            <article
+              key={`${item.version}-${item.title}`}
+              className={index === 0 ? "is-latest" : undefined}
+            >
               <div className="iteration-meta">
-                <span>{item.state}</span>
                 <strong>{item.version}</strong>
+                <span>{item.state}</span>
               </div>
-              <div>
+              <div className="iteration-entry__content">
+                {index === 0 ? <span className="iteration-entry__label">最新更新</span> : null}
                 <h2>{item.title}</h2>
                 <div className="iteration-markdown">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.body}</ReactMarkdown>
@@ -214,14 +245,18 @@ function MeditationsPage() {
   );
 
   return (
-    <div className="standalone-page">
+    <div className="standalone-page standalone-page--meditations">
       <PageHero title={page.title} description={page.description} />
 
       <section className="page-content" aria-label="AI 沉思录文章">
         {longItems.length ? (
           <div className="meditation-stream">
-            {longItems.map((item) => (
-              <LongMeditationEntry key={`${item.index}-${item.title}`} item={item} />
+            {longItems.map((item, index) => (
+              <LongMeditationEntry
+                key={`${item.index}-${item.title}`}
+                item={item}
+                featured={index === 0}
+              />
             ))}
           </div>
         ) : null}
@@ -239,7 +274,13 @@ function meditationFormat(item: { format?: MeditationFormat; body: string }): Me
   return item.format ?? (item.body.trim().length > 600 ? "long" : "short");
 }
 
-function LongMeditationEntry({ item }: { item: (typeof content.meditations)[number] }) {
+function LongMeditationEntry({
+  item,
+  featured = false
+}: {
+  item: (typeof content.meditations)[number];
+  featured?: boolean;
+}) {
   const entry = (
     <>
       <div className="meditation-stream-entry__meta">
@@ -254,7 +295,11 @@ function LongMeditationEntry({ item }: { item: (typeof content.meditations)[numb
   );
 
   return (
-    <article className="meditation-stream-entry meditation-stream-entry--long">
+    <article
+      className={`meditation-stream-entry meditation-stream-entry--long ${
+        featured ? "is-featured" : ""
+      }`}
+    >
       {item.body.trim() ? (
         <a
           className="meditation-stream-entry__link"
@@ -309,7 +354,7 @@ function AboutPage() {
   const page = content.aboutPage;
 
   return (
-    <div className="standalone-page">
+    <div className="standalone-page standalone-page--about">
       <PageHero title={page.title} description={page.description} />
 
       <section className="page-content about-page-content">
