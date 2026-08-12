@@ -178,26 +178,10 @@ function ProductPage() {
 
 function IterationsPage() {
   const page = content.iterationsPage;
-  const [titleLead, ...titleRest] = page.title.split("，");
 
   return (
     <div className="standalone-page standalone-page--iterations">
-      <header className="iterations-hero">
-        <div className="iterations-hero__spacer" aria-hidden="true" />
-        <div className="iterations-hero__copy">
-          <span>更新日志</span>
-          <h1>
-            {titleLead}
-            {titleRest.length ? (
-              <>
-                ，<br />
-                {titleRest.join("，")}
-              </>
-            ) : null}
-          </h1>
-          <p>{page.description}</p>
-        </div>
-      </header>
+      <PageHero title={page.title} description={page.description} />
 
       <section className="page-content" aria-label="产品迭代记录">
         <div className="iteration-list iteration-list--page">
