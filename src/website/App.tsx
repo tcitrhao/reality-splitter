@@ -78,6 +78,10 @@ function SiteHeader({ currentPage }: { currentPage: PageKey }) {
 function SiteFooter() {
   return (
     <footer className="site-footer">
+      <div className="site-footer__identity">
+        <strong>{content.site.brand}</strong>
+        <span>{content.site.footer.statement}</span>
+      </div>
       <p>{content.site.footer.copyright}</p>
     </footer>
   );
@@ -102,6 +106,13 @@ function ProductPage() {
           <a href="#offline-install">{product.howItWorksLabel}</a>
           <a href={pageLinks.iterations}>{product.iterationsLinkLabel}</a>
         </div>
+      </section>
+
+      <section className="product-thesis" aria-labelledby="product-thesis-title">
+        <header>
+          <h2 id="product-thesis-title">{product.thesis.title}</h2>
+        </header>
+        <p>{product.thesis.body}</p>
       </section>
 
       <section className="reading-section" id="how-it-works">
@@ -153,6 +164,20 @@ function ProductPage() {
         </div>
       </section>
 
+      <section className="product-principles" aria-labelledby="principles-title">
+        <header>
+          <h2 id="principles-title">{product.principles.title}</h2>
+        </header>
+        <div className="product-principles__list">
+          {product.principles.items.map((item) => (
+            <article key={item.title}>
+              <h3>{item.title}</h3>
+              <p>{item.body}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
       <section className="offline-install" id="offline-install">
         <div className="offline-install__intro">
           <h2>{product.offlineInstall.title}</h2>
@@ -195,7 +220,6 @@ function IterationsPage() {
                 <span>{item.state}</span>
               </div>
               <div className="iteration-entry__content">
-                {index === 0 ? <span className="iteration-entry__label">最新更新</span> : null}
                 <h2>{item.title}</h2>
                 <div className="iteration-markdown">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{item.body}</ReactMarkdown>

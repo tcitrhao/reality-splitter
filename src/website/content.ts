@@ -13,10 +13,12 @@ export interface WebsiteContent {
       about: string;
     };
     footer: {
+      statement: string;
       copyright: string;
     };
   };
   product: {
+    eyebrow: string;
     title: string;
     statement: string;
     intro: string;
@@ -24,6 +26,11 @@ export interface WebsiteContent {
     storeButtonLabel: string;
     howItWorksLabel: string;
     iterationsLinkLabel: string;
+    thesis: {
+      eyebrow: string;
+      title: string;
+      body: string;
+    };
     sectionTitle: string;
     sectionDescription: string;
     modes: Array<{
@@ -38,6 +45,11 @@ export interface WebsiteContent {
       };
     }>;
     steps: Array<{ number: string; title: string; body: string }>;
+    principles: {
+      eyebrow: string;
+      title: string;
+      items: Array<{ title: string; body: string }>;
+    };
     offlineInstall: {
       title: string;
       description: string;
@@ -46,9 +58,11 @@ export interface WebsiteContent {
     };
   };
   iterationsPage: {
+    eyebrow: string;
     title: string;
     description: string;
     learningLabel: string;
+    next: PageNextContent;
   };
   iterations: Array<{
     state: string;
@@ -58,8 +72,10 @@ export interface WebsiteContent {
     learning: string;
   }>;
   meditationsPage: {
+    eyebrow: string;
     title: string;
     description: string;
+    next: PageNextContent;
   };
   meditations: Array<{
     index: string;
@@ -73,12 +89,15 @@ export interface WebsiteContent {
     readTime?: string;
   }>;
   aboutPage: {
+    eyebrow: string;
     title: string;
     description: string;
     paragraphs: string[];
     principles: Array<{ title: string; body: string }>;
+    next: PageNextContent;
   };
   privacyPage: {
+    eyebrow: string;
     title: string;
     description: string;
     updatedAt: string;
@@ -88,6 +107,12 @@ export interface WebsiteContent {
       paragraphs: string[];
     }>;
   };
+}
+
+interface PageNextContent {
+  eyebrow: string;
+  title: string;
+  label: string;
 }
 
 export const websiteContent = rawContent as WebsiteContent;
