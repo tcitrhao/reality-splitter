@@ -1,0 +1,30 @@
+{
+  "version": "0.1.0",
+  "updatedAt": "2026-08-20",
+  "sources": {
+    "COE2017": { "title": "Information Disorder", "publisher": "Council of Europe", "year": 2017, "url": "https://edoc.coe.int/en/media/7495-information-disorder-toward-an-interdisciplinary-framework-for-research-and-policy-making.html" },
+    "DH2020": { "title": "The Debunking Handbook 2020", "publisher": "Lewandowsky, Cook, Ecker et al.", "year": 2020, "url": "https://digitalcommons.unl.edu/scholcom/245/" },
+    "MISINFO2022": { "title": "The psychological drivers of misinformation belief and its resistance to correction", "publisher": "Nature Reviews Psychology", "year": 2022, "url": "https://www.nature.com/articles/s44159-021-00006-y" },
+    "INOCULATION2022": { "title": "Misinformation: susceptibility, spread, and interventions to immunize the public", "publisher": "Nature Medicine", "year": 2022, "url": "https://www.nature.com/articles/s41591-022-01713-6" },
+    "DIG_LATERAL": { "title": "Lateral Reading", "publisher": "Wineburg and McGrew", "year": 2019, "url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3048994" },
+    "VERIFY_HANDBOOK": { "title": "Verification Handbook", "publisher": "European Journalism Centre", "year": 2020, "url": "https://verificationhandbook.com/" },
+    "UNESCO_MIL": { "title": "Journalism, Fake News and Disinformation", "publisher": "UNESCO", "year": 2018, "url": "https://www.unesco.org/en/articles/unesco-empowers-journalists-counter-disinformation-and-misinformation" },
+    "DISARM": { "title": "DISARM Red Framework", "publisher": "DISARM Foundation", "year": 2026, "url": "https://www.disarm.foundation/framework" },
+    "EEAS_FIMI": { "title": "Information Integrity and Countering FIMI", "publisher": "European External Action Service", "year": 2026, "url": "https://www.eeas.europa.eu/eeas/tackling-disinformation-foreign-information-manipulation-interference_en" },
+    "RAND_FIREHOSE": { "title": "The Russian Firehose of Falsehood Propaganda Model", "publisher": "RAND", "year": 2016, "url": "https://www.rand.org/pubs/perspectives/PE198.html" },
+    "ENTMAN1993": { "title": "Framing: Toward Clarification of a Fractured Paradigm", "publisher": "Journal of Communication", "year": 1993, "url": "https://doi.org/10.1111/j.1460-2466.1993.tb01304.x" },
+    "MCCOMBS1972": { "title": "The Agenda-Setting Function of Mass Media", "publisher": "Public Opinion Quarterly", "year": 1972, "url": "https://doi.org/10.1086/267990" },
+    "BRADY2017": { "title": "Emotion shapes the diffusion of moralized content in social networks", "publisher": "PNAS", "year": 2017, "url": "https://doi.org/10.1073/pnas.1618923114" },
+    "REPETITION2021": { "title": "The effects of repeating false and misleading information on belief", "publisher": "Current Opinion in Psychology", "year": 2021, "url": "https://pubmed.ncbi.nlm.nih.gov/34423562/" },
+    "ACCURACY2022": { "title": "Accuracy prompts are a replicable and generalizable approach for reducing the spread of misinformation", "publisher": "Nature Communications", "year": 2022, "url": "https://www.nature.com/articles/s41467-022-30073-5" },
+    "CIALDINI2013": { "title": "The uses and abuses of influence", "publisher": "Harvard Business Review / PubMed", "year": 2013, "url": "https://pubmed.ncbi.nlm.nih.gov/24730172/" },
+    "META_CIB2021": { "title": "Threat Report on Influence Operations", "publisher": "Meta", "year": 2021, "url": "https://about.fb.com/news/2021/05/influence-operations-threat-report/" },
+    "ASTROTURF2022": { "title": "Coordination patterns reveal online political astroturfing across the world", "publisher": "Scientific Reports", "year": 2022, "url": "https://www.nature.com/articles/s41598-022-08404-9" },
+    "FTC_DARK2022": { "title": "Bringing Dark Patterns to Light", "publisher": "US Federal Trade Commission", "year": 2022, "url": "https://www.ftc.gov/reports/bringing-dark-patterns-light" },
+    "INTERPOL_SOCENG": { "title": "Social engineering scams", "publisher": "INTERPOL", "year": 2026, "url": "https://www.interpol.int/Crimes/Financial-crime/Social-engineering-scams" },
+    "FTC_SCAMS": { "title": "Avoiding scams and imposter scams", "publisher": "US Federal Trade Commission", "year": 2026, "url": "https://consumer.ftc.gov/scams" },
+    "WITNESS_SYNTH": { "title": "Prepare, Don't Panic: Synthetic Media and Deepfakes", "publisher": "WITNESS", "year": 2026, "url": "https://lab.witness.org/projects/synthetic-media-and-deep-fakes/" },
+    "WITNESS_TRIED2025": { "title": "TRIED AI Detection Benchmark", "publisher": "WITNESS", "year": 2025, "url": "https://www.witness.org/ai-detection-global-benchmark-witness-2/" },
+    "C2PA23": { "title": "Content Credentials Explainer 2.3", "publisher": "C2PA", "year": 2026, "url": "https://spec.c2pa.org/specifications/specifications/2.3/explainer/_attachments/Explainer.pdf" }
+  }
+}

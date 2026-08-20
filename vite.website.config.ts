@@ -17,6 +17,9 @@ export default defineConfig({
     rollupOptions: {
       input: {
         index: resolveFromRoot("./index.html"),
+        methods: resolveFromRoot("./methods.html"),
+        factSources: resolveFromRoot("./fact-sources.html"),
+        antiManipulation: resolveFromRoot("./anti-manipulation.html"),
         iterations: resolveFromRoot("./iterations.html"),
         meditations: resolveFromRoot("./meditations.html"),
         about: resolveFromRoot("./about.html"),

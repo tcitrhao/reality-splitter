@@ -4,6 +4,7 @@
     "tagline": "把信息重新分层",
     "navigation": {
       "product": "产品",
+      "methods": "方法",
       "iterations": "迭代",
       "meditations": "AI 沉思录",
       "about": "关于"
@@ -143,6 +144,86 @@
         }
       ],
       "networkNote": "离线安装不等于离线分析：DeepSeek、Kimi 等云模型仍需联网。若使用本机 OpenAI-Compatible 模型服务，可把 Base URL 配置为 localhost。"
+    }
+  },
+  "methodsPage": {
+    "title": "把核查方法公开出来。",
+    "description": "两套互补的工具：一套帮助你找到更合适的证据，一套帮助你识别判断被怎样影响。",
+    "intro": "它们不是一张永久可信的名单，也不是替你宣布真假的机器。它们把信息进入判断之前的两个问题拆开：来源是否值得追，判断是否正在被推动。",
+    "services": [
+      {
+        "kind": "来源与证据",
+        "version": "V1.0 · 公开测试版",
+        "title": "全球事实来源与核查",
+        "summary": "先把主张拆成可以核查的对象，再按证据距离、来源职责、时间和独立性，找到更合适的材料。",
+        "highlights": [
+          "P0–P4 证据距离：从原始记录到发现线索",
+          "Q0–100 主张级质量，而不是给来源永久排名",
+          "支持、反证、冲突与“证据不足”都被保留下来"
+        ],
+        "handbookLabel": "阅读事实来源手册",
+        "handbookUrl": "./fact-sources.html",
+        "dataLabel": "查看来源注册库",
+        "dataUrl": "https://github.com/tcitrhao/reality-splitter/blob/main/content/fact-source-registry-v1.0.json"
+      },
+      {
+        "kind": "来源、语境与行动",
+        "version": "V0.1.0 · 活手册",
+        "title": "反信息操控手册",
+        "summary": "不急着判断发布者是不是恶意，先观察主张、证据、语境、心理压力、传播网络和行动利益。",
+        "highlights": [
+          "S / C / X / P / N / A：六个观察面",
+          "区分事实状态、操控线索、意图归因与现实风险",
+          "30 秒应急卡：停下、拆分、追溯、核验、等待"
+        ],
+        "handbookLabel": "阅读反操控手册",
+        "handbookUrl": "./anti-manipulation.html",
+        "dataLabel": "查看知识库结构",
+        "dataUrl": "https://github.com/tcitrhao/reality-splitter/tree/main/knowledge-base"
+      }
+    ],
+    "workflow": {
+      "title": "一条更慢、也更可靠的路径。",
+      "description": "两套方法可以独立使用，也可以合在一次判断里。先看信息怎样推动你，再决定应该去哪找证据。",
+      "steps": [
+        {
+          "title": "拆主张",
+          "body": "把一句话拆成可核查的最小对象。"
+        },
+        {
+          "title": "看线索",
+          "body": "观察语境、压力、利益与传播方式。"
+        },
+        {
+          "title": "找来源",
+          "body": "按主张类型路由到更接近原始证据的来源。"
+        },
+        {
+          "title": "记证据",
+          "body": "保留支持、反证、限制与版本时间。"
+        },
+        {
+          "title": "再行动",
+          "body": "证据不足时，允许先不做决定。"
+        }
+      ]
+    },
+    "boundaries": {
+      "title": "先说清楚，它们不是什么。",
+      "items": [
+        {
+          "title": "不是黑名单",
+          "body": "来源需要在具体主张、时间和领域里被评价，不存在永久可信或永久不可信。"
+        },
+        {
+          "title": "不是意图裁判",
+          "body": "可观察的线索不等于恶意证明；手册会把“可能”“未观察到”和“无法判断”分开。"
+        },
+        {
+          "title": "不是专业建议",
+          "body": "高风险的法律、医疗、投资和安全问题，仍需要相应领域的专业人士复核。"
+        }
+      ]
     }
   },
   "iterationsPage": {

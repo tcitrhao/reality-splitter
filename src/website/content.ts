@@ -8,6 +8,7 @@ export interface WebsiteContent {
     tagline: string;
     navigation: {
       product: string;
+      methods: string;
       iterations: string;
       meditations: string;
       about: string;
@@ -55,6 +56,31 @@ export interface WebsiteContent {
       description: string;
       steps: Array<{ number: string; title: string; body: string }>;
       networkNote: string;
+    };
+  };
+  methodsPage: {
+    title: string;
+    description: string;
+    intro: string;
+    services: Array<{
+      kind: string;
+      version: string;
+      title: string;
+      summary: string;
+      highlights: string[];
+      handbookLabel: string;
+      handbookUrl: string;
+      dataLabel?: string;
+      dataUrl?: string;
+    }>;
+    workflow: {
+      title: string;
+      description: string;
+      steps: Array<{ title: string; body: string }>;
+    };
+    boundaries: {
+      title: string;
+      items: Array<{ title: string; body: string }>;
     };
   };
   iterationsPage: {

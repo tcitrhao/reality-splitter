@@ -1,0 +1,49 @@
+{
+  "version": "0.1.0",
+  "updatedAt": "2026-08-20",
+  "signalStatus": ["observed", "possible", "not_observed", "not_assessable"],
+  "evidenceStatus": ["supported", "partly_supported", "insufficient", "conflicting", "unverifiable", "not_web_checked"],
+  "intentAttribution": {
+    "allowed": ["not_assessed", "unknown", "behavioral_evidence", "coordinated_evidence"],
+    "default": "not_assessed",
+    "rule": "Never infer intent from wording, emotion, political position, or a single content item."
+  },
+  "riskLevels": {
+    "low": "Mostly ordinary rhetoric or persuasion; no material deception or high-cost action is evident.",
+    "medium": "One or more relevant signals or evidence gaps; proposed actions remain reversible.",
+    "high": "Multiple signals combine, or the content pushes a costly or hard-to-reverse action.",
+    "urgent": "Credentials, remote access, irreversible payment, immediate safety, or acute medical action is involved."
+  },
+  "riskFactors": [
+    "emotional_arousal",
+    "evidence_gap",
+    "source_opacity",
+    "context_damage",
+    "distribution_anomaly",
+    "action_irreversibility"
+  ],
+  "requiredSignalFields": [
+    "patternId",
+    "status",
+    "evidenceSpan",
+    "explanation",
+    "falsePositiveGuard",
+    "verificationStep"
+  ],
+  "prohibitedOutputs": [
+    "Uncalibrated manipulation percentages",
+    "Personality or psychiatric diagnosis from content",
+    "Intent attribution without behavioral, network, or internal evidence",
+    "Claims of fact-checking when no external evidence was used",
+    "Fabricated sources, forensic findings, account networks, or search results",
+    "Medical, legal, investment, safety, or major career decisions made for the user"
+  ],
+  "escalationTriggers": [
+    "irreversible_payment_or_credential_request",
+    "credible_threat_or_doxxing",
+    "high_stakes_synthetic_media_attribution",
+    "medical_or_safety_action",
+    "legal_or_reputational_accusation",
+    "coordinated_network_attribution"
+  ]
+}

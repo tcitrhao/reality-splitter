@@ -1,12 +1,25 @@
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import factSourceHandbook from "../../docs/FACT_SOURCE_HANDBOOK_V1.0.md?raw";
+import antiInformationManipulationHandbook from "../../docs/ANTI_INFORMATION_MANIPULATION_HANDBOOK.md?raw";
 import siteIconUrl from "../../public/icons/icon.svg?url";
 import { websiteContent as content, type MeditationFormat } from "./content";
 
-type PageKey = "product" | "iterations" | "meditations" | "about" | "privacy";
+type PageKey =
+  | "product"
+  | "methods"
+  | "factSources"
+  | "antiManipulation"
+  | "iterations"
+  | "meditations"
+  | "about"
+  | "privacy";
 
 const pageLinks: Record<PageKey, string> = {
   product: "./index.html",
+  methods: "./methods.html",
+  factSources: "./fact-sources.html",
+  antiManipulation: "./anti-manipulation.html",
   iterations: "./iterations.html",
   meditations: "./meditations.html",
   about: "./about.html",
@@ -31,6 +44,31 @@ export default function App() {
       <SiteHeader currentPage={currentPage} />
       <main>
         {currentPage === "product" ? <ProductPage /> : null}
+        {currentPage === "methods" ? <MethodsPage /> : null}
+        {currentPage === "factSources" ? (
+          <HandbookPage
+            title="全球事实来源与核查"
+            description="一套把主张、来源、证据和有限度结论分开的公开方法。"
+            meta="V1.0 · 公开测试版"
+            markdown={factSourceHandbook}
+            secondaryLink={{
+              label: "查看来源注册库",
+              href: "https://github.com/tcitrhao/reality-splitter/blob/main/content/fact-source-registry-v1.0.json"
+            }}
+          />
+        ) : null}
+        {currentPage === "antiManipulation" ? (
+          <HandbookPage
+            title="反信息操控手册"
+            description="一套从来源、主张、语境、压力、传播与行动六个面恢复判断空间的方法。"
+            meta="V0.1.0 · 活手册"
+            markdown={antiInformationManipulationHandbook}
+            secondaryLink={{
+              label: "查看知识库结构",
+              href: "https://github.com/tcitrhao/reality-splitter/tree/main/knowledge-base"
+            }}
+          />
+        ) : null}
         {currentPage === "iterations" ? <IterationsPage /> : null}
         {currentPage === "meditations" ? <MeditationsPage /> : null}
         {currentPage === "about" ? <AboutPage /> : null}
@@ -45,6 +83,7 @@ function SiteHeader({ currentPage }: { currentPage: PageKey }) {
   const navigation = content.site.navigation;
   const items: Array<{ key: Exclude<PageKey, "privacy">; label: string }> = [
     { key: "product", label: navigation.product },
+    { key: "methods", label: navigation.methods },
     { key: "iterations", label: navigation.iterations },
     { key: "meditations", label: navigation.meditations },
     { key: "about", label: navigation.about }
@@ -235,6 +274,142 @@ function IterationsPage() {
       </section>
     </div>
   );
+}
+
+function MethodsPage() {
+  const page = content.methodsPage;
+
+  return (
+    <div className="standalone-page standalone-page--methods">
+      <PageHero title={page.title} description={page.description} />
+
+      <section className="page-content methods-content" aria-label="公开方法服务">
+        <p className="methods-intro">{page.intro}</p>
+
+        <div className="methods-service-grid">
+          {page.services.map((service) => (
+            <article className="methods-service-card" key={service.title}>
+              <div className="methods-service-card__meta">
+                <span>{service.kind}</span>
+                <span>{service.version}</span>
+              </div>
+              <h2>{service.title}</h2>
+              <p className="methods-service-card__summary">{service.summary}</p>
+              <ul>
+                {service.highlights.map((highlight) => (
+                  <li key={highlight}>{highlight}</li>
+                ))}
+              </ul>
+              <div className="methods-service-card__links">
+                <a href={service.handbookUrl} target="_blank" rel="noreferrer">
+                  {service.handbookLabel} <span aria-hidden="true">↗</span>
+                </a>
+                {service.dataUrl ? (
+                  <a href={service.dataUrl} target="_blank" rel="noreferrer">
+                    {service.dataLabel} <span aria-hidden="true">↗</span>
+                  </a>
+                ) : null}
+              </div>
+            </article>
+          ))}
+        </div>
+
+        <section className="methods-workflow" aria-labelledby="methods-workflow-title">
+          <header>
+            <h2 id="methods-workflow-title">{page.workflow.title}</h2>
+            <p>{page.workflow.description}</p>
+          </header>
+          <ol>
+            {page.workflow.steps.map((step) => (
+              <li key={step.title}>
+                <strong>{step.title}</strong>
+                <span>{step.body}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="methods-boundaries" aria-labelledby="methods-boundaries-title">
+          <header>
+            <h2 id="methods-boundaries-title">{page.boundaries.title}</h2>
+          </header>
+          <div className="methods-boundaries__list">
+            {page.boundaries.items.map((item) => (
+              <article key={item.title}>
+                <h3>{item.title}</h3>
+                <p>{item.body}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      </section>
+    </div>
+  );
+}
+
+function HandbookPage({
+  title,
+  description,
+  meta,
+  markdown,
+  secondaryLink
+}: {
+  title: string;
+  description: string;
+  meta: string;
+  markdown: string;
+  secondaryLink: { label: string; href: string };
+}) {
+  return (
+    <div className="standalone-page method-handbook-page">
+      <PageHero title={title} description={description} />
+
+      <section className="page-content method-handbook-content">
+        <div className="method-handbook-tools">
+          <a href={pageLinks.methods}>← 返回方法</a>
+          <span>{meta}</span>
+          <a href={secondaryLink.href} target="_blank" rel="noreferrer">
+            {secondaryLink.label} ↗
+          </a>
+        </div>
+        <div className="markdown-body">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              a: ({ href, children, ...props }) => (
+                <a
+                  {...props}
+                  href={resolveHandbookLink(href)}
+                  target={href?.startsWith("http") ? "_blank" : undefined}
+                  rel={href?.startsWith("http") ? "noreferrer" : undefined}
+                >
+                  {children}
+                </a>
+              )
+            }}
+          >
+            {markdown}
+          </ReactMarkdown>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function resolveHandbookLink(href?: string) {
+  if (!href) {
+    return "#";
+  }
+
+  if (href.endsWith("ANTI_INFORMATION_MANIPULATION_HANDBOOK.md")) {
+    return pageLinks.antiManipulation;
+  }
+
+  if (href.endsWith("fact-source-registry-v1.0.json")) {
+    return "https://github.com/tcitrhao/reality-splitter/blob/main/content/fact-source-registry-v1.0.json";
+  }
+
+  return href;
 }
 
 function MeditationsPage() {

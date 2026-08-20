@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reality-splitter.local/schemas/manipulation-pattern.json",
+  "title": "Reality Splitter information manipulation pattern",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "category",
+    "definition",
+    "indicators",
+    "mechanisms",
+    "checks",
+    "guard",
+    "actions",
+    "modalities",
+    "layers",
+    "stakes",
+    "observability",
+    "refs",
+    "intentPolicy"
+  ],
+  "properties": {
+    "id": { "type": "string", "pattern": "^[A-Z]{3}-[0-9]{2}$" },
+    "name": { "type": "string", "minLength": 2 },
+    "category": {
+      "enum": [
+        "source_identity",
+        "claim_evidence",
+        "context_media",
+        "language_logic",
+        "psychological_pressure",
+        "narrative_framing",
+        "network_distribution",
+        "interface_commerce",
+        "synthetic_media",
+        "scam_social_engineering"
+      ]
+    },
+    "definition": { "type": "string", "minLength": 8 },
+    "indicators": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "mechanisms": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "checks": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "guard": { "type": "string", "minLength": 8 },
+    "actions": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "modalities": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "enum": ["text", "image", "chart", "screenshot", "audio", "video", "live", "account", "network", "interface", "ai"] }
+    },
+    "layers": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "enum": ["source", "claim", "context", "pressure", "network", "action"] }
+    },
+    "stakes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "enum": ["low", "money", "credentials", "privacy", "health", "safety", "reputation", "civic"] }
+    },
+    "observability": { "enum": ["single_item", "cross_source", "cross_account", "forensic", "professional_only"] },
+    "refs": { "type": "array", "items": { "type": "string" } },
+    "intentPolicy": { "const": "do_not_infer_from_single_item" }
+  }
+}
